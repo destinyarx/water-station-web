@@ -1,0 +1,15 @@
+▲ Next.js 16.2.7 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://172.24.176.1:3002
+- Environments: .env
+✓ Ready in 1282ms
+Creating turbopack project {
+  dir: 'C:\\Users\\AlphaQuadrant\\Documents\\0 self project\\Agent Projects\\water-station-web',
+  testMode: true
+}
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+[?25h

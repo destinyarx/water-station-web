@@ -1,0 +1,8 @@
+export { LandingNavbar } from './components/landing-navbar'
+export { LandingHero } from './components/landing-hero'
+export { ProblemSection } from './components/problem-section'
+export { FeaturesSection } from './components/features-section'
+export { DashboardPreview } from './components/dashboard-preview'
+export { CtaBand } from './components/cta-band'
+export { FaqAccordion } from './components/faq-accordion'
+export { LandingFooter } from './components/landing-footer'
