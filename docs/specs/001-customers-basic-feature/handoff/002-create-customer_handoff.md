@@ -29,7 +29,7 @@ query invalidation (no full page reload).
 
 ## Files to Read First
 
-- `docs/CONSTITUTIONS.md`, `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`, `docs/SECURITY.md`, root `AGENTS.md`
+- `docs/CONSTITUTION.md`, `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`, `docs/SECURITY.md`, root `AGENTS.md`
 - `docs/specs/001-customers-basic-feature/prd.md` — **Validation Rules** section
   (name required ≤100; `is_business` defaults false; `contact_number` ≤15;
   `facebook_url` valid URL; address fields optional; lat/long range checks).

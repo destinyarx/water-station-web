@@ -6,8 +6,7 @@ import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
 import {
   BadgeDollarSign,
-  ChevronLeft,
-  Droplets,
+  PanelLeft,
   LayoutDashboard,
   Menu,
   Package,
@@ -100,6 +99,7 @@ export function AppSidebar() {
             AquaFlow
           </span>
         </Link>
+
         <div className="flex items-center gap-2">
           <UserButton />
           <Button
@@ -118,7 +118,7 @@ export function AppSidebar() {
 
       {isMobileOpen ? (
         <div className="border-b border-hairline/60 bg-cloud/95 p-3 shadow-[0_16px_40px_rgba(79,181,232,0.12)] backdrop-blur-xl md:hidden">
-          <nav aria-label="Primary mobile navigation" className="space-y-1">
+          <nav aria-label="Primary mobile navigation" className="space-y-3">
             {navItems.map((item) => (
               <SidebarLink
                 key={item.href}
@@ -134,8 +134,8 @@ export function AppSidebar() {
 
       <aside
         className={cn(
-          'sticky top-0 hidden h-screen shrink-0 overflow-hidden border-r border-[#dcecff] bg-white/75 p-3 shadow-[18px_0_55px_rgba(0,48,73,0.08)] backdrop-blur-xl transition-[width] duration-300 md:block',
-          isCollapsed ? 'w-[88px]' : 'w-72'
+          'sticky top-0 hidden h-screen shrink-0 overflow-hidden border-r border-[#ddebff] bg-white/70 p-3 shadow-[0_8px_24px_rgba(0,48,73,0.08)] backdrop-blur-md transition-[width] duration-300 md:block',
+          isCollapsed ? 'w-22' : 'w-72'
         )}
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_30%_20%,rgba(0,180,216,0.18),transparent_38%),radial-gradient(circle_at_85%_8%,rgba(0,245,212,0.16),transparent_34%)]" />
@@ -167,14 +167,11 @@ export function AppSidebar() {
                 )}
               >
                 AquaFlow
-                <span className="block font-sans text-xs font-medium text-[#2a4b6a]">
-                  refill operations
-                </span>
               </span>
             </Link>
           </div>
 
-          <div className="relative mt-3 px-1">
+          <div className={cn("flex w-full mt-7 mb-2", isCollapsed ? ' justify-center' : 'justify-end')}>
             <Button
               type="button"
               variant="ghost"
@@ -182,45 +179,17 @@ export function AppSidebar() {
               aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               aria-expanded={!isCollapsed}
               onClick={toggleSidebar}
-              className={cn(
-                'rounded-lg border border-[#dcecff] bg-[#eef7ff]/80 text-[#00414f] shadow-[0_8px_24px_rgba(0,48,73,0.06)] hover:bg-[#dff3ff]',
-                !isCollapsed && 'w-full justify-start gap-2'
-              )}
-            >
-              <ChevronLeft
+              className="rounded-md border border-[#ddebff] bg-[#f0f7ff]/80 text-[#00414f] shadow-[0_8px_24px_rgba(0,48,73,0.06)] transition-all duration-200 hover:bg-[#dff3ff]">
+
+              <PanelLeft
                 className={cn(
-                  'size-4 transition-transform',
-                  isCollapsed && 'rotate-180'
+                  'size-5 transition-transform',
                 )}
               />
-              <span className={cn(isCollapsed && 'sr-only')}>
-                Collapse sidebar
-              </span>
             </Button>
           </div>
 
-          <div
-            className={cn(
-              'relative mt-5 overflow-hidden rounded-2xl border border-white/80 bg-[#eef7ff]/80 p-3 shadow-[0_8px_24px_rgba(0,48,73,0.06)]',
-              isCollapsed && 'hidden'
-            )}
-          >
-            <div className="flex items-center gap-2 text-[#00414f]">
-              <span className="flex size-8 items-center justify-center rounded-xl bg-white text-[#00b4d8] shadow-sm">
-                <Droplets className="size-4" />
-              </span>
-              <div>
-                <p className="font-heading text-sm font-semibold">
-                  Spring-ready
-                </p>
-                <p className="text-xs text-[#2a4b6a]">
-                  Customers, refills, and delivery routes.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <nav aria-label="Primary navigation" className="relative mt-6 space-y-1">
+          <nav aria-label="Primary navigation" className="relative mt-3 space-y-1">
             {navItems.map((item) => (
               <SidebarLink
                 key={item.href}
@@ -233,8 +202,8 @@ export function AppSidebar() {
 
           <div
             className={cn(
-              'relative mt-auto flex items-center gap-3 rounded-2xl border border-[#dcecff] bg-white/80 px-3 py-3 shadow-[0_8px_24px_rgba(0,48,73,0.06)]',
-              isCollapsed && 'justify-center rounded-full bg-transparent px-0'
+              'relative mt-auto flex items-center gap-3 rounded-2xl border border-[#ddebff] bg-white/80 px-3 py-3 shadow-[0_8px_24px_rgba(0,48,73,0.08)]',
+              isCollapsed && 'justify-center rounded-md bg-transparent px-0'
             )}
           >
             <UserButton />
@@ -277,11 +246,11 @@ function SidebarLink({
       variant="ghost"
       size="lg"
       className={cn(
-        'h-11 w-full rounded-full px-3 text-slate transition-all hover:bg-aqua-mist/55 hover:text-aqua-deep',
+        'h-11 w-full rounded-md px-3 text-[#2a4b6a] transition-all duration-200 hover:bg-[#f0f7ff] hover:text-[#03045e]',
         'focus-visible:ring-[#00b4d8]/30',
         isCollapsed ? 'justify-center' : 'justify-start gap-3',
         isActive &&
-          'bg-[#00b4d8] text-white shadow-[0_12px_30px_rgba(0,180,216,0.28)] hover:bg-[#009ec2] hover:text-white'
+          'bg-[#00b4d8] text-white shadow-[0_8px_24px_rgba(0,180,216,0.28)] hover:bg-[#00b4d8] hover:text-white'
       )}
     >
       <Link
@@ -290,8 +259,8 @@ function SidebarLink({
         aria-current={isActive ? 'page' : undefined}
         title={isCollapsed ? item.title : undefined}
       >
-        <Icon className="size-5" aria-hidden="true" />
-        <span className={cn('font-medium', isCollapsed && 'sr-only')}>
+        <Icon className="size-7" aria-hidden="true" />
+        <span className={cn('text-lg', isCollapsed && 'sr-only')}>
           {item.title}
         </span>
         {isActive && !isCollapsed ? (

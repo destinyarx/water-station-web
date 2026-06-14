@@ -1,4 +1,4 @@
-
+# Agent Instructions
 
 ## Project Context
 
@@ -6,18 +6,18 @@ This project is a Water Refilling Station Management System for small water refi
 
 Do not treat this as a generic CRUD dashboard. Features should be designed around real water station workflows, especially refill services, container pickup/return, bottled water sales, product inventory, delivery scheduling, and business expense tracking.
 
-The app is multi-tenant. Each organization represents one water refilling station business. All organization-owned data must be scoped by org_id, and users must never access data from another organization.
+The app is multi-tenant. Each organization represents one water refilling station business. All organization-owned data must be scoped by `org_id`, and users must never access data from another organization.
 
 The app has two main roles:
 
-Owner: can manage and monitor organization-wide records, sales, expenses, products, deliveries, customers, and maintenance.
-Staff: handles day-to-day operations such as managing customers, creating deliveries, updating delivery statuses, and recording allowed operational data.
+- Owner: can manage and monitor organization-wide records, sales, expenses, products, deliveries, customers, and maintenance.
+- Staff: handles day-to-day operations such as managing customers, creating deliveries, updating delivery statuses, and recording allowed operational data.
 
-Use Clerk for user identity. When creating records, created_by should come from the authenticated Clerk user ID, and org_id should come from the current user's organization/session metadata. These values should not be manually entered in forms.
+Use Clerk for user identity. When creating records, `created_by` must come from the authenticated Clerk user ID, and `org_id` must come from the current user's organization/session metadata. These values must not be manually entered in forms.
 
-When a table includes deleted_at, prefer soft delete by setting deleted_at = now() and exclude soft-deleted records from active lists.
+When a table includes `deleted_at`, prefer soft delete by setting `deleted_at = now()` and exclude soft-deleted records from active lists.
 
-The UI should feel like a clean, professional SaaS dashboard with a subtle water/purity/freshness direction. Always follow docs/DESIGN.md for design decisions and existing project patterns.
+The UI should feel like a clean, professional SaaS dashboard with a subtle water/purity/freshness direction. Always follow `docs/DESIGN.md` for design decisions and existing project patterns.
 
 Before implementing a feature, consider how it fits the water refilling station workflow, the owner/staff roles, and the organization-scoped data model.
 
@@ -26,12 +26,18 @@ Before implementing a feature, consider how it fits the water refilling station 
 This file gives AI coding agents project-level instructions before they create, edit, refactor, or review code.
 
 Agents must follow this file together with:
-** te following markdown files is located at folder docs\specs **
-* `CONSTITUTIONS.md`
-* `ARCHITECTURE.md`
-* `SECURITY.md`
-* the active feature spec inside `/specs`
-* the project’s existing code conventions
+
+- `docs/CONSTITUTION.md`
+- `docs/ARCHITECTURE.md`
+- `docs/CODING_STANDARDS.md`
+- `docs/SECURITY.md`
+- `docs/AI-GUARDRAILS.md`
+- `CONTEXT.md` when the task affects product behavior or domain language
+- `docs/DATABASE.md` when the task touches Supabase tables, RLS, `org_id`, `created_by`, or `deleted_at`
+- `docs/DESIGN.md` when the task touches frontend UI
+- `docs/TESTING.md` when adding or changing tests
+- the relevant feature spec under `docs/specs/`
+- the project's existing code conventions
 
 Do not invent product goals, app features, or business requirements unless they are explicitly written in a spec file.
 
@@ -43,37 +49,40 @@ Do not invent product goals, app features, or business requirements unless they 
 
 Before coding, the agent must:
 
-1. `docs/CONSTITUTION.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/CODING_STANDARDS.md`
-4. `docs/SECURITY.md`
-5. If the code involves building frontend, refer to `docs/DESIGN.md` for design system.
-6. If the task involves test using vitest, refer to `docs/TESTING.md`.
-7. The relevant folder inside `specs/` but dont read it if the task is not relevant to the spec.
-8. Identify unclear requirements.
-9.  Ask only necessary questions.
-10. Prefer editing existing patterns over creating new abstractions.
-11. Avoid changing architecture unless the spec requires it.
+1. Read `docs/CONSTITUTION.md`.
+2. Read `docs/ARCHITECTURE.md`.
+3. Read `docs/CODING_STANDARDS.md`.
+4. Read `docs/SECURITY.md`.
+5. Read `docs/AI-GUARDRAILS.md`.
+6. Read `CONTEXT.md` when the task affects product behavior or domain language.
+7. Read `docs/DATABASE.md` when the task touches Supabase tables, RLS, `org_id`, `created_by`, or `deleted_at`.
+8. Read `docs/DESIGN.md` when the task touches frontend UI.
+9. Read `docs/TESTING.md` when adding or changing tests.
+10. Read the relevant feature folder under `docs/specs/` when the task is tied to a feature spec.
+11. Identify unclear requirements.
+12. Ask only necessary questions.
+13. Prefer editing existing patterns over creating new abstractions.
+14. Avoid changing architecture unless the spec requires it.
 
 During coding, the agent must:
 
-* follow the existing project structure
-* keep changes small and focused
-* use TypeScript strictly
-* avoid `any`
-* avoid unnecessary abstractions
-* handle loading, error, and empty states
-* keep security rules intact
-* update related docs if behavior changes
+- follow the existing project structure
+- keep changes small and focused
+- use TypeScript strictly
+- avoid `any`
+- avoid unnecessary abstractions
+- handle loading, error, and empty states
+- keep security rules intact
+- update related docs if behavior changes
 
 After coding, the agent must report:
 
-* files changed
-* summary of changes
-* assumptions made
-* commands run
-* tests/lint/typecheck result
-* remaining manual steps
+- files changed
+- summary of changes
+- assumptions made
+- commands run
+- tests/lint/typecheck result
+- remaining manual steps
 
 ---
 
@@ -98,14 +107,13 @@ Follow this workflow:
 For each feature or module, create or use:
 
 ```txt
-specs/[feature-or-module]/
-  spec.md
-  plan.md
-  tasks.md
+docs/specs/[nnn-feature-name]/
+  prd.md
+  REQUIREMENTS.md
+  ACCEPTANCE.md
   research.md
-  data-model.md
-  contracts.md
-  quickstart.md
+  issues/
+    001-foundation.md
 ```
 
 If the user is still planning and no feature exists yet, only prepare the framework and templates.
@@ -139,10 +147,10 @@ While a mutation is pending, the system shall disable the submit button.
 
 Requirements must be:
 
-* specific
-* testable
-* implementation-neutral when possible
-* free from vague words like “fast,” “simple,” or “better” unless measurable
+- specific
+- testable
+- implementation-neutral when possible
+- free from vague words like "fast," "simple," or "better" unless measurable
 
 ---
 
@@ -232,7 +240,7 @@ Use the Supabase SDK for normal database queries.
 
 Do not use raw `fetch` for normal Supabase database queries.
 
-Keep Supabase query logic inside services.
+Keep Supabase query logic inside feature services.
 
 Never expose:
 
@@ -251,7 +259,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```
 
-Use the project’s existing public key convention.
+Use the project's existing public key convention.
 
 Always handle Supabase errors.
 
@@ -317,18 +325,18 @@ Use Zustand only for client/UI state.
 
 Good use cases:
 
-* modal open/close state
-* selected row IDs
-* sidebar state
-* local wizard state
-* temporary UI preferences
+- modal open/close state
+- selected row IDs
+- sidebar state
+- local wizard state
+- temporary UI preferences
 
 Do not use Zustand for:
 
-* Supabase query results
-* data already managed by TanStack Query
-* React Hook Form state
-* one giant global app store
+- Supabase query results
+- data already managed by TanStack Query
+- React Hook Form state
+- one giant global app store
 
 ---
 
@@ -338,13 +346,13 @@ Use React Hook Form with Zod for forms.
 
 Form rules:
 
-* define form validation with Zod
-* infer form values with `z.infer`
-* use `zodResolver`
-* disable submit while pending
-* show validation messages
-* keep Supabase calls outside form components
-* pass submit logic into the form component
+- define form validation with Zod
+- infer form values with `z.infer`
+- use `zodResolver`
+- disable submit while pending
+- show validation messages
+- keep Supabase calls outside form components
+- pass submit logic into the form component
 
 ---
 
@@ -356,12 +364,12 @@ Use Tailwind CSS for styling.
 
 Rules:
 
-* prefer shadcn components before custom primitives
-* use `cn()` for conditional class names
-* avoid inline styles unless necessary
-* keep spacing consistent
-* avoid arbitrary Tailwind values unless needed
-* do not over-abstract simple UI
+- prefer shadcn components before custom primitives
+- use `cn()` for conditional class names
+- avoid inline styles unless necessary
+- keep spacing consistent
+- avoid arbitrary Tailwind values unless needed
+- do not over-abstract simple UI
 
 ---
 
@@ -369,17 +377,17 @@ Rules:
 
 Before finishing, check:
 
-* typecheck passes
-* lint passes
-* tests pass if available
-* no `any`
-* no ignored TypeScript errors
-* no exposed secrets
-* Supabase errors are handled
-* RLS assumptions are documented
-* query keys are arrays
-* mutations invalidate affected queries
-* loading/error/empty states exist
-* files follow feature structure
+- typecheck passes
+- lint passes
+- tests pass if available
+- no `any`
+- no ignored TypeScript errors
+- no exposed secrets
+- Supabase errors are handled
+- RLS assumptions are documented
+- query keys are arrays
+- mutations invalidate affected queries
+- loading/error/empty states exist
+- files follow feature structure
 
 ---

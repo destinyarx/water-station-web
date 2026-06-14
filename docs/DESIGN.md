@@ -159,3 +159,15 @@ The shape language is consistently **Rounded**, reflecting a modern and approach
 - **Cards:** White backgrounds against the #F0F7FF surface. Include a very soft 1px border (#E1E9F2). Use Satoshi Bold for card headers in Deep Navy.
 - **Data Visuals:** Charts should primarily use Ocean Blue and Neon Teal. Grid lines in charts should be extremely faint (#E1E9F2) to keep the focus on the data trend.
 - **Progress Bars:** Use a high-contrast track (#E1E9F2) with a Neon Teal fill for active progress.
+
+## Dashboard UI Rules
+
+This is an operational dashboard, not a marketing site.
+
+- Prioritize readable tables, forms, dialogs, filters, and status indicators.
+- Use shadcn/ui components before custom primitives.
+- Use glass effects only for navigation or overlays when they improve clarity.
+- Avoid decorative blur/orb backgrounds in workflow screens.
+- Every data view must handle loading, error, empty, and populated states.
+- Tables must remain readable on small screens through responsive layout, horizontal scroll, or simplified mobile presentation.
+- Keep workflow screens restrained, scannable, and optimized for owners and staff doing daily station work.

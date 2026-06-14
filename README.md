@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Water Station Web
 
-## Getting Started
+A Water Refilling Station Management System for small water refilling businesses.
 
-First, run the development server:
+The app is designed around real water station workflows: customers, refill services, bottled water products, container handling, deliveries, sales, expenses, inventory, and maintenance.
+
+## Stack
+
+- Next.js App Router
+- TypeScript
+- Clerk
+- Supabase
+- TanStack Query
+- TanStack Table
+- React Hook Form
+- Zod
+- shadcn/ui
+- Tailwind CSS
+- Vitest
+
+## Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run lint
+npm run test
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Documentation Map
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `AGENTS.md` - primary instructions for AI coding agents
+- `CONTEXT.md` - product and domain language
+- `docs/CONSTITUTION.md` - non-negotiable engineering rules
+- `docs/ARCHITECTURE.md` - architecture and folder structure
+- `docs/CODING_STANDARDS.md` - implementation standards
+- `docs/SECURITY.md` - auth, RLS, secrets, validation
+- `docs/DATABASE.md` - schema and RLS policy documentation
+- `docs/DESIGN.md` - design system
+- `docs/TESTING.md` - testing rules
+- `docs/specs/` - feature specs
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Agent Workflow
 
-## Learn More
+AI coding agents should read `AGENTS.md` first, then the relevant docs and feature spec under `docs/specs/`.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Do not implement generic CRUD screens. Keep features scoped to water refilling station workflows, owner/staff permissions, and organization-scoped data.

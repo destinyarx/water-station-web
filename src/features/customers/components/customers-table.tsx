@@ -17,8 +17,8 @@ interface CustomersTableProps {
 
 export function CustomersTable({ customers }: CustomersTableProps) {
   return (
-    <div className="overflow-hidden rounded-3xl border border-[#dcecff] bg-white/95 shadow-[0_16px_44px_rgba(0,48,73,0.06)]">
-      <div className="border-b border-[#dcecff] bg-[#eef7ff]/70 px-5 py-4">
+    <div className="overflow-hidden rounded-2xl border border-[#ddebff] bg-white/95 shadow-[0_8px_24px_rgba(0,48,73,0.08)]">
+      <div className="border-b border-[#ddebff] bg-[#f0f7ff]/70 px-5 py-4">
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-2xl bg-white text-[#00b4d8] shadow-sm">
             <Waves className="size-5" aria-hidden="true" />
@@ -43,17 +43,17 @@ export function CustomersTable({ customers }: CustomersTableProps) {
       <div className="hidden overflow-x-auto md:block">
         <Table>
           <TableHeader>
-            <TableRow className="border-[#dcecff] bg-white hover:bg-white">
-              <TableHead className="px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-[#6d797e]">
+            <TableRow className="border-[#ddebff] bg-white hover:bg-white">
+              <TableHead className="px-5 py-4 font-sans text-xs font-bold uppercase tracking-wider text-[#2a4b6a]">
                 Customer
               </TableHead>
-              <TableHead className="px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-[#6d797e]">
+              <TableHead className="px-5 py-4 font-sans text-xs font-bold uppercase tracking-wider text-[#2a4b6a]">
                 Type
               </TableHead>
-              <TableHead className="px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-[#6d797e]">
+              <TableHead className="px-5 py-4 font-sans text-xs font-bold uppercase tracking-wider text-[#2a4b6a]">
                 Contact
               </TableHead>
-              <TableHead className="px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-[#6d797e]">
+              <TableHead className="px-5 py-4 font-sans text-xs font-bold uppercase tracking-wider text-[#2a4b6a]">
                 Delivery address
               </TableHead>
               <TableHead className="px-5 py-4 text-right">
@@ -65,7 +65,7 @@ export function CustomersTable({ customers }: CustomersTableProps) {
             {customers.map((customer) => (
               <TableRow
                 key={customer.id}
-                className="border-[#e5f1ff] transition-colors hover:bg-[#eef7ff]/70"
+                className="border-[#e1e9f2] transition-colors hover:bg-[#f0f7ff]"
               >
                 <TableCell className="px-5 py-4">
                   <div className="flex items-center gap-3">
@@ -111,7 +111,7 @@ export function CustomersTable({ customers }: CustomersTableProps) {
 
 function CustomerMobileCard({ customer }: { customer: Customer }) {
   return (
-    <article className="rounded-2xl border border-[#dcecff] bg-white p-4 shadow-[0_10px_24px_rgba(0,48,73,0.05)]">
+    <article className="rounded-2xl border border-[#ddebff] bg-white p-4 shadow-[0_8px_24px_rgba(0,48,73,0.08)]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <CustomerIcon isBusiness={customer.isBusiness} />
@@ -138,7 +138,7 @@ function CustomerMobileCard({ customer }: { customer: Customer }) {
         />
       </div>
 
-      <div className="mt-4 border-t border-[#e5f1ff] pt-3">
+      <div className="mt-4 border-t border-[#e1e9f2] pt-3">
         <CustomerRowActions customer={customer} />
       </div>
     </article>
@@ -157,7 +157,7 @@ function CustomerIcon({ isBusiness }: { isBusiness: boolean }) {
 
 function CustomerTypeBadge({ isBusiness }: { isBusiness: boolean }) {
   return (
-    <span className="inline-flex items-center rounded-lg bg-[#00f5d4]/15 px-2.5 py-1 text-xs font-bold text-[#005144]">
+    <span className="inline-flex items-center rounded-md bg-[#00f5d4]/15 px-2.5 py-1 text-xs font-bold text-[#005144]">
       {isBusiness ? 'Business' : 'Household'}
     </span>
   )

@@ -11,7 +11,9 @@ export function AppShell({ children }: AppShellProps) {
     <div className="min-h-screen bg-[#f7f9ff] text-[#001d34]">
       <div className="md:flex">
         <AppSidebar />
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1">
+          {children}
+        </main>
       </div>
     </div>
   )

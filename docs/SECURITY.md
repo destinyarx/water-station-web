@@ -9,67 +9,85 @@ This file defines the security requirements for the project.
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` may be used on the frontend.
 - `CLERK_SECRET_KEY` is server-only.
 - Never expose secret keys in client components.
-- Verify authentication before protected server actions.
+- Verify authentication before protected server actions and protected route access.
+- Session handling must follow Clerk as the chosen auth provider.
+
+## Clerk/Supabase Identity Contract
+
+Organization-owned records must use:
+
+- `org_id` from the current Clerk session `organization` claim
+- `created_by` from the authenticated Clerk user id
+
+Forms must not expose or submit `org_id` or `created_by`.
+
+Supabase RLS must independently enforce organization isolation using the Clerk JWT claims forwarded to Supabase.
+
+Owner/staff authorization must be based on trusted Clerk session claims and RLS policies, not user-editable request fields.
 
 ## Supabase
 
 - RLS must be enabled on every public table.
 - No public table should be accessible without policies.
 - The service role key is server-only.
-- Never use service role key in browser code.
+- Never use the service role key in browser code.
+- Only use public anon/publishable keys on the client.
 - Every policy must be documented in `docs/DATABASE.md`.
+- Do not bypass RLS to make a query work.
 
 ## Input Validation
 
-- All form inputs must be validated with Zod.
+- Validate all forms using Zod.
+- Validate server-side inputs.
 - Never trust client-side validation only.
+- Every mutation must validate its input before sending data to Supabase.
 
 ## Authentication
 
 - All protected routes must require authentication.
 - Do not expose private user data to unauthenticated users.
-- Session handling must follow the chosen auth provider.
+- Users who have not completed registration/onboarding must not access protected station workflows.
 
 ## Authorization
 
 Users must only access data they are allowed to access.
 
-## Supabase Security
+Organization-owned data must be scoped by `org_id`, and cross-organization access must be blocked by RLS even if UI or service code is bypassed.
 
-- Use Row Level Security where applicable.
-- Never expose service role keys to the frontend.
-- Only use public anon keys on the client.
-- Sensitive operations should be done through secure server-side logic.
+## Soft Delete
+
+For tables with `deleted_at`, application delete actions should soft-delete by setting `deleted_at = now()`.
+
+Hard `DELETE` policies should not be used by normal UI flows unless explicitly documented as an admin or maintenance operation.
+
+Active lists must exclude soft-deleted rows.
 
 ## Environment Variables
 
 Never hardcode secrets.
 
 Allowed on frontend:
-- Public Supabase anon key
-- Public project URL
-- Public Clerk publishable key, if using Clerk
+
+- Public Supabase anon/publishable key
+- Public Supabase project URL
+- Public Clerk publishable key
 
 Never expose:
+
 - Supabase service role key
 - Database password
 - Private API keys
 - Webhook secrets
-
-## Input Validation
-
-- Validate all forms using Zod.
-- Validate server-side inputs.
-- Do not trust client-side validation alone.
 
 ## Database Rules
 
 - Schema changes must use migrations.
 - Do not delete tables or columns without explicit approval.
 - Do not weaken RLS policies without explanation.
+- Keep `docs/DATABASE.md` synchronized with table and policy changes.
 
 ## Error Handling
 
 - Do not expose internal errors to users.
 - Log useful debugging information safely.
-- Avoid leaking tokens, IDs, or private data in errors.
+- Avoid leaking tokens, IDs, private data, policy details, or secrets in user-facing errors.

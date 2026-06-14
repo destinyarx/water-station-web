@@ -53,7 +53,7 @@ rejects any mismatch.
 | Users can view customers in their organization      | SELECT | `org_id = jwt.org` **and** `deleted_at is null`                                        |
 | Users can create customers in their organization    | INSERT | check `org_id = jwt.org` **and** `created_by = jwt.sub`                                |
 | Users can update own customers in their organization| UPDATE | `org_id = jwt.org` **and** `created_by = jwt.sub` **and** `deleted_at is null` (+check)|
-| Users can delete own customers in their organization| DELETE | `org_id = jwt.org` **and** `created_by = jwt.sub`                                      |
+| Users can delete own customers in their organization| DELETE | Legacy hard-delete policy; must not be used by normal UI flows                         |
 
 > **Note for the active list (Issue 001):** the SELECT policy itself excludes
 > archived rows (`deleted_at is null`), so archived customers are not readable
@@ -61,11 +61,10 @@ rejects any mismatch.
 > `deleted_at is null` to make the active-list intent explicit and independent
 > of the policy.
 >
-> **Note for archive (Issue 004):** there is no soft-delete UPDATE policy that
-> can set `deleted_at` while the row is still considered active — the UPDATE
-> policy requires `deleted_at is null` in `using` but does not restrict the new
-> value, so setting `deleted_at` is permitted. A hard `DELETE` policy also
-> exists. Revisit archive semantics when implementing Issue 004.
+> **Soft-delete rule:** application archive/delete actions must soft-delete by
+> setting `deleted_at = now()`. Hard `DELETE` policies are legacy/admin-only and
+> must not be used by normal UI flows unless a future spec explicitly documents
+> that behavior.
 
 ### Manual RLS verification (Issue 001)
 
@@ -156,3 +155,22 @@ organization.
    confirm owner override succeeds.
 6. Attempt to update or soft-delete an org B product id directly as either
    staff or owner; RLS must block it.
+
+## `public.expenses`
+
+Expense records are implemented in the repository under `src/features/expenses`
+and must follow the same organization-scoped identity contract as customers and
+products.
+
+Repository feature spec: `docs/specs/003-expenses/`.
+
+Expense documentation must be kept synchronized with the actual Supabase table
+and RLS policies before changing expense persistence behavior. At minimum, the
+expense table documentation should include:
+
+- all columns and types
+- `org_id` tenant scope
+- `created_by` Clerk user identity
+- `deleted_at` soft-delete behavior, if present
+- owner/staff read and mutation rules
+- manual RLS verification steps for cross-organization access

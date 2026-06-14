@@ -29,7 +29,7 @@ from default active list; blocked for customers outside the current tenant; pend
 
 ## Files to Read First
 
-- `docs/CONSTITUTIONS.md`, `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`, `docs/SECURITY.md`, root `AGENTS.md`
+- `docs/CONSTITUTION.md`, `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`, `docs/SECURITY.md`, root `AGENTS.md`
 - `docs/specs/001-customers-basic-feature/prd.md` — Edge Cases + Out of Scope
   (archive is an update to `deleted_at`, NOT delete-and-reinsert; no restore flow).
 - Output of Issue 001: `services/customers.service.ts` (active-list query already

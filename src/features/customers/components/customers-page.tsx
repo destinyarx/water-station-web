@@ -51,7 +51,7 @@ export function CustomersPage() {
 
   return (
     <section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      <header className="overflow-hidden rounded-3xl border border-[#dcecff] bg-white shadow-[0_16px_44px_rgba(0,48,73,0.08)]">
+      <header className="overflow-hidden rounded-2xl border border-[#ddebff] bg-white shadow-[0_8px_24px_rgba(0,48,73,0.08)]">
         <div className="relative p-6 sm:p-8">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_0%,rgba(0,180,216,0.18),transparent_30%),radial-gradient(circle_at_92%_20%,rgba(0,245,212,0.16),transparent_28%)]" />
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -93,7 +93,7 @@ export function CustomersPage() {
         />
       </div>
 
-      <div className="rounded-3xl border border-[#dcecff] bg-white/90 p-4 shadow-[0_16px_44px_rgba(0,48,73,0.06)] backdrop-blur-xl sm:p-5">
+      <div className="rounded-2xl border border-[#ddebff] bg-white/90 p-4 shadow-[0_8px_24px_rgba(0,48,73,0.08)] backdrop-blur-xl sm:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-md">
             <Search
@@ -104,7 +104,7 @@ export function CustomersPage() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search name, phone, barangay, or route area"
-              className="h-11 rounded-xl border-[#dcecff] bg-[#eef7ff]/70 pl-9 text-[#001d34] placeholder:text-[#6d797e] focus-visible:border-[#00b4d8] focus-visible:ring-[#00b4d8]/20"
+              className="h-11 rounded-md border-[#ddebff] bg-[#f0f7ff]/70 pl-9 text-[#001d34] placeholder:text-[#6d797e] focus-visible:border-[#00b4d8] focus-visible:ring-4 focus-visible:ring-[#00b4d8]/20 transition-all duration-200"
               aria-label="Search customers"
             />
           </div>
@@ -164,7 +164,7 @@ function CustomerMetricCard({
   description,
 }: CustomerMetricCardProps) {
   return (
-    <article className="rounded-2xl border border-[#dcecff] bg-white/85 p-5 shadow-[0_12px_32px_rgba(0,48,73,0.06)]">
+    <article className="rounded-2xl border border-[#ddebff] bg-white/85 p-5 shadow-[0_8px_24px_rgba(0,48,73,0.08)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-[#2a4b6a]">{label}</p>
@@ -199,9 +199,9 @@ function CustomerFilterButton({
       size="sm"
       onClick={onClick}
       className={cn(
-        'rounded-xl border border-[#dcecff] bg-white px-3 text-[#2a4b6a] hover:bg-[#eef7ff] hover:text-[#00414f]',
+        'rounded-md border border-[#ddebff] bg-white px-3 text-[#2a4b6a] transition-all duration-200 hover:bg-[#f0f7ff] hover:text-[#00414f]',
         active &&
-          'border-[#00b4d8] bg-[#00b4d8] text-white shadow-[0_10px_24px_rgba(0,180,216,0.22)] hover:bg-[#00a4c6] hover:text-white'
+          'border-[#00b4d8] bg-[#00b4d8] text-white shadow-[0_8px_24px_rgba(0,180,216,0.22)] hover:bg-[#00b4d8] hover:text-white'
       )}
     >
       {children}
@@ -211,7 +211,7 @@ function CustomerFilterButton({
 
 function CustomersLoadingState() {
   return (
-    <div className="rounded-3xl border border-[#dcecff] bg-white/90 p-4 shadow-[0_16px_44px_rgba(0,48,73,0.06)]">
+    <div className="rounded-2xl border border-[#ddebff] bg-white/90 p-4 shadow-[0_8px_24px_rgba(0,48,73,0.08)]">
       <div className="space-y-3">
         {Array.from({ length: 4 }, (_, index) => (
           <div
@@ -231,8 +231,8 @@ function CustomersLoadingState() {
 
 function CustomersEmptyState() {
   return (
-    <div className="rounded-3xl border border-dashed border-[#9adff1] bg-[#eef7ff]/70 p-10 text-center">
-      <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-white text-[#00b4d8] shadow-[0_12px_32px_rgba(0,48,73,0.08)]">
+    <div className="rounded-2xl border border-dashed border-[#ddebff] bg-[#f0f7ff]/70 p-10 text-center">
+      <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-white text-[#00b4d8] shadow-[0_8px_24px_rgba(0,48,73,0.08)]">
         <Droplets className="size-7" aria-hidden="true" />
       </div>
       <h2 className="mt-4 font-heading text-xl font-semibold text-[#001d34]">
@@ -248,7 +248,7 @@ function CustomersEmptyState() {
 
 function CustomersNoResultsState() {
   return (
-    <div className="rounded-3xl border border-[#dcecff] bg-white p-8 text-center">
+    <div className="rounded-2xl border border-[#ddebff] bg-white p-8 text-center shadow-[0_8px_24px_rgba(0,48,73,0.08)]">
       <h2 className="font-heading text-lg font-semibold text-[#001d34]">
         No matching customers
       </h2>

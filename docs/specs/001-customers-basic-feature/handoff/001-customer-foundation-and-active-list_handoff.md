@@ -43,7 +43,7 @@ Acceptance criteria — see the issue file. Summary:
 
 ## Files to Read First
 
-- `docs/CONSTITUTIONS.md`, `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`, `docs/SECURITY.md`
+- `docs/CONSTITUTION.md`, `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`, `docs/SECURITY.md`
 - `AGENTS.md` (root) — TS/style/Supabase/TanStack/RHF/Zod/shadcn rules
 - `docs/specs/001-customers-basic-feature/prd.md` and `REQUIREMENTS.md`
   (REQUIREMENTS.md lines 24–45 contain the **`public.customers` Postgres schema**)

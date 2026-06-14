@@ -45,17 +45,11 @@ were created by another staff member in the same station.
 
 ## Core Modules
 
-- Authentication
-- Customers
-- Products
-- Orders
-- Deliveries
-- Payments
-- Expenses
-- Inventory
-- Reports
-- Settings
-- Team/Staff Management
+- Implemented or actively specified: Authentication, Customers, Products, Expenses
+- Planned modules: Orders, Deliveries, Payments, Inventory, Reports, Settings, Team/Staff Management
+
+Agents must not treat planned modules as approved implementation scope unless a
+feature spec under `docs/specs` exists for the requested work.
 
 ## Important Product Rule
 

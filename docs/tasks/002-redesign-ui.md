@@ -46,6 +46,7 @@ Customers module requirements:
 
 Implementation requirements:
 
+* Do not change service or any functions, retain it and just redesign the frontend keep the functionality and make sure that the changes will not break.
 * Use the existing tech stack and conventions in the project
 * Use shadcn/ui components where appropriate
 * Use Tailwind CSS consistently
@@ -59,12 +60,13 @@ Implementation requirements:
 
 Before coding:
 
-1. Read `docs/DESIGN.md`
-2. Inspect the current sidebar implementation
-3. Inspect the current Customers module implementation
-4. Identify only the files needed for this redesign
-5. Make a short implementation plan
-6. Then apply the redesign
+1. Read `AGENTS.md`
+2. Read `docs/DESIGN.md`
+3. Inspect the current sidebar implementation
+4. Inspect the current Customers module implementation
+5. Identify only the files needed for this redesign
+6. Make a short implementation plan
+7. Then apply the redesign
 
 Expected output:
 

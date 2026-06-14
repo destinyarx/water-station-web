@@ -193,7 +193,7 @@ weight). Only pursue if the number of customer mutations grows substantially.
   (controlled vs. uncontrolled, feature-local vs. `lib`).
 
 ## Required reading before coding (per `AGENTS.md`)
-`docs/CONSTITUTIONS.md`, `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`,
+`docs/CONSTITUTION.md`, `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`,
 `docs/SECURITY.md`, `docs/DESIGN.md` (dialog visuals), `docs/TESTING.md`, and the
 companion blueprint
 [`customer-feature-structure.md`](./customer-feature-structure.md).
