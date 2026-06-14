@@ -1,4 +1,25 @@
-# AGENTS.md
+
+
+## Project Context
+
+This project is a Water Refilling Station Management System for small water refilling businesses. It helps owners and staff manage daily operations such as customers, deliveries, products, sales, expenses, and maintenance schedules.
+
+Do not treat this as a generic CRUD dashboard. Features should be designed around real water station workflows, especially refill services, container pickup/return, bottled water sales, product inventory, delivery scheduling, and business expense tracking.
+
+The app is multi-tenant. Each organization represents one water refilling station business. All organization-owned data must be scoped by org_id, and users must never access data from another organization.
+
+The app has two main roles:
+
+Owner: can manage and monitor organization-wide records, sales, expenses, products, deliveries, customers, and maintenance.
+Staff: handles day-to-day operations such as managing customers, creating deliveries, updating delivery statuses, and recording allowed operational data.
+
+Use Clerk for user identity. When creating records, created_by should come from the authenticated Clerk user ID, and org_id should come from the current user's organization/session metadata. These values should not be manually entered in forms.
+
+When a table includes deleted_at, prefer soft delete by setting deleted_at = now() and exclude soft-deleted records from active lists.
+
+The UI should feel like a clean, professional SaaS dashboard with a subtle water/purity/freshness direction. Always follow docs/DESIGN.md for design decisions and existing project patterns.
+
+Before implementing a feature, consider how it fits the water refilling station workflow, the owner/staff roles, and the organization-scoped data model.
 
 ## Purpose
 

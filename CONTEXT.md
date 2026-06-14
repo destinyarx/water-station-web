@@ -33,10 +33,15 @@ Can manage:
 Can manage:
 - assigned deliveries
 - customer records if allowed
+- products
 - order status updates
 - maintenance tasks
 
 Staff should not access owner-only financial summaries unless explicitly allowed.
+
+Staff can create products and update or delete product records they created.
+Owners can update and delete organization-owned product records even when they
+were created by another staff member in the same station.
 
 ## Core Modules
 
@@ -54,13 +59,15 @@ Staff should not access owner-only financial summaries unless explicitly allowed
 
 ## Important Product Rule
 
-Some products are stock-tracked. Some products are not stock-tracked.
+Products are classified by whether the station tracks their stock quantity.
 
-Use a product field like:
+**Stock-tracked product**:
+A physical product whose available quantity is counted, such as bottled water, caps, containers, dispensers, and accessories.
+_Avoid_: Inventory-tracked item
 
-```ts
-inventory_tracking_type: 'stock_tracked' | 'non_stock_tracked'
-```
+**Non-stock-tracked product**:
+A refill, service, or fee product whose available quantity is not counted, such as water refill services, delivery fees, and cleaning fees.
+_Avoid_: Service item, untracked inventory item
 
 ## Authentication & Onboarding (feature 000-auth_workflow)
 

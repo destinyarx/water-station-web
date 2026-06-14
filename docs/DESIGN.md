@@ -1,96 +1,96 @@
 ---
-name: Transparent Stream
+name: Ocean Vitality
 colors:
-  surface: '#f6fafe'
-  surface-dim: '#d7dadf'
-  surface-bright: '#f6fafe'
+  surface: '#f7f9ff'
+  surface-dim: '#c0ddff'
+  surface-bright: '#f7f9ff'
   surface-container-lowest: '#ffffff'
-  surface-container-low: '#f0f4f8'
-  surface-container: '#ebeef2'
-  surface-container-high: '#e5e8ed'
-  surface-container-highest: '#dfe3e7'
-  on-surface: '#181c1f'
-  on-surface-variant: '#3f484f'
-  inverse-surface: '#2c3134'
-  inverse-on-surface: '#edf1f5'
-  outline: '#6f7880'
-  outline-variant: '#bec8d0'
-  surface-tint: '#00658a'
-  primary: '#00658a'
+  surface-container-low: '#eef4ff'
+  surface-container: '#e4efff'
+  surface-container-high: '#d9eaff'
+  surface-container-highest: '#cfe5ff'
+  on-surface: '#001d34'
+  on-surface-variant: '#3d494d'
+  inverse-surface: '#0d3250'
+  inverse-on-surface: '#e9f1ff'
+  outline: '#6d797e'
+  outline-variant: '#bcc9ce'
+  surface-tint: '#00677d'
+  primary: '#00677d'
   on-primary: '#ffffff'
-  primary-container: '#4fb5e8'
-  on-primary-container: '#00445e'
-  inverse-primary: '#7cd0ff'
-  secondary: '#416181'
+  primary-container: '#00b4d8'
+  on-primary-container: '#00414f'
+  inverse-primary: '#4cd6fb'
+  secondary: '#006b5b'
   on-secondary: '#ffffff'
-  secondary-container: '#badaff'
-  on-secondary-container: '#406080'
-  tertiary: '#875200'
+  secondary-container: '#26fedc'
+  on-secondary-container: '#007261'
+  tertiary: '#5157a6'
   on-tertiary: '#ffffff'
-  tertiary-container: '#e69b3b'
-  on-tertiary-container: '#5c3700'
+  tertiary-container: '#989ef3'
+  on-tertiary-container: '#2d3280'
   error: '#ba1a1a'
   on-error: '#ffffff'
   error-container: '#ffdad6'
   on-error-container: '#93000a'
-  primary-fixed: '#c4e7ff'
-  primary-fixed-dim: '#7cd0ff'
-  on-primary-fixed: '#001e2c'
-  on-primary-fixed-variant: '#004c69'
-  secondary-fixed: '#cfe5ff'
-  secondary-fixed-dim: '#a9caee'
-  on-secondary-fixed: '#001d34'
-  on-secondary-fixed-variant: '#284968'
-  tertiary-fixed: '#ffddba'
-  tertiary-fixed-dim: '#ffb865'
-  on-tertiary-fixed: '#2b1700'
-  on-tertiary-fixed-variant: '#663d00'
-  background: '#f6fafe'
-  on-background: '#181c1f'
-  surface-variant: '#dfe3e7'
-  background-light: '#F9FCFF'
-  navy-dark: '#111c21'
-  accent-success: '#4ADE80'
-  muted-blue: '#93B4D1'
-  glass-border: rgba(147, 180, 209, 0.2)
+  primary-fixed: '#b3ebff'
+  primary-fixed-dim: '#4cd6fb'
+  on-primary-fixed: '#001f27'
+  on-primary-fixed-variant: '#004e5f'
+  secondary-fixed: '#26fedc'
+  secondary-fixed-dim: '#00dfc1'
+  on-secondary-fixed: '#00201a'
+  on-secondary-fixed-variant: '#005144'
+  tertiary-fixed: '#e0e0ff'
+  tertiary-fixed-dim: '#bfc2ff'
+  on-tertiary-fixed: '#070a61'
+  on-tertiary-fixed-variant: '#393e8c'
+  background: '#f7f9ff'
+  on-background: '#001d34'
+  surface-variant: '#cfe5ff'
 typography:
   display-lg:
-    fontFamily: Outfit
-    fontSize: 64px
-    fontWeight: '800'
+    fontFamily: Clash Display
+    fontSize: 48px
+    fontWeight: '600'
     lineHeight: '1.1'
     letterSpacing: -0.02em
   display-lg-mobile:
-    fontFamily: Outfit
-    fontSize: 40px
-    fontWeight: '800'
+    fontFamily: Clash Display
+    fontSize: 32px
+    fontWeight: '600'
+    lineHeight: '1.2'
+  headline-lg:
+    fontFamily: Clash Display
+    fontSize: 32px
+    fontWeight: '500'
     lineHeight: '1.2'
   headline-md:
-    fontFamily: Outfit
-    fontSize: 32px
-    fontWeight: '700'
+    fontFamily: Clash Display
+    fontSize: 24px
+    fontWeight: '500'
     lineHeight: '1.3'
-  title-lg:
-    fontFamily: Outfit
-    fontSize: 20px
-    fontWeight: '700'
-    lineHeight: '1.4'
   body-lg:
-    fontFamily: Plus Jakarta Sans
-    fontSize: 20px
+    fontFamily: Satoshi
+    fontSize: 18px
     fontWeight: '400'
     lineHeight: '1.6'
   body-md:
-    fontFamily: Plus Jakarta Sans
+    fontFamily: Satoshi
     fontSize: 16px
-    fontWeight: '500'
+    fontWeight: '400'
     lineHeight: '1.5'
   label-md:
-    fontFamily: Outfit
+    fontFamily: Satoshi
     fontSize: 14px
-    fontWeight: '600'
+    fontWeight: '700'
     lineHeight: '1.2'
     letterSpacing: 0.05em
+  caption:
+    fontFamily: Satoshi
+    fontSize: 12px
+    fontWeight: '500'
+    lineHeight: '1.4'
 rounded:
   sm: 0.25rem
   DEFAULT: 0.5rem
@@ -99,60 +99,63 @@ rounded:
   xl: 1.5rem
   full: 9999px
 spacing:
-  container-max: 1200px
-  gutter: 2rem
-  section-padding-y: 6rem
-  stack-sm: 0.5rem
-  stack-md: 1.5rem
-  stack-lg: 3rem
+  base: 4px
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 48px
+  container-max: 1280px
+  gutter: 24px
+  margin-mobile: 16px
 ---
 
 ## Brand & Style
-The brand identity for Transparent Stream is built on the concepts of purity, clarity, and fluid efficiency. It targets modern business owners in the water utility and logistics space, requiring a UI that feels professional yet approachable. 
+The design system is an energetic, high-performance interface designed for clarity, data visualization, and fluid navigation. It targets professional users who require rapid insights without cognitive fatigue. 
 
-The design style is a blend of **Corporate Modern** and **Glassmorphism**. It utilizes a "Pebble" aesthetic—soft, rounded shapes combined with extremely diffused, color-tinted shadows to create a sense of lightness and transparency. The visual language should evoke the feeling of clean water: airy, bright, and refreshing, using subtle SVG path animations to represent flow and movement.
+The aesthetic is **Modern Corporate** with a **Glassmorphic** edge, utilizing a "Light Mode" palette that feels airy and expansive. It balances the precision of a dashboard with the refreshing atmosphere of ocean environments. The UI should evoke a sense of professional optimism, speed, and deep clarity. Expect heavy use of whitespace, refined typography, and subtle depth cues to separate layers of information.
 
 ## Colors
-The palette is centered around a vibrant "Crystal Blue" primary color that represents water and technology. 
+This design system utilizes the **Ocean Vitality** palette, optimized for high legibility on light surfaces. 
 
-- **Primary (#4fb5e8):** Used for key actions, brand marks, and active states.
-- **Secondary/Text-Main (#2A4B6A):** A deep navy used for high-contrast typography and dark-mode backgrounds to ensure professional readability.
-- **Background (#F9FCFF):** A very cool-toned white that maintains the "clean" aesthetic.
-- **Accent (#4ADE80):** A fresh mint green reserved for positive growth metrics and success states.
-- **Muted (#93B4D1):** A desaturated blue-gray for secondary text and decorative elements like flow paths.
+- **Primary (#00B4D8):** A vibrant ocean blue used for call-to-action elements, active states, and primary navigation links.
+- **Secondary/Accent (#00F5D4):** Neon Teal is reserved for positive trends, metric highlights, and interactive accents. It provides a high-energy contrast against the blue tones.
+- **Surface (#F0F7FF):** A very light blue-tinted off-white used for container backgrounds and secondary sections to create subtle hierarchy against the pure white background.
+- **Typography:** Deep Navy (#03045E) ensures maximum contrast for headlines, while Navy-Grey (#2A4B6A) provides a softer, more readable experience for long-form body text.
 
 ## Typography
-The system uses a two-font pairing strategy. **Outfit** provides a geometric, modern look for headings and buttons, reinforcing the tech-forward brand. **Plus Jakarta Sans** is used for body copy due to its high legibility and friendly, rounded terminals that match the overall shape language.
+The typography pairing combines the structural impact of **Clash Display** with the geometric precision of **Satoshi**.
 
-Key headers use tight tracking (`-0.02em`) to maintain a punchy, editorial feel, while body text uses a generous line height (`1.6`) to ensure the interface feels "airy."
+- **Headlines:** Clash Display is used for all major titles. Its unique character adds a sense of "performance" and modernity. Use Medium (500) to Semibold (600) weights to maintain authority without being overly heavy.
+- **Body & Data:** Satoshi is the workhorse for all functional text. It is highly legible at small sizes, making it ideal for data-dense dashboards and status labels.
+- **Scaling:** On mobile devices, display sizes shrink by approximately 30% to maintain visual balance within the narrower viewport.
 
 ## Layout & Spacing
-The layout follows a **Fixed Grid** philosophy for desktop, centered within a 1200px max-width container. 
+The design system employs a **Fluid Grid** model based on an 8px spacing rhythm. 
 
-- **Sectioning:** Deep vertical breathing room (96px or more) between major content blocks to prevent visual clutter.
-- **Grid:** A standard 12-column grid is used for dashboard layouts, while marketing sections use a simplified 3-column or 2-column flex structure.
-- **Mobile:** Margins shrink to 16px (1rem), and stacked elements increase their gap to ensure touch targets remain clear.
+- **Grid:** A 12-column layout is used for desktop (breakpoints at 1024px and 1440px). Gutters are fixed at 24px to ensure breathing room between data modules.
+- **Margins:** Desktop views utilize a maximum container width of 1280px with auto-margins. Mobile views shift to a 4-column grid with 16px side margins.
+- **Spacing Philosophy:** Priority is given to vertical whitespace to separate distinct functional blocks. Group related elements (like an input and its label) using `sm` (8px) spacing, while larger sections are separated by `xl` (48px).
 
 ## Elevation & Depth
-Depth is created through **Ambient Shadows** and **Glassmorphism**, rather than traditional grey shadows.
+Depth in this design system is created through **Tonal Layers** and **Blue-Tinted Shadows**. 
 
-1.  **Low Elevation (Glass Nav):** Uses a `backdrop-blur(12px)` and a semi-transparent white fill (`85% opacity`) with a hairline light-blue border.
-2.  **Medium Elevation (Pebble Cards):** The signature card style. Uses a large, soft shadow tinted with the primary color (`rgba(79, 182, 232, 0.08)`).
-3.  **High Elevation (Hover States):** On interaction, cards shift upwards (`-8px`) and the shadow deepens and spreads further to simulate the object lifting off the surface.
-4.  **Glow Effects:** Critical metrics and primary buttons utilize a "glow" shadow that matches their own color, creating a neon-organic hybrid look.
+1. **Base Layer:** Pure White (#FFFFFF) background.
+2. **Surface Layer:** Very Light Blue (#F0F7FF) containers with 1px borders (#DDEBFF).
+3. **Elevated State:** Used for active cards or modals. These elements utilize a high-diffusion shadow with a blue tint (`hex: #003049`, `opacity: 0.08`, `blur: 24px`, `y-offset: 8px`).
+4. **Glassmorphism:** For floating navigation or overlays, use a backdrop blur (12px) combined with a semi-transparent white fill (opacity: 70%) and a subtle inner white highlight to simulate polished glass.
 
 ## Shapes
-The shape language is defined by large, organic radii. 
+The shape language is consistently **Rounded**, reflecting a modern and approachable tool. 
 
-- **Standard Cards:** Use a `1.5rem` (24px) corner radius to create the "Pebble" look.
-- **Interactive Elements:** Buttons and tags use a `full` (pill) radius, which feels more fluid and approachable than square buttons.
-- **Visual Nodes:** Icons and process steps are housed in circular containers to reinforce the "drop" or "bubble" motif.
+- **Standard Elements:** Buttons, input fields, and small chips use a 0.5rem (8px) corner radius.
+- **Large Containers:** Dashboard cards and modals use 1rem (16px) to emphasize the "modular" feel of the interface.
+- **Interaction:** State changes (like hovering over a card) should not change the border radius, but rather increase the shadow diffusion to indicate lift.
 
 ## Components
-
-- **Buttons:** Always pill-shaped. Primary buttons use a solid Crystal Blue fill with white bold text. Secondary buttons should use a ghost style with a subtle blue border.
-- **Pebble Cards:** White background, 24px rounded corners, and the signature light-blue ambient shadow. No borders.
-- **Process Nodes:** Large circular icons with a `4px` white border and a soft shadow, connected by dashed SVG lines.
-- **Glass Navigation:** Sticky header with backdrop-blur and a light bottom-border.
-- **Data Visualization:** Use "Glowing Bar" charts. Bars should have rounded tops and a 1px high-intensity glow line at the peak of the bar.
-- **Inputs:** Soft rounded corners (8px), light-blue background tint on focus, and clear Label-Medium typography above the field.
+- **Buttons:** Primary buttons are solid Ocean Blue (#00B4D8) with white text. Secondary buttons are "Ghost" style with an Ocean Blue border and text. All buttons have a transition duration of 200ms on hover.
+- **Chips/Badges:** Small indicators for status. Success states use the Neon Teal (#00F5D4) background at 15% opacity with dark teal text.
+- **Input Fields:** Use a #F0F7FF background and a 1px border. On focus, the border transitions to Primary Blue with a subtle 4px outer glow in the same color.
+- **Cards:** White backgrounds against the #F0F7FF surface. Include a very soft 1px border (#E1E9F2). Use Satoshi Bold for card headers in Deep Navy.
+- **Data Visuals:** Charts should primarily use Ocean Blue and Neon Teal. Grid lines in charts should be extremely faint (#E1E9F2) to keep the focus on the data trend.
+- **Progress Bars:** Use a high-contrast track (#E1E9F2) with a Neon Teal fill for active progress.

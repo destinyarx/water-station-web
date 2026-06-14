@@ -7,3 +7,30 @@ export const CUSTOMER_COLUMNS =
 
 /** User-facing message shown when the customer list fails to load. */
 export const CUSTOMERS_LOAD_ERROR = 'Unable to load customers. Please try again.'
+
+/** User-facing message shown when saving a customer fails. */
+export const CUSTOMER_SAVE_ERROR = 'Unable to save customer. Please try again.'
+
+/** User-facing message shown when archiving a customer fails. */
+export const CUSTOMER_ARCHIVE_ERROR =
+  'Unable to archive customer. Please try again.'
+
+/**
+ * Clerk JWT template whose claims (`organization`, `sub`) back the Supabase
+ * customer RLS policies. Must match the template configured in Clerk.
+ */
+export const CLERK_SUPABASE_TEMPLATE = 'water-station'
+
+/** Empty default values for the create/edit customer form. */
+export const CUSTOMER_FORM_DEFAULTS = {
+  name: '',
+  isBusiness: false,
+  contactNumber: '',
+  facebookUrl: '',
+  streetAddress: '',
+  barangay: '',
+  municipality: '',
+  province: '',
+  latitude: undefined,
+  longitude: undefined,
+} as const

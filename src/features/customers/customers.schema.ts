@@ -27,3 +27,64 @@ export const customerRowSchema = z.object({
   updated_at: z.string().nullable(),
   deleted_at: z.string().nullable(),
 })
+
+/** Whether a value is an `http`/`https` URL the UI accepts for `facebookUrl`. */
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Optional coordinate field driven by a text input. Blank strings become
+ * `undefined`; numeric strings are coerced to numbers and range-checked.
+ */
+function optionalCoordinate(min: number, max: number, message: string) {
+  return z.preprocess((value) => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim()
+      if (trimmed === '') return undefined
+      const parsed = Number(trimmed)
+      return Number.isNaN(parsed) ? trimmed : parsed
+    }
+    return value
+  }, z.number({ message }).min(min, message).max(max, message).optional())
+}
+
+/**
+ * Validation for the create/edit customer form. The same schema backs the UI
+ * form (React Hook Form) and the service-layer input so client and server
+ * validation can never drift. Optional fields accept empty strings from inputs.
+ */
+export const customerFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Customer name is required.')
+    .max(100, 'Name must be 100 characters or fewer.'),
+  isBusiness: z.boolean(),
+  contactNumber: z
+    .string()
+    .trim()
+    .max(15, 'Contact number must be 15 characters or fewer.')
+    .optional(),
+  facebookUrl: z
+    .string()
+    .trim()
+    .max(255, 'Link must be 255 characters or fewer.')
+    .refine((value) => value === '' || isHttpUrl(value), 'Enter a valid URL.')
+    .optional(),
+  streetAddress: z.string().trim().max(70).optional(),
+  barangay: z.string().trim().max(70).optional(),
+  municipality: z.string().trim().max(70).optional(),
+  province: z.string().trim().max(70).optional(),
+  latitude: optionalCoordinate(-90, 90, 'Latitude must be between -90 and 90.'),
+  longitude: optionalCoordinate(
+    -180,
+    180,
+    'Longitude must be between -180 and 180.',
+  ),
+})

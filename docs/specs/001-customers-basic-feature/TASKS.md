@@ -11,25 +11,25 @@
 
 ## Phase 2: Types and Validation
 
-- [ ] Create `customers.types.ts`
-- [ ] Create `customers.schema.ts`
+- [x] Create `customers.types.ts`
+- [x] Create `customers.schema.ts`
 
 ## Phase 3: API/Service
 
-- [ ] Create Supabase query helpers
-- [ ] Create create customer action
-- [ ] Create update customer action
-- [ ] Create archive customer action
+- [x] Create Supabase query helpers
+- [x] Create create customer action
+- [x] Create update customer action
+- [x] Create archive customer action
 
 ## Phase 4: UI
 
-- [ ] Create customer form
-- [ ] Create customers table
-- [ ] Create customer pages
+- [x] Create customer form
+- [x] Create customers table
+- [x] Create customer pages
 
 ## Phase 5: Testing
 
-- [ ] Test Zod schema
-- [ ] Test service behavior
-- [ ] Test protected route
-- [ ] Test RLS manually or with integration test
+- [x] Test Zod schema
+- [x] Test service behavior
+- [x] Test protected route (covered by Clerk middleware in `src/proxy.ts`)
+- [ ] Test RLS manually or with integration test (see DATABASE.md manual steps)

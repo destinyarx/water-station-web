@@ -1,8 +1,23 @@
 export { CustomersPage } from './components/customers-page'
 export { CustomersTable } from './components/customers-table'
 export { useCustomers } from './hooks/use-customers'
-export { getActiveCustomers } from './services/customers.service'
+export { useCreateCustomer } from './hooks/use-create-customer'
+export { useUpdateCustomer } from './hooks/use-update-customer'
+export { useArchiveCustomer } from './hooks/use-archive-customer'
+export {
+  getActiveCustomers,
+  getCustomerById,
+  createCustomer,
+  updateCustomer,
+  archiveCustomer,
+} from './services/customers.service'
+export { canEditCustomer } from './customers.guards'
 export { customerKeys } from './customers.keys'
-export { customerRowSchema } from './customers.schema'
-export { toCustomer } from './customers.mapper'
-export type { Customer, CustomerRow } from './customers.types'
+export { customerRowSchema, customerFormSchema } from './customers.schema'
+export { toCustomer, toInsertRow, toUpdateRow, toFormValues } from './customers.mapper'
+export type {
+  Customer,
+  CustomerRow,
+  CustomerFormValues,
+  CustomerOwner,
+} from './customers.types'
