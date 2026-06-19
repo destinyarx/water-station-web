@@ -174,3 +174,71 @@ expense table documentation should include:
 - `deleted_at` soft-delete behavior, if present
 - owner/staff read and mutation rules
 - manual RLS verification steps for cross-organization access
+
+## Deliveries tables (feature 004-deliveries-module)
+
+Four tables model deliveries: `delivery_schedules` (the recurring/one-time
+plan), `deliveries` (individual dated occurrences), `delivery_schedule_items`
+(template product lines), and `delivery_items` (per-occurrence price/name
+snapshot). Rationale and trade-offs:
+`docs/adr/0002-deliveries-two-entity-rolling-materialization.md`. Feature spec:
+`docs/specs/004-deliveries-module/`.
+
+Migration to run in the Supabase dashboard (no `supabase/` folder in repo):
+`docs/specs/004-deliveries-module/004-deliveries-schema.md`. That file is the
+authoritative source for columns, enums, constraints, indexes, and policies;
+keep it and this section synchronized with the live tables.
+
+### `public.delivery_schedules`
+
+The plan for serving a customer. Linked to a `customers` row **or** a guest
+label (CHECK: exactly one). Holds the recurrence rule:
+
+- `recurrence_type` enum (`one_time` | `weekly` | `monthly`).
+- `one_time`: `delivery_date`. `weekly`: `weekdays smallint[]` (ISO 1–7) +
+  `interval_weeks`, anchored on `start_date`. `monthly`: `day_of_month` (clamped
+  to month end) + `interval_months`, anchored on `start_date`. Optional
+  `end_date`.
+- `status` enum (`active` | `paused` | `ended`) controls materialization only;
+  it is **not** an operational delivery status.
+- Standard `org_id`, `created_by`, `created_at`, `updated_at`, `deleted_at`.
+
+### `public.deliveries`
+
+A single dated occurrence carrying the operational lifecycle. `status` enum
+(`pending` | `for_delivery` | `completed` | `failed`); `failure_remarks`
+required iff `failed` (CHECK). `delivered_by` is auto-stamped with the Clerk user
+who moves it to `for_delivery`. Unique `(schedule_id, delivery_date)` (active
+rows) makes the rolling 14-day client-triggered materialization idempotent.
+Standard tenant/audit/soft-delete columns.
+
+### `public.delivery_schedule_items` / `public.delivery_items`
+
+Template lines vs. per-occurrence snapshot. Snapshot rows store `product_name`
+and `unit_price` captured at materialization so historical deliveries are
+unaffected by later product changes. Totals are computed in app, not persisted.
+
+### Identity / org resolution
+
+Same Clerk→Supabase contract as customers/products: `org_id` and `created_by`
+written from the resolved Clerk identity on insert, never from form input; RLS
+reads `organization`, `sub`, and `is_owner` from `auth.jwt()`.
+
+### Policies (summary)
+
+| Table | SELECT | INSERT | UPDATE | Delete |
+| ----- | ------ | ------ | ------ | ------ |
+| `delivery_schedules` | org + `deleted_at is null` | org + `created_by = sub` | any org member (edit/pause); **soft-delete owner-only** (set `deleted_at` permitted only when `is_owner`) | soft delete via UPDATE |
+| `deliveries` | org + `deleted_at is null` | org + `created_by = sub` | any org member (status/remarks/items) | soft delete via UPDATE |
+| `delivery_schedule_items` | org | org (FOR ALL) | org | follows parent |
+| `delivery_items` | org | org (FOR ALL) | org | follows parent |
+
+Deliveries are a **shared org queue**: any organization member may operate
+occurrences regardless of `created_by`. The only owner-restricted action is
+archiving (soft-deleting) a Delivery Schedule.
+
+### Manual RLS verification
+
+See `docs/specs/004-deliveries-module/004-deliveries-schema.md` §7 for the full
+checklist (cross-org isolation, idempotent materialization, owner-only schedule
+archive, failure-remarks CHECK, failed-occurrence-does-not-pause-schedule).

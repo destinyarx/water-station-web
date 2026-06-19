@@ -51,6 +51,28 @@ were created by another staff member in the same station.
 Agents must not treat planned modules as approved implementation scope unless a
 feature spec under `docs/specs` exists for the requested work.
 
+## Deliveries Domain (feature 004-deliveries-module)
+
+**Delivery Schedule** — the *plan* for serving a customer: who is served, what
+products/services are included, and when (a single one-time date, or a recurring
+rule such as "every Mon/Thu"). A schedule does not itself have an operational
+status. One schedule produces one or more Deliveries.
+_Avoid_: confusing a schedule with an individual delivery run.
+
+**Delivery** (a.k.a. delivery occurrence) — a single dated delivery event that
+staff actually prepares and carries out. It is the thing that moves through the
+status lifecycle (`pending` → `for_delivery` → `completed`/`failed`) on a
+specific date. A one-time schedule has exactly one Delivery; a recurring
+schedule has many.
+_Avoid_: "delivery" meaning the recurrence rule.
+
+**Delivery Item** — a product line on a Delivery (or schedule template),
+preserving the product, quantity, and the unit price at the time of delivery so
+later product price changes do not alter past delivery records.
+
+**Guest / named delivery** — a Delivery Schedule not linked to a Customer
+record, identified only by a display label (e.g. walk-in or one-off recipient).
+
 ## Important Product Rule
 
 Products are classified by whether the station tracks their stock quantity.
