@@ -20,6 +20,7 @@ const deliveryRow = {
   failure_remarks: null,
   notes: 'Call before leaving.',
   delivered_by: null,
+  completed_at: null,
   org_id: 321,
   created_by: 'user_123',
   created_at: '2026-06-16T00:00:00.000Z',

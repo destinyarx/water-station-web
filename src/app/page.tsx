@@ -5,20 +5,18 @@ import {
   FeaturesSection,
   DashboardPreview,
   CtaBand,
-  FaqAccordion,
   LandingFooter,
 } from '@/features/landing'
 
 export default function Home() {
   return (
-    <div className="bg-cloud">
+    <div style={{ minHeight: '100vh', background: 'var(--lp-page-bg)', color: 'var(--lp-text)', fontFamily: 'inherit' }}>
       <LandingNavbar />
       <LandingHero />
       <ProblemSection />
       <FeaturesSection />
       <DashboardPreview />
       <CtaBand />
-      <FaqAccordion />
       <LandingFooter />
     </div>
   )

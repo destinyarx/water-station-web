@@ -8,4 +8,11 @@ export const deliveryKeys = {
   list: (filters: DeliveryFilters) => [...deliveryKeys.lists(), filters] as const,
   details: () => [...deliveryKeys.all, 'detail'] as const,
   detail: (id: number) => [...deliveryKeys.details(), id] as const,
+  queue: () => [...deliveryKeys.all, 'queue'] as const,
+  queuePage: (page: number) => [...deliveryKeys.queue(), page] as const,
+  counts: () => [...deliveryKeys.all, 'counts'] as const,
+  history: () => [...deliveryKeys.all, 'history'] as const,
+  historyPage: (page: number) => [...deliveryKeys.history(), page] as const,
+  schedules: () => [...deliveryKeys.all, 'schedules'] as const,
+  schedulesPage: (page: number) => [...deliveryKeys.schedules(), page] as const,
 }

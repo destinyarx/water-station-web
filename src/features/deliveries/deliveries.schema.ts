@@ -73,11 +73,17 @@ export const deliveryRowSchema = z.object({
   failure_remarks: z.string().max(500).nullable(),
   notes: z.string().max(500).nullable(),
   delivered_by: z.string().max(255).nullable(),
+  completed_at: z.string().nullable(),
   org_id: z.number().int(),
   created_by: z.string().max(255),
   created_at: z.string(),
   updated_at: z.string().nullable(),
   deleted_at: z.string().nullable(),
+})
+
+// Rows from `v_current_deliveries`: a delivery row without `deleted_at`.
+export const currentDeliveryRowSchema = deliveryRowSchema.omit({
+  deleted_at: true,
 })
 
 export const deliveryItemRowSchema = z.object({
@@ -107,6 +113,81 @@ export const deliveryFormItemSchema = z.object({
     z.number({ message: 'Unit price is required.' }).min(0),
   ),
 })
+
+export const deliveryEditFormSchema = z.object({
+  deliveryDate: z
+    .string()
+    .min(1, 'Delivery date is required.')
+    .refine(isDateOnOrAfterToday, 'Delivery date cannot be in the past.'),
+  items: z
+    .array(deliveryFormItemSchema)
+    .min(1, 'Add at least one product or refill service.'),
+  notes: trimmedOptionalString(500),
+})
+
+export const deliveryScheduleFormSchema = z
+  .object({
+    targetType: z.enum(['customer', 'guest']),
+    customerId: z.preprocess(optionalNumber, z.number().int().positive().optional()),
+    guestName: trimmedOptionalString(100),
+    guestContact: trimmedOptionalString(15),
+    guestAddress: trimmedOptionalString(255),
+    weekdays: z
+      .array(z.number().int().min(1).max(7))
+      .min(1, 'Pick at least one weekday.'),
+    intervalWeeks: z.preprocess(
+      optionalNumber,
+      z.number({ message: 'Interval is required.' }).int().min(1).max(12),
+    ),
+    startDate: z
+      .string()
+      .min(1, 'Start date is required.')
+      .refine(isDateOnOrAfterToday, 'Start date cannot be in the past.'),
+    endDate: z
+      .string()
+      .transform((value) => value.trim())
+      .transform((value) => (value === '' ? null : value))
+      .nullable(),
+    items: z
+      .array(deliveryFormItemSchema)
+      .min(1, 'Add at least one product or refill service.'),
+    notes: trimmedOptionalString(500),
+  })
+  .superRefine((values, ctx) => {
+    if (values.targetType === 'customer') {
+      if (values.customerId == null) {
+        ctx.addIssue({ code: 'custom', path: ['customerId'], message: 'Select a customer.' })
+      }
+      if (values.guestName.trim() !== '') {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['guestName'],
+          message: 'Guest name must be empty for customer schedules.',
+        })
+      }
+    }
+
+    if (values.targetType === 'guest') {
+      if (values.guestName.trim() === '') {
+        ctx.addIssue({ code: 'custom', path: ['guestName'], message: 'Guest name is required.' })
+      }
+      if (values.customerId != null) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['customerId'],
+          message: 'Customer must be empty for guest schedules.',
+        })
+      }
+    }
+
+    if (values.endDate != null && values.endDate < values.startDate) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['endDate'],
+        message: 'End date cannot be before the start date.',
+      })
+    }
+  })
 
 export const deliveryFormSchema = z
   .object({

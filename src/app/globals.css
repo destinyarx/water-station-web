@@ -7,13 +7,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
-  --font-outfit: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
-  --font-jakarta: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-sora: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
-  --font-manrope: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --font-heading: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-poppins: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 
   /* Transparent Stream water palette */
   --color-aqua-deep: #00445e;
@@ -160,6 +157,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
   }
   html {
     @apply font-sans;
@@ -258,4 +256,143 @@
     transition: none !important;
     stroke-dashoffset: 0 !important;
   }
+}
+
+/* ===== AquaFlow Design System tokens ===== */
+
+/* Landing page tokens */
+:root {
+  --lp-page-bg: #f6fbff;
+  --lp-surface: #ffffff;
+  --lp-surface-2: #f3faff;
+  --lp-text: #0c2a3e;
+  --lp-text-muted: #3d6580;
+  --lp-text-soft: #5a7d94;
+  --lp-text-faint: #8aa6b8;
+  --lp-nav-link: #27516c;
+  --lp-brand-text: #0a6cc4;
+  --lp-border: rgba(70, 150, 220, 0.12);
+  --lp-border-strong: rgba(70, 150, 220, 0.16);
+  --lp-header-bg: rgba(246, 251, 255, 0.82);
+  --lp-chip-bg: #e3f4ff;
+  --lp-hero-grad: linear-gradient(180deg, #d3eefe 0%, #e6f6ff 38%, #f3fbff 72%, #f6fbff 100%);
+  --lp-hero-glow: radial-gradient(circle, rgba(255,255,255,0.9), rgba(186,230,253,0.35) 45%, transparent 70%);
+  --lp-section-soft: linear-gradient(180deg, #eaf6ff, #f6fbff);
+  --lp-wave-1: #bfe7ff;
+  --lp-wave-2: #8fd3fb;
+
+  /* App interior tokens */
+  --app-page-bg: #eef6fd;
+  --app-surface: #ffffff;
+  --app-surface-2: #f4f9fe;
+  --app-surface-3: #f7fbff;
+  --app-text: #0c2a3e;
+  --app-text-muted: #42647d;
+  --app-text-soft: #6286a0;
+  --app-text-faint: #9bb3c4;
+  --app-brand: #0a6cc4;
+  --app-brand-soft: #3fa3e6;
+  --app-border: rgba(70, 150, 220, 0.16);
+  --app-border-strong: rgba(70, 150, 220, 0.22);
+  --app-chip-bg: #e6f4ff;
+  --app-chip-green-bg: #dcf5e8;
+  --app-chip-green-text: #157a52;
+  --app-chip-amber-bg: #fff7e0;
+  --app-chip-amber-text: #92620a;
+  --app-chip-red-bg: #fee2e2;
+  --app-chip-red-text: #b91c1c;
+  --app-chip-gray-bg: #eef2f6;
+  --app-chip-gray-text: #6b8198;
+  --app-row-hover: #f5fafe;
+  --app-sidebar-bg: #ffffff;
+  --app-sidebar-2: #eef6fd;
+  --app-sidebar-active-bg: #e6f4ff;
+  --app-sidebar-active-text: #0a6cc4;
+  --app-sidebar-text: #5d809a;
+  --app-sidebar-border: rgba(70, 150, 220, 0.14);
+  --app-overlay: rgba(14, 42, 62, 0.42);
+  --app-shadow-card: 0 6px 22px rgba(20, 100, 180, 0.06);
+}
+
+html.dark {
+  --lp-page-bg: #081521;
+  --lp-surface: #0f2433;
+  --lp-surface-2: #13293a;
+  --lp-text: #eaf4fb;
+  --lp-text-muted: #9db6c8;
+  --lp-text-soft: #7e9cb0;
+  --lp-text-faint: #5f7c90;
+  --lp-nav-link: #b8d2e4;
+  --lp-brand-text: #5cb8f6;
+  --lp-border: rgba(125, 211, 252, 0.14);
+  --lp-border-strong: rgba(125, 211, 252, 0.20);
+  --lp-header-bg: rgba(8, 21, 33, 0.82);
+  --lp-chip-bg: rgba(56, 189, 248, 0.14);
+  --lp-hero-grad: linear-gradient(180deg, #0a2233 0%, #0b2334 40%, #0a1a27 75%, #081521 100%);
+  --lp-hero-glow: radial-gradient(circle, rgba(120,190,240,0.20), rgba(56,189,248,0.10) 45%, transparent 70%);
+  --lp-section-soft: linear-gradient(180deg, #0c2030, #081521);
+  --lp-wave-1: #123a52;
+  --lp-wave-2: #16465f;
+
+  --app-page-bg: #071420;
+  --app-surface: #0f2433;
+  --app-surface-2: #13293a;
+  --app-surface-3: #0d1f2c;
+  --app-text: #eaf4fb;
+  --app-text-muted: #9db6c8;
+  --app-text-soft: #7e9cb0;
+  --app-text-faint: #5f7c90;
+  --app-brand: #5cb8f6;
+  --app-brand-soft: #38bdf8;
+  --app-border: rgba(125, 211, 252, 0.14);
+  --app-border-strong: rgba(125, 211, 252, 0.20);
+  --app-chip-bg: rgba(56, 189, 248, 0.16);
+  --app-chip-green-bg: rgba(34, 197, 94, 0.16);
+  --app-chip-green-text: #4ade80;
+  --app-chip-amber-bg: rgba(251, 191, 36, 0.16);
+  --app-chip-amber-text: #fbbf24;
+  --app-chip-red-bg: rgba(239, 68, 68, 0.16);
+  --app-chip-red-text: #f87171;
+  --app-chip-gray-bg: rgba(148, 180, 200, 0.14);
+  --app-chip-gray-text: #9db6c8;
+  --app-row-hover: rgba(56, 189, 248, 0.05);
+  --app-sidebar-bg: #0b1f2e;
+  --app-sidebar-2: #13293a;
+  --app-sidebar-active-bg: rgba(56, 189, 248, 0.16);
+  --app-sidebar-active-text: #7cc9fb;
+  --app-sidebar-text: #8aa6bb;
+  --app-sidebar-border: rgba(125, 211, 252, 0.12);
+  --app-overlay: rgba(2, 10, 18, 0.62);
+  --app-shadow-card: 0 6px 22px rgba(0, 0, 0, 0.28);
+}
+
+/* Landing + app shared animations */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes waveDrift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes waveDrift2 {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+@keyframes bubbleRise {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  12%  { opacity: 0.7; }
+  100% { transform: translateY(-560px) scale(1.25); opacity: 0; }
+}
+@keyframes caustic {
+  0%, 100% { transform: translate(0,0) scale(1); opacity: 0.5; }
+  50% { transform: translate(20px,-14px) scale(1.08); opacity: 0.8; }
+}
+@keyframes floatUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes popIn {
+  from { transform: translateY(-4px) scale(.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }

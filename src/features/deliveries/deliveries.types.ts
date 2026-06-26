@@ -1,11 +1,13 @@
 import type { z } from 'zod'
 
 import type {
+  deliveryEditFormSchema,
   deliveryFormItemSchema,
   deliveryFormSchema,
   deliveryItemRowSchema,
   deliveryRecurrenceTypeSchema,
   deliveryRowSchema,
+  deliveryScheduleFormSchema,
   deliveryScheduleRowSchema,
   deliveryScheduleStatusSchema,
   deliveryStatusSchema,
@@ -22,6 +24,12 @@ export type DeliveryItemRow = z.infer<typeof deliveryItemRowSchema>
 export type DeliveryFormInput = z.input<typeof deliveryFormSchema>
 export type DeliveryFormValues = z.output<typeof deliveryFormSchema>
 export type DeliveryFormItem = z.output<typeof deliveryFormItemSchema>
+
+export type DeliveryEditFormInput = z.input<typeof deliveryEditFormSchema>
+export type DeliveryEditFormValues = z.output<typeof deliveryEditFormSchema>
+
+export type DeliveryScheduleFormInput = z.input<typeof deliveryScheduleFormSchema>
+export type DeliveryScheduleFormValues = z.output<typeof deliveryScheduleFormSchema>
 
 export interface DeliveryOwner {
   orgId: number
@@ -45,6 +53,33 @@ export interface DeliveryScheduleInsert {
   notes: string | null
   org_id: number
   created_by: string
+}
+
+export interface DeliveryWeeklyScheduleInsert {
+  customer_id: number | null
+  guest_name: string | null
+  guest_contact: string | null
+  guest_address: string | null
+  recurrence_type: 'weekly'
+  delivery_date: null
+  start_date: string
+  weekdays: number[]
+  interval_weeks: number
+  day_of_month: null
+  interval_months: null
+  end_date: string | null
+  status: 'active'
+  notes: string | null
+  org_id: number
+  created_by: string
+}
+
+export interface DeliveryScheduleItemInsert {
+  schedule_id: number
+  product_id: number
+  quantity: number
+  unit_price: number | null
+  org_id: number
 }
 
 export interface DeliveryInsert {
@@ -86,6 +121,7 @@ export interface Delivery {
   failureRemarks: string | null
   notes: string | null
   deliveredBy: string | null
+  completedAt: string | null
   orgId: number
   createdBy: string
   createdAt: string

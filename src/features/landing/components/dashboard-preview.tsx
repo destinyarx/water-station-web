@@ -1,200 +1,89 @@
-import { CalendarDays, CircleDollarSign, ReceiptText, Wrench } from 'lucide-react'
-import { Reveal } from './reveal'
-
-const STAT_CARDS = [
-  { icon: CalendarDays, label: "Today's Deliveries", value: '18' },
-  { icon: CircleDollarSign, label: 'Total Sales', value: '₱8,450' },
-  {
-    icon: ReceiptText,
-    label: 'Pending Payments',
-    value: '₱1,200',
-    tone: 'warning' as const,
-  },
-  { icon: Wrench, label: 'Upcoming Maintenance', value: '2 tasks' },
-]
-
-const WEEKLY_SALES = [
-  { day: 'Mon', height: 46 },
-  { day: 'Tue', height: 70 },
-  { day: 'Wed', height: 54 },
-  { day: 'Thu', height: 88 },
-  { day: 'Fri', height: 62 },
-  { day: 'Sat', height: 96 },
-  { day: 'Sun', height: 50 },
-]
-
-const RECENT_CUSTOMERS = [
-  { name: 'Maria Santos', order: '3 slim gallons', status: 'Paid' as const },
-  { name: 'Office Hub Inc.', order: '12 round gallons', status: 'Pending' as const },
-  { name: 'Dela Cruz Residence', order: '2 dispensers', status: 'Paid' as const },
-]
-
-const EXPENSES = [
-  { label: 'Electricity', value: '₱1,800' },
-  { label: 'Staff wages', value: '₱3,200' },
-  { label: 'Filter replacement', value: '₱950' },
-]
-
 export function DashboardPreview() {
   return (
-    <section id="preview" className="relative scroll-mt-20 overflow-hidden bg-aqua-mist/45">
-      <div aria-hidden className="absolute inset-0">
-        <div className="absolute left-[-7rem] top-16 size-72 rounded-full bg-aqua-light/35 blur-3xl" />
-        <div className="absolute bottom-[-8rem] right-[-4rem] size-96 rounded-full bg-aqua-bright/20 blur-3xl" />
-      </div>
-      <div className="relative mx-auto max-w-[1200px] px-6 py-16 lg:py-24">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="font-outfit text-sm font-bold uppercase tracking-[0.18em] text-aqua-mid">
-            Clear records, clearer decisions
-          </p>
-          <h2 className="mt-3 font-outfit text-[2rem] font-bold tracking-[-0.02em] text-aqua-deep">
-            See your whole business at a glance.
-          </h2>
-          <p className="mt-4 text-[1.0625rem] leading-[1.7] text-slate">
-            Know what needs delivery, who still owes, where money went, and how
-            the week is performing.
-          </p>
-        </Reveal>
-
-        <Reveal className="mt-12">
-          <div className="relative rounded-[2rem] bg-cloud/75 p-3 shadow-[0_26px_80px_rgba(79,181,232,0.18)] ring-1 ring-white/80 backdrop-blur-[18px] lg:p-5">
-            <div className="overflow-hidden rounded-[1.5rem] bg-cloud">
-              <div className="flex flex-wrap items-center gap-3 border-b border-[var(--glass-border)] bg-white/70 px-4 py-3">
-                <div className="flex gap-1.5" aria-hidden>
-                  <span className="size-3 rounded-full bg-[#FF6B6B]" />
-                  <span className="size-3 rounded-full bg-[#FFD166]" />
-                  <span className="size-3 rounded-full bg-success" />
+    <section id="dashboard" style={{ maxWidth: '1200px', margin: '0 auto', padding: '80px 32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '0.92fr 1.08fr', gap: '54px', alignItems: 'center' }}>
+        <div>
+          <div style={{ color: 'var(--lp-brand-text)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '12px' }}>The dashboard</div>
+          <h2 style={{ fontSize: '38px', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 16px', color: 'var(--lp-text)' }}>Your whole station at a glance</h2>
+          <p style={{ fontSize: '17px', color: 'var(--lp-text-muted)', lineHeight: 1.6, margin: '0 0 26px' }}>Open the app and instantly see refills, deliveries, low stock and overdue containers — color-coded so anyone on shift knows what needs attention.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {[
+              { title: 'Live refill & sales totals', sub: 'Updated the moment a transaction is logged.' },
+              { title: 'Overdue container alerts', sub: 'Chase deposits before they walk out the door.' },
+              { title: 'Maintenance reminders', sub: 'Filter and membrane swaps, never missed.' },
+            ].map(({ title, sub }) => (
+              <div key={title} style={{ display: 'flex', alignItems: 'flex-start', gap: '13px' }}>
+                <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'var(--lp-chip-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="#0a6cc4"><path d="M6.5 11L3 7.5l1.2-1.2 2.3 2.3 5-5L12.7 5 6.5 11Z" /></svg>
                 </div>
-                <span className="rounded-full bg-aqua-mist/60 px-3 py-1 text-xs font-medium text-slate">
-                  app.aquaflow.com/dashboard
-                </span>
+                <div>
+                  <strong style={{ color: 'var(--lp-text)', fontSize: '15px' }}>{title}</strong>
+                  <div style={{ color: 'var(--lp-text-muted)', fontSize: '14px' }}>{sub}</div>
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
 
-              <div className="grid gap-4 bg-[linear-gradient(135deg,#ffffff_0%,#f6fafe_100%)] p-4 lg:grid-cols-12 lg:p-6">
-                <div className="grid gap-3 sm:grid-cols-2 lg:col-span-12 lg:grid-cols-4">
-                  {STAT_CARDS.map(({ icon: Icon, label, value, tone }) => (
-                    <div
-                      key={label}
-                      className="rounded-[1.25rem] bg-cloud p-4 shadow-[0_8px_30px_rgba(79,181,232,0.08)]"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate">
-                          {label}
-                        </p>
-                        <span className="grid size-9 place-items-center rounded-full bg-aqua-mist/60 text-aqua-mid">
-                          <Icon className="size-4" />
-                        </span>
-                      </div>
-                      <p
-                        className={
-                          tone === 'warning'
-                            ? 'mt-3 font-outfit text-2xl font-bold text-[var(--warning)]'
-                            : 'mt-3 font-outfit text-2xl font-bold text-aqua-deep'
-                        }
-                      >
-                        {value}
-                      </p>
-                    </div>
-                  ))}
+        {/* Mock dashboard */}
+        <div style={{ background: 'var(--lp-surface)', borderRadius: '24px', padding: '10px', boxShadow: '0 40px 90px rgba(14,108,196,0.2)', border: '1px solid var(--lp-border)' }}>
+          <div style={{ display: 'flex', borderRadius: '18px', overflow: 'hidden', minHeight: '380px' }}>
+            {/* Sidebar mock */}
+            <div style={{ width: '64px', background: 'linear-gradient(180deg,#0a6cc4,#075098)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '18px 0', gap: '18px' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="17" height="17" viewBox="0 0 24 24"><path d="M12 3c3 4 5 6.2 5 8.8a5 5 0 1 1-10 0C7 9.2 9 7 12 3Z" fill="#fff" /></svg>
+              </div>
+              {[
+                <g key="dash"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6" fill="#fff" opacity="0.9" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" fill="#7dd3fc" opacity="0.7" /><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" fill="#7dd3fc" opacity="0.7" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" fill="#7dd3fc" opacity="0.7" /></g>,
+                <path key="truck" d="M5 8h11l3 4v4h-2a2 2 0 1 1-4 0H9a2 2 0 1 1-4 0H5V8Z" stroke="#cfe8ff" strokeWidth="1.6" strokeLinejoin="round" />,
+                <path key="chart" d="M4 19V9m5 10V5m5 14v-7m5 7V8" stroke="#cfe8ff" strokeWidth="1.6" strokeLinecap="round" />,
+                <g key="report"><rect x="4" y="4" width="16" height="16" rx="3" stroke="#cfe8ff" strokeWidth="1.6" /><path d="M8 9h8M8 13h5" stroke="#cfe8ff" strokeWidth="1.6" strokeLinecap="round" /></g>,
+              ].map((paths, i) => (
+                <div key={i} style={{ width: '34px', height: '34px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">{paths}</svg>
                 </div>
-
-                <div className="rounded-[1.5rem] bg-cloud p-5 shadow-[0_8px_30px_rgba(79,181,232,0.08)] lg:col-span-7">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-outfit text-base font-bold text-ink">
-                        Weekly Sales
-                      </p>
-                      <p className="mt-1 text-xs text-slate">
-                        Daily income trend from completed deliveries.
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-success/15 px-3 py-1 text-xs font-bold text-aqua-deep">
-                      +18%
-                    </span>
-                  </div>
-                  <div className="mt-6 flex h-40 items-end gap-2">
-                    {WEEKLY_SALES.map((bar) => (
-                      <div
-                        key={bar.day}
-                        className="flex flex-1 flex-col items-center gap-2"
-                      >
-                        <span
-                          style={{ height: `${bar.height}%` }}
-                          className="relative w-full rounded-t-full bg-gradient-to-t from-aqua-mid to-aqua-light shadow-[0_0_18px_rgba(79,181,232,0.24)]"
-                        >
-                          <span className="absolute inset-x-1 top-0 h-px rounded-full bg-cloud" />
-                        </span>
-                        <span className="text-[0.72rem] font-medium text-slate">
-                          {bar.day}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+              ))}
+            </div>
+            {/* Main mock */}
+            <div style={{ flex: 1, background: 'var(--lp-surface-2)', padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--lp-text)' }}>Station Overview</div>
+                  <div style={{ fontSize: '12px', color: 'var(--lp-text-soft)' }}>Tuesday, June 22</div>
                 </div>
-
-                <div className="grid gap-4 lg:col-span-5">
-                  <div className="rounded-[1.5rem] bg-cloud p-5 shadow-[0_8px_30px_rgba(79,181,232,0.08)]">
-                    <p className="font-outfit text-base font-bold text-ink">
-                      Expense Summary
-                    </p>
-                    <div className="mt-4 grid grid-cols-[5rem_1fr] items-center gap-4">
-                      <div className="grid size-20 place-items-center rounded-full bg-[conic-gradient(var(--aqua-bright)_0_48%,var(--warning)_48%_72%,var(--surface-container-high)_72%_100%)]">
-                        <div className="grid size-12 place-items-center rounded-full bg-cloud font-outfit text-xs font-bold text-aqua-deep">
-                          ₱5.9k
-                        </div>
-                      </div>
-                      <ul className="space-y-2">
-                        {EXPENSES.map((expense) => (
-                          <li
-                            key={expense.label}
-                            className="flex items-center justify-between gap-3 text-sm"
-                          >
-                            <span className="text-slate">{expense.label}</span>
-                            <span className="font-semibold text-ink">
-                              {expense.value}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[1.5rem] bg-cloud p-5 shadow-[0_8px_30px_rgba(79,181,232,0.08)]">
-                    <p className="font-outfit text-base font-bold text-ink">
-                      Recent Customers
-                    </p>
-                    <ul className="mt-4 space-y-3">
-                      {RECENT_CUSTOMERS.map((customer) => (
-                        <li
-                          key={customer.name}
-                          className="grid grid-cols-[1fr_auto] gap-3 rounded-2xl bg-fog px-4 py-3 text-sm"
-                        >
-                          <span>
-                            <span className="block font-semibold text-ink">
-                              {customer.name}
-                            </span>
-                            <span className="text-xs text-slate">
-                              {customer.order}
-                            </span>
-                          </span>
-                          <span
-                            className={
-                              customer.status === 'Paid'
-                                ? 'self-center rounded-full bg-success/20 px-2.5 py-1 text-xs font-bold text-aqua-deep'
-                                : 'self-center rounded-full bg-[color-mix(in_srgb,var(--warning)_22%,white)] px-2.5 py-1 text-xs font-bold text-[var(--warning)]'
-                            }
-                          >
-                            {customer.status}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ background: 'var(--lp-surface)', border: '1px solid var(--lp-border)', borderRadius: '9px', padding: '7px 12px', fontSize: '12px', color: 'var(--lp-text-muted)', fontWeight: 500 }}>This week ▾</div>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#7dd3fc,#0a6cc4)' }} />
                 </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '11px', marginBottom: '14px' }}>
+                {[{ label: 'Refills today', val: '248', badge: '▲ 18%', color: '#16a34a' }, { label: 'Sales', val: '₱8,420', badge: '▲ 9%', color: '#16a34a' }, { label: 'Overdue jugs', val: '23', badge: 'needs follow-up', color: '#e0792b' }].map(({ label, val, badge, color }) => (
+                  <div key={label} style={{ background: 'var(--lp-surface)', borderRadius: '13px', padding: '13px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--lp-text-soft)', marginBottom: '5px' }}>{label}</div>
+                    <div style={{ fontSize: '21px', fontWeight: 800, color: color === '#16a34a' ? 'var(--lp-text)' : color }}>{val}</div>
+                    <div style={{ fontSize: '10px', color, fontWeight: 600 }}>{badge}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: 'var(--lp-surface)', borderRadius: '13px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--lp-text)', marginBottom: '11px' }}>Upcoming deliveries</div>
+                {[
+                  { dot: '#22c55e', name: 'Sunrise Café · 8× 5-gal', time: '9:30 AM', timeColor: 'var(--lp-text-soft)' },
+                  { dot: '#38bdf8', name: 'Riverside Apt 4B · 3× 5-gal', time: '11:00 AM', timeColor: 'var(--lp-text-soft)' },
+                  { dot: '#e0792b', name: 'Dela Cruz Store · 12× 5-gal', time: 'overdue', timeColor: '#e0792b' },
+                ].map(({ dot, name, time, timeColor }) => (
+                  <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dot }} />
+                      <span style={{ fontSize: '12px', color: 'var(--lp-text)', fontWeight: 500 }}>{name}</span>
+                    </div>
+                    <span style={{ fontSize: '11px', color: timeColor, fontWeight: timeColor !== 'var(--lp-text-soft)' ? 600 : 400 }}>{time}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   )

@@ -1,15 +1,34 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarDays, CheckCircle2, Search, Truck } from 'lucide-react'
+import {
+  ArrowDownUp,
+  CalendarClock,
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Filter,
+  History,
+  PackageCheck,
+  Search,
+  Truck,
+} from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useCustomers } from '@/features/customers/hooks/use-customers'
 import { useProducts } from '@/features/products/hooks/use-products'
-import { useDeliveries } from '../hooks/use-deliveries'
+import { useCurrentDeliveries } from '../hooks/use-current-deliveries'
+import { useDeliveryCounts } from '../hooks/use-delivery-counts'
 import type { Delivery, DeliveryStatus } from '../deliveries.types'
 import { CreateDeliveryDialog } from './create-delivery-dialog'
+import { CreateScheduleDialog } from './create-schedule-dialog'
 import { DeliveriesTable } from './deliveries-table'
+import { DeliveryEditDialog } from './delivery-edit-dialog'
+import { DeliveryHistoryDialog } from './delivery-history-dialog'
+import { ScheduleListDialog } from './schedule-list-dialog'
 
 const EMPTY_DELIVERIES: Delivery[] = []
 const DELIVERY_STATUS_OPTIONS = [
@@ -28,16 +47,22 @@ type DeliveryStatusFilter = DeliveryStatus | 'all'
 type DeliveryDateSort = (typeof DATE_SORT_OPTIONS)[number]['value']
 
 export function DeliveriesPage() {
-  const deliveriesQuery = useDeliveries()
+  const [page, setPage] = useState(0)
+  const deliveriesQuery = useCurrentDeliveries(page)
+  const countsQuery = useDeliveryCounts()
   const customersQuery = useCustomers()
   const productsQuery = useProducts()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] =
-    useState<DeliveryStatusFilter>('pending')
+    useState<DeliveryStatusFilter>('all')
   const [dateSort, setDateSort] = useState<DeliveryDateSort>('oldest')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [editing, setEditing] = useState<Delivery | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [schedulesOpen, setSchedulesOpen] = useState(false)
 
-  const deliveries = deliveriesQuery.data ?? EMPTY_DELIVERIES
+  const deliveries = deliveriesQuery.data?.deliveries ?? EMPTY_DELIVERIES
+  const hasNext = deliveriesQuery.data?.hasNext ?? false
   const filteredDeliveries = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase()
 
@@ -87,36 +112,66 @@ export function DeliveriesPage() {
             Prepare and track refill delivery runs.
           </p>
         </div>
-        <CreateDeliveryDialog
-          customers={customersQuery.data ?? []}
-          products={productsQuery.data ?? []}
-          disabled={isReferenceLoading || Boolean(referenceError)}
-          onCreated={() => setToastMessage('Delivery created successfully.')}
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setHistoryOpen(true)}
+            className="h-11 rounded-xl border-[#bdefff] px-4 font-semibold text-[#00677d] hover:bg-[#eef7ff]"
+          >
+            <History className="size-4" />
+            History
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setSchedulesOpen(true)}
+            className="h-11 rounded-xl border-[#bdefff] px-4 font-semibold text-[#00677d] hover:bg-[#eef7ff]"
+          >
+            <CalendarClock className="size-4" />
+            Schedules
+          </Button>
+          <CreateScheduleDialog
+            customers={customersQuery.data ?? []}
+            products={productsQuery.data ?? []}
+            disabled={isReferenceLoading || Boolean(referenceError)}
+            onCreated={() => setToastMessage('Weekly schedule created successfully.')}
+          />
+          <CreateDeliveryDialog
+            customers={customersQuery.data ?? []}
+            products={productsQuery.data ?? []}
+            disabled={isReferenceLoading || Boolean(referenceError)}
+            onCreated={() => setToastMessage('Delivery created successfully.')}
+          />
+        </div>
       </div>
 
       {toastMessage ? <DeliveryToast message={toastMessage} /> : null}
 
       <div className="grid gap-3 md:grid-cols-3">
         <DeliveryMetricCard
-          label="Active deliveries"
-          value={deliveries.length}
-          description="Runs visible in the shared station queue"
+          label="Active today"
+          value={countsQuery.data?.activeToday ?? 0}
+          description="Pending runs scheduled for today"
+          icon={Truck}
+          isLoading={countsQuery.isPending}
+          isError={countsQuery.isError}
         />
         <DeliveryMetricCard
-          label="Pending"
-          value={
-            deliveries.filter((delivery) => delivery.status === 'pending').length
-          }
-          description="Runs waiting for preparation"
+          label="Pending backlog"
+          value={countsQuery.data?.pendingBacklog ?? 0}
+          description="Pending runs overdue in the last 7 days"
+          icon={Clock}
+          isLoading={countsQuery.isPending}
+          isError={countsQuery.isError}
         />
         <DeliveryMetricCard
-          label="Reference data"
-          value={
-            (customersQuery.data?.length ?? 0) +
-            (productsQuery.data?.length ?? 0)
-          }
-          description="Customers and products ready for new deliveries"
+          label="Completed today"
+          value={countsQuery.data?.completedToday ?? 0}
+          description="Runs marked completed today"
+          icon={PackageCheck}
+          isLoading={countsQuery.isPending}
+          isError={countsQuery.isError}
         />
       </div>
 
@@ -150,34 +205,46 @@ export function DeliveriesPage() {
                   aria-label="Search deliveries"
                 />
               </div>
-              <select
-                value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value as DeliveryStatusFilter)
-                }
-                className="h-10 rounded-xl border border-[#dcecff] bg-white px-3 text-sm font-medium text-[#001d34] outline-none focus:border-[#00b4d8] focus:ring-4 focus:ring-[#00b4d8]/20"
-                aria-label="Filter deliveries by status"
-              >
-                {DELIVERY_STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={dateSort}
-                onChange={(event) =>
-                  setDateSort(event.target.value as DeliveryDateSort)
-                }
-                className="h-10 rounded-xl border border-[#dcecff] bg-white px-3 text-sm font-medium text-[#001d34] outline-none focus:border-[#00b4d8] focus:ring-4 focus:ring-[#00b4d8]/20"
-                aria-label="Sort deliveries by date"
-              >
-                {DATE_SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <Filter
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#6d797e]"
+                  aria-hidden="true"
+                />
+                <select
+                  value={statusFilter}
+                  onChange={(event) =>
+                    setStatusFilter(event.target.value as DeliveryStatusFilter)
+                  }
+                  className="h-10 w-full rounded-xl border border-[#dcecff] bg-white pl-9 pr-3 text-sm font-medium text-[#001d34] outline-none focus:border-[#00b4d8] focus:ring-4 focus:ring-[#00b4d8]/20"
+                  aria-label="Filter deliveries by status"
+                >
+                  {DELIVERY_STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="relative">
+                <ArrowDownUp
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#6d797e]"
+                  aria-hidden="true"
+                />
+                <select
+                  value={dateSort}
+                  onChange={(event) =>
+                    setDateSort(event.target.value as DeliveryDateSort)
+                  }
+                  className="h-10 w-full rounded-xl border border-[#dcecff] bg-white pl-9 pr-3 text-sm font-medium text-[#001d34] outline-none focus:border-[#00b4d8] focus:ring-4 focus:ring-[#00b4d8]/20"
+                  aria-label="Sort deliveries by date"
+                >
+                  {DATE_SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -196,9 +263,41 @@ export function DeliveriesPage() {
             searchQuery={searchQuery}
           />
         ) : (
-          <DeliveriesTable deliveries={filteredDeliveries} />
+          <DeliveriesTable
+            deliveries={filteredDeliveries}
+            products={productsQuery.data ?? []}
+            onStatusChanged={(message) => setToastMessage(message)}
+            onStatusError={(message) => setToastMessage(message)}
+            onEdit={(delivery) => setEditing(delivery)}
+          />
         )}
+
+        {!deliveriesQuery.isError && (deliveries.length > 0 || page > 0) ? (
+          <QueuePagination
+            page={page}
+            hasNext={hasNext}
+            isFetching={deliveriesQuery.isFetching}
+            onPrev={() => setPage((current) => Math.max(0, current - 1))}
+            onNext={() => setPage((current) => current + 1)}
+          />
+        ) : null}
       </div>
+
+      <DeliveryEditDialog
+        delivery={editing}
+        products={productsQuery.data ?? []}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null)
+        }}
+        onSaved={() => setToastMessage('Delivery updated successfully.')}
+      />
+
+      <DeliveryHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} />
+      <ScheduleListDialog
+        open={schedulesOpen}
+        onOpenChange={setSchedulesOpen}
+        customers={customersQuery.data ?? []}
+      />
     </section>
   )
 }
@@ -222,26 +321,85 @@ function DeliveryMetricCard({
   label,
   value,
   description,
+  icon: Icon,
+  isLoading,
+  isError,
 }: {
   label: string
   value: number
   description: string
+  icon: typeof Truck
+  isLoading?: boolean
+  isError?: boolean
 }) {
   return (
     <article className="rounded-2xl border border-[#dcecff] bg-white/85 p-4 shadow-[0_12px_32px_rgba(0,48,73,0.05)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-[#2a4b6a]">{label}</p>
-          <p className="mt-2 font-heading text-3xl font-semibold tabular-nums text-[#001d34]">
-            {value}
-          </p>
+          {isLoading ? (
+            <div className="mt-3 h-8 w-12 animate-pulse rounded-lg bg-[#eef7ff]" />
+          ) : isError ? (
+            <p className="mt-2 font-heading text-3xl font-semibold text-[#9aa6ab]">
+              —
+            </p>
+          ) : (
+            <p className="mt-2 font-heading text-3xl font-semibold tabular-nums text-[#001d34]">
+              {value}
+            </p>
+          )}
         </div>
         <span className="flex size-10 items-center justify-center rounded-2xl bg-[#e8fbff] text-[#00b4d8]">
-          <Truck className="size-5" aria-hidden="true" />
+          <Icon className="size-5" aria-hidden="true" />
         </span>
       </div>
       <p className="mt-3 text-sm leading-5 text-[#2a4b6a]">{description}</p>
     </article>
+  )
+}
+
+function QueuePagination({
+  page,
+  hasNext,
+  isFetching,
+  onPrev,
+  onNext,
+}: {
+  page: number
+  hasNext: boolean
+  isFetching: boolean
+  onPrev: () => void
+  onNext: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-t border-[#dcecff] bg-white px-4 py-3 sm:px-5">
+      <p className="text-sm text-[#2a4b6a]">
+        Page {page + 1}
+        {isFetching ? ' · updating…' : ''}
+      </p>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onPrev}
+          disabled={page === 0 || isFetching}
+          className="h-9 rounded-xl border-[#bdefff] text-[#00677d] hover:bg-[#eef7ff]"
+        >
+          <ChevronLeft className="size-4" />
+          Prev
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onNext}
+          disabled={!hasNext || isFetching}
+          className="h-9 rounded-xl border-[#bdefff] text-[#00677d] hover:bg-[#eef7ff]"
+        >
+          Next
+          <ChevronRight className="size-4" />
+        </Button>
+      </div>
+    </div>
   )
 }
 

@@ -8,27 +8,41 @@ import {
 } from '@/features/registration/registration.constants'
 
 const isPublicRoute = createRouteMatcher([
-  '/',
+  // '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
 ])
 
-const isRegistrationRoute = createRouteMatcher([REGISTRATION_REDIRECT_PATH])
+const isRegistrationRoute = createRouteMatcher([
+  REGISTRATION_REDIRECT_PATH,
+  `${REGISTRATION_REDIRECT_PATH}(.*)`,
+])
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, sessionClaims } = await auth()
+  const url = req.url
+  const pathname = req.nextUrl?.pathname || ''
+
+  const onPublicRoute = isPublicRoute(req)
+  const onRegistrationRoute = isRegistrationRoute(req)
+  const registered = isRegistered(sessionClaims)
+
+  console.log('[Middleware Log]', {
+    url,
+    pathname,
+    userId: userId ? 'present' : 'null',
+    onPublicRoute,
+    onRegistrationRoute,
+    registered,
+  })
 
   if (!userId) {
-    if (isPublicRoute(req)) {
+    if (onPublicRoute) {
       return NextResponse.next()
     }
 
     return NextResponse.redirect(new URL('/sign-in', req.url))
   }
-
-  const onPublicRoute = isPublicRoute(req)
-  const onRegistrationRoute = isRegistrationRoute(req)
-  const registered = isRegistered(sessionClaims)
 
   if (!registered) {
     if (onRegistrationRoute) {

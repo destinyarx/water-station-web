@@ -1,20 +1,12 @@
 import type { Metadata } from 'next'
-import { ClerkProvider } from '@clerk/nextjs'
-import { Outfit, Plus_Jakarta_Sans } from 'next/font/google'
+import { Poppins } from 'next/font/google'
 import { Providers } from './providers'
 import './globals.css'
 
-const outfit = Outfit({
-  variable: '--font-outfit',
+const poppins = Poppins({
+  variable: '--font-poppins',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
-  display: 'swap',
-})
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: '--font-plus-jakarta',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   display: 'swap',
 })
 
@@ -30,13 +22,20 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${outfit.variable} ${plusJakartaSans.variable} antialiased`}
-      >
-        <ClerkProvider>
-          <Providers>{children}</Providers>
-        </ClerkProvider>
+    <html lang="en" className={poppins.variable} suppressHydrationWarning>
+      <head>
+        <script
+          // Apply the saved theme before first paint so dark mode never flashes.
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('aqua-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}",
+          }}
+        />
+      </head>
+      <body className="antialiased">
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )

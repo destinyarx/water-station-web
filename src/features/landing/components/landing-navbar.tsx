@@ -1,109 +1,106 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Droplet, Menu, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useEffect } from 'react'
+import Image from 'next/image'
+import { SignInButton, SignUpButton } from '@clerk/nextjs'
+
+import { initTheme, toggleTheme } from '@/stores/theme-store'
+import { useTheme } from '@/stores/use-theme'
 
 const NAV_LINKS = [
   { href: '#features', label: 'Features' },
-  { href: '#preview', label: 'Preview' },
+  { href: '#workflow', label: 'How it works' },
+  { href: '#dashboard', label: 'Dashboard' },
   { href: '#pricing', label: 'Pricing' },
-  { href: '#faq', label: 'FAQ' },
 ]
 
 export function LandingNavbar() {
-  const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const isDark = useTheme()
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    initTheme()
   }, [])
 
   return (
-    <nav
-      className={cn(
-        'sticky top-0 z-50 border-b backdrop-blur-[16px] transition-all',
-        'bg-white/80',
-        scrolled
-          ? 'border-[var(--glass-border)] shadow-[0_8px_30px_rgba(79,181,232,0.08)]'
-          : 'border-transparent',
-      )}
+    <header
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        background: 'var(--lp-header-bg)',
+        borderBottom: '1px solid var(--lp-border)',
+      }}
     >
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-outfit text-lg font-extrabold tracking-tight text-aqua-deep"
-        >
-          <span className="grid size-9 place-items-center rounded-full bg-aqua-bright text-cloud shadow-[0_0_24px_rgba(79,181,232,0.35)]">
-            <Droplet className="size-5" fill="currentColor" />
-          </span>
-          AquaFlow
-        </Link>
+      <div className="max-w-[80vw]" style={{ margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: 'linear-gradient(150deg,#38bdf8,#0a6cc4)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 16px rgba(14,108,196,0.32)' }}>
+            <Image
+              src="/icon.png"
+              alt="Aquaflow Logo"
+              width={35}
+              height={35}
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
+          <span style={{ fontWeight: 700, fontSize: '20px', letterSpacing: '-0.01em', color: 'var(--lp-text)' }}>AquaFlow</span>
+        </div>
 
-        <div className="hidden items-center gap-8 md:flex">
+        {/* Nav links */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '34px' }}>
           {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="font-outfit text-sm font-semibold text-slate transition-colors hover:text-aqua-mid"
-            >
+            <a key={link.href} href={link.href} style={{ textDecoration: 'none', color: 'var(--lp-nav-link)', fontSize: '15px', fontWeight: 500 }}>
               {link.label}
             </a>
           ))}
-        </div>
+        </nav>
 
-        <div className="flex items-center gap-2">
-          <Link
-            href="/sign-in"
-            className="hidden rounded-full px-4 py-2 font-outfit text-sm font-bold text-aqua-deep transition-colors hover:bg-aqua-mist/45 sm:inline-flex"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/sign-up"
-            className="rounded-full bg-aqua-bright px-5 py-2 font-outfit text-sm font-bold text-cloud shadow-[0_0_24px_rgba(79,181,232,0.35)] transition-all hover:-translate-y-0.5 hover:bg-aqua-mid"
-          >
-            Sign Up
-          </Link>
+        {/* Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <button
             type="button"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-            className="grid size-10 place-items-center rounded-full text-aqua-deep transition-colors hover:bg-aqua-mist/45 md:hidden"
+            aria-label="Toggle dark mode"
+            onClick={toggleTheme}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '12px',
+              border: '1px solid var(--lp-border-strong)',
+              background: 'transparent',
+              color: 'var(--lp-brand-text)',
+              cursor: 'pointer',
+            }}
           >
-            {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            {isDark ? (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.6 1.6M17.4 17.4L19 19M19 5l-1.6 1.6M6.6 17.4L5 19" />
+              </svg>
+            ) : (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" fill="currentColor" />
+              </svg>
+            )}
           </button>
+
+          <SignInButton mode="redirect">
+            <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--lp-brand-text)', fontSize: '15px', fontWeight: 600, fontFamily: 'inherit' }}>
+              Sign in
+            </button>
+          </SignInButton>
+
+          <SignUpButton mode="redirect">
+            <button type="button" style={{ background: 'linear-gradient(150deg,#38bdf8,#0a6cc4)', color: '#fff', fontSize: '15px', fontWeight: 600, padding: '11px 22px', borderRadius: '12px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 20px rgba(14,108,196,0.28)', fontFamily: 'inherit' }}>
+              Register Now
+            </button>
+          </SignUpButton>
         </div>
       </div>
-
-      {menuOpen ? (
-        <div className="border-t border-[var(--glass-border)] bg-cloud/95 px-6 py-4 md:hidden">
-          <div className="flex flex-col gap-1">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="rounded-xl px-3 py-2 font-outfit text-sm font-semibold text-slate transition-colors hover:bg-aqua-mist/45 hover:text-aqua-mid"
-              >
-                {link.label}
-              </a>
-            ))}
-            <Link
-              href="/sign-in"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-3 py-2 font-outfit text-sm font-bold text-aqua-deep transition-colors hover:bg-aqua-mist/45"
-            >
-              Sign In
-            </Link>
-          </div>
-        </div>
-      ) : null}
-    </nav>
+    </header>
   )
 }

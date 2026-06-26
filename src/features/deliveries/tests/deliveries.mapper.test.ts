@@ -5,7 +5,9 @@ import {
   toDeliveryInsertRow,
   toDeliveryItemInsertRows,
   toScheduleInsertRow,
+  toStatusTransitionItems,
 } from '../deliveries.mapper'
+import type { DeliveryItem } from '../deliveries.types'
 import type {
   DeliveryFormValues,
   DeliveryItemRow,
@@ -100,6 +102,7 @@ describe('delivery mappers', () => {
       failure_remarks: null,
       notes: 'Call before leaving.',
       delivered_by: null,
+      completed_at: null,
       org_id: 321,
       created_by: 'user_123',
       created_at: '2026-06-16T00:00:00.000Z',
@@ -141,5 +144,24 @@ describe('delivery mappers', () => {
       ],
       total: 110,
     })
+  })
+
+  it('marks items stock-tracked from the product catalog, defaulting missing products to untracked', () => {
+    const items = [
+      { productId: 10, productName: 'Bottle', quantity: 3 },
+      { productId: 11, productName: 'Refill', quantity: 1 },
+      { productId: 99, productName: 'Gone', quantity: 2 },
+    ] as DeliveryItem[]
+
+    expect(
+      toStatusTransitionItems(items, [
+        { id: 10, isStockTracked: true },
+        { id: 11, isStockTracked: false },
+      ]),
+    ).toEqual([
+      { productId: 10, productName: 'Bottle', quantity: 3, isStockTracked: true },
+      { productId: 11, productName: 'Refill', quantity: 1, isStockTracked: false },
+      { productId: 99, productName: 'Gone', quantity: 2, isStockTracked: false },
+    ])
   })
 })

@@ -1,293 +1,210 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Droplets, ReceiptText, Search, WalletCards } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
-import { expenseCategories, paymentMethods } from '../expenses.constants'
-import {
-  createExpenseSummary,
-  filterExpenses,
-  pesoFormatter,
-} from '../expenses.summary'
-import type { Expense, ExpenseCategory, PaymentMethod } from '../expenses.types'
+import { expenseCategories } from '../expenses.constants'
+import { createExpenseSummary, filterExpenses, pesoFormatter } from '../expenses.summary'
+import type { Expense, ExpenseCategory } from '../expenses.types'
 import { useExpenses } from '../hooks/use-expenses'
 import { CreateExpenseDialog } from './create-expense-dialog'
 import { ExpensesTable } from './expenses-table'
 
-const EMPTY_EXPENSES: Expense[] = []
+const EMPTY: Expense[] = []
 
 export function ExpensesPage() {
   const { data: expenses, isPending, isError, error } = useExpenses()
-  const expenseList = expenses ?? EMPTY_EXPENSES
-  const [searchQuery, setSearchQuery] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | 'all'>(
-    'all',
-  )
-  const [paymentFilter, setPaymentFilter] = useState<PaymentMethod | 'all'>(
-    'all',
-  )
-  const [dateFilter, setDateFilter] = useState('')
+  const expenseList = expenses ?? EMPTY
+  const [search, setSearch] = useState('')
+  const [catFilter, setCatFilter] = useState<ExpenseCategory | 'all'>('all')
 
-  const filteredExpenses = useMemo(
-    () =>
-      filterExpenses(expenseList, {
-        search: searchQuery,
-        category: categoryFilter,
-        paymentMethod: paymentFilter,
-        date: dateFilter,
-      }),
-    [categoryFilter, dateFilter, expenseList, paymentFilter, searchQuery],
+  const filtered = useMemo(
+    () => filterExpenses(expenseList, { search, category: catFilter }),
+    [expenseList, search, catFilter],
   )
 
-  const summary = useMemo(
-    () => createExpenseSummary(expenseList),
-    [expenseList],
-  )
+  const summary = useMemo(() => createExpenseSummary(expenseList), [expenseList])
+
+  const filteredTotal = filtered.reduce((sum, e) => sum + e.amount, 0)
 
   return (
-    <section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      <header className="overflow-hidden rounded-3xl border border-[#dcecff] bg-white shadow-[0_16px_44px_rgba(0,48,73,0.08)]">
-        <div className="relative p-6 sm:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_0%,rgba(0,180,216,0.18),transparent_30%),radial-gradient(circle_at_92%_20%,rgba(0,245,212,0.16),transparent_28%)]" />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#bdefff] bg-[#eef7ff]/80 px-3 py-1 text-sm font-semibold text-[#00677d]">
-                <Droplets className="size-4" aria-hidden="true" />
-                Station operating costs
-              </div>
-              <div>
-                <h1 className="font-heading text-3xl font-semibold tracking-tight text-[#001d34] sm:text-4xl">
-                  Expenses
-                </h1>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-[#2a4b6a] sm:text-base">
-                  Track water station spending across utilities, supplies,
-                  maintenance, labor, fees, and daily operating costs.
-                </p>
-              </div>
-            </div>
-            <CreateExpenseDialog />
-          </div>
-        </div>
-      </header>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ExpenseMetricCard
-          label="Total Expenses"
-          value={pesoFormatter.format(summary.totalExpenses)}
-          description="Active operating costs"
-        />
-        <ExpenseMetricCard
-          label="This Month"
-          value={pesoFormatter.format(summary.thisMonth)}
-          description="Current calendar month"
-        />
-        <ExpenseMetricCard
-          label="Largest Category"
-          value={summary.largestCategoryLabel}
-          description="Highest total spend"
-        />
-        <ExpenseMetricCard
-          label="Recent Count"
-          value={String(summary.recentExpenseCount)}
-          description="Expenses from the last 7 days"
-        />
-      </div>
-
-      <div className="rounded-3xl border border-[#dcecff] bg-white/90 p-4 shadow-[0_16px_44px_rgba(0,48,73,0.06)] backdrop-blur-xl sm:p-5">
-        <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_180px_180px_160px_auto] lg:items-center">
-          <div className="relative">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#6d797e]"
-              aria-hidden="true"
-            />
-            <Input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search name, notes, or reference"
-              className="h-11 rounded-xl border-[#dcecff] bg-[#eef7ff]/70 pl-9 text-[#001d34] placeholder:text-[#6d797e] focus-visible:border-[#00b4d8] focus-visible:ring-[#00b4d8]/20"
-              aria-label="Search expenses"
-            />
-          </div>
-
-          <FilterSelect
-            ariaLabel="Filter by category"
-            value={categoryFilter}
-            onChange={(value) =>
-              setCategoryFilter(value as ExpenseCategory | 'all')
-            }
-          >
-            <option value="all">All categories</option>
-            {expenseCategories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.name}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <FilterSelect
-            ariaLabel="Filter by payment method"
-            value={paymentFilter}
-            onChange={(value) =>
-              setPaymentFilter(value as PaymentMethod | 'all')
-            }
-          >
-            <option value="all">All payments</option>
-            {paymentMethods.map((method) => (
-              <option key={method.value} value={method.value}>
-                {method.name}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <Input
-            type="date"
-            value={dateFilter}
-            onChange={(event) => setDateFilter(event.target.value)}
-            aria-label="Filter by expense date"
-            className="h-11 rounded-xl border-[#dcecff] bg-[#eef7ff]/70 text-[#001d34] focus-visible:border-[#00b4d8] focus-visible:ring-[#00b4d8]/20"
-          />
-
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setSearchQuery('')
-              setCategoryFilter('all')
-              setPaymentFilter('all')
-              setDateFilter('')
-            }}
-            className="rounded-xl border border-[#dcecff] bg-white text-[#2a4b6a] hover:bg-[#eef7ff] hover:text-[#00414f]"
-          >
-            Clear
-          </Button>
-        </div>
-      </div>
-
-      {isPending ? (
-        <ExpensesLoadingState />
-      ) : isError ? (
-        <div
-          role="alert"
-          className="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700"
-        >
-          {error.message}
-        </div>
-      ) : expenseList.length === 0 ? (
-        <ExpensesEmptyState />
-      ) : filteredExpenses.length === 0 ? (
-        <ExpensesNoResultsState />
-      ) : (
-        <ExpensesTable expenses={filteredExpenses} />
-      )}
-    </section>
-  )
-}
-
-interface ExpenseMetricCardProps {
-  label: string
-  value: string
-  description: string
-}
-
-function ExpenseMetricCard({ label, value, description }: ExpenseMetricCardProps) {
-  return (
-    <article className="rounded-2xl border border-[#dcecff] bg-white/85 p-5 shadow-[0_12px_32px_rgba(0,48,73,0.06)]">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#2a4b6a]">{label}</p>
-          <p className="mt-2 truncate font-heading text-2xl font-semibold tabular-nums text-[#001d34]">
-            {value}
+    <div className="max-w-[85vw] mx-auto" style={{ margin: '0 auto', padding: '26px 28px 56px' }}>
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '24px' }}>
+        <div>
+          <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-brand)', marginBottom: '9px' }}>Cost tracking</div>
+          <h1 style={{ fontSize: '29px', fontWeight: 800, letterSpacing: '-0.025em', margin: '0 0 7px', color: 'var(--app-text)' }}>Expenses</h1>
+          <p style={{ fontSize: '14.5px', lineHeight: 1.55, color: 'var(--app-text-muted)', margin: 0, maxWidth: '560px' }}>
+            Track every peso that keeps the station running — utilities, filters, salt, deliveries, and payroll — so you always know your true margins.
           </p>
         </div>
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[#e8fbff] text-[#00b4d8]">
-          <WalletCards className="size-5" aria-hidden="true" />
-        </span>
+        <CreateExpenseDialog />
       </div>
-      <p className="mt-3 text-sm leading-5 text-[#2a4b6a]">{description}</p>
-    </article>
-  )
-}
 
-interface FilterSelectProps {
-  ariaLabel: string
-  value: string
-  onChange: (value: string) => void
-  children: React.ReactNode
-}
-
-function FilterSelect({
-  ariaLabel,
-  value,
-  onChange,
-  children,
-}: FilterSelectProps) {
-  return (
-    <select
-      aria-label={ariaLabel}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className={cn(
-        'h-11 rounded-xl border border-[#dcecff] bg-[#eef7ff]/70 px-3 text-sm text-[#001d34] outline-none transition-[color,box-shadow]',
-        'focus:border-[#00b4d8] focus:ring-4 focus:ring-[#00b4d8]/20',
-      )}
-    >
-      {children}
-    </select>
-  )
-}
-
-function ExpensesLoadingState() {
-  return (
-    <div className="rounded-3xl border border-[#dcecff] bg-white/90 p-4 shadow-[0_16px_44px_rgba(0,48,73,0.06)]">
-      <div className="space-y-3">
-        {Array.from({ length: 4 }, (_, index) => (
-          <div
-            key={index}
-            className="grid gap-3 rounded-2xl bg-[#eef7ff]/70 p-4 md:grid-cols-[1.4fr_1fr_1fr_0.8fr_0.8fr_auto]"
-          >
-            <div className="h-10 animate-pulse rounded-xl bg-white" />
-            <div className="h-10 animate-pulse rounded-xl bg-white" />
-            <div className="h-10 animate-pulse rounded-xl bg-white" />
-            <div className="h-10 animate-pulse rounded-xl bg-white" />
-            <div className="h-10 animate-pulse rounded-xl bg-white" />
-            <div className="h-10 animate-pulse rounded-xl bg-white md:w-28" />
+      {/* Stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {/* Spent this month */}
+        <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#0b73c8,#075098)', borderRadius: '18px', padding: '20px', boxShadow: '0 14px 30px rgba(14,108,196,0.26)' }}>
+          <div style={{ position: 'absolute', right: '-20px', bottom: '-24px', lineHeight: 0, opacity: 0.22 }}>
+            <svg width="150" height="90" viewBox="0 0 150 90" preserveAspectRatio="none"><path d="M0 50 C30 30 55 64 85 48 C115 32 135 56 150 44 L150 90 L0 90 Z" fill="#fff" /></svg>
           </div>
-        ))}
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#bfe2ff' }}>Spent this month</div>
+              <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5" /><path d="M3 10h18" /></svg>
+              </div>
+            </div>
+            <div style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1 }}>{pesoFormatter.format(summary.thisMonth)}</div>
+            <div style={{ fontSize: '12.5px', color: '#bfe2ff', marginTop: '10px' }}>{summary.thisMonthLabel} · {summary.thisMonthCount} entries</div>
+          </div>
+        </div>
+
+        {/* Total recorded */}
+        <StatCard
+          label="Total recorded"
+          iconColor="var(--app-brand)"
+          iconBg="var(--app-chip-bg)"
+          accentColor="#38bdf8"
+          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M4 5h16M4 12h16M4 19h10" /></svg>}
+          value={pesoFormatter.format(summary.totalExpenses)}
+          sub={`${expenseList.length} expense entries`}
+        />
+
+        {/* Top category */}
+        <StatCard
+          label="Top category"
+          iconColor="#8b5cf6"
+          iconBg="rgba(139,92,246,0.14)"
+          accentColor="#8b5cf6"
+          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M12 3v9l6 3" /><circle cx="12" cy="12" r="9" /></svg>}
+          value={summary.largestCategoryLabel}
+          sub={`${pesoFormatter.format(summary.largestCategoryTotal)} spent so far`}
+          valueSmall
+        />
+
+        {/* Largest expense */}
+        <StatCard
+          label="Largest expense"
+          iconColor="var(--app-chip-amber-text)"
+          iconBg="var(--app-chip-amber-bg)"
+          accentColor="#f59e0b"
+          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M4 18V8m6 10V5m6 13v-8" /><path d="M3 21h18" /></svg>}
+          value={pesoFormatter.format(summary.largestExpense)}
+          sub={summary.largestExpenseLabel}
+        />
+      </div>
+
+      {/* Ledger card */}
+      <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '20px', overflow: 'hidden', boxShadow: 'var(--app-shadow-card)' }}>
+        {/* Toolbar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', padding: '16px 18px', borderBottom: '1px solid var(--app-border)', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '220px', maxWidth: '360px' }}>
+            <span style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: 'var(--app-text-faint)', pointerEvents: 'none' }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-3.6-3.6" /></svg>
+            </span>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search expenses…"
+              style={{ width: '100%', padding: '10px 14px 10px 39px', border: '1px solid var(--app-border-strong)', borderRadius: '11px', background: 'var(--app-surface-2)', color: 'var(--app-text)', fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+            />
+          </div>
+          <div style={{ position: 'relative' }}>
+            <select
+              value={catFilter}
+              onChange={(e) => setCatFilter(e.target.value as ExpenseCategory | 'all')}
+              style={{ appearance: 'none', padding: '10px 36px 10px 14px', border: '1px solid var(--app-border-strong)', borderRadius: '11px', background: 'var(--app-surface-2)', color: 'var(--app-text)', fontSize: '13.5px', fontWeight: 600, fontFamily: 'inherit', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="all">All categories</option>
+              {expenseCategories.map((c) => (
+                <option key={c.value} value={c.value}>{c.name}</option>
+              ))}
+            </select>
+            <span style={{ position: 'absolute', right: '13px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--app-text-soft)' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
+            </span>
+          </div>
+        </div>
+
+        {isPending ? (
+          <LoadingState />
+        ) : isError ? (
+          <div role="alert" style={{ padding: '24px', color: '#b91c1c', fontSize: '14px' }}>{error.message}</div>
+        ) : expenseList.length === 0 ? (
+          <EmptyState />
+        ) : filtered.length === 0 ? (
+          <NoResultsState onClear={() => { setSearch(''); setCatFilter('all') }} />
+        ) : (
+          <>
+            <ExpensesTable expenses={filtered} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 22px', borderTop: '1px solid var(--app-border)', fontSize: '13px', color: 'var(--app-text-soft)', flexWrap: 'wrap', gap: '10px' }}>
+              <span>Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{filtered.length}</strong> of {expenseList.length} expenses</span>
+              <span>Filtered total: <strong style={{ color: 'var(--app-text)', fontWeight: 700 }}>{pesoFormatter.format(filteredTotal)}</strong></span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
 }
 
-function ExpensesEmptyState() {
+interface StatCardProps {
+  label: string
+  iconColor: string
+  iconBg: string
+  accentColor: string
+  icon: React.ReactNode
+  value: string
+  sub: string
+  valueSmall?: boolean
+}
+
+function StatCard({ label, iconColor, iconBg, accentColor, icon, value, sub, valueSmall }: StatCardProps) {
   return (
-    <div className="rounded-3xl border border-dashed border-[#9adff1] bg-[#eef7ff]/70 p-10 text-center">
-      <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-white text-[#00b4d8] shadow-[0_12px_32px_rgba(0,48,73,0.08)]">
-        <ReceiptText className="size-7" aria-hidden="true" />
+    <div style={{ background: 'var(--app-surface)', border: `1px solid var(--app-border)`, borderLeft: `3px solid ${accentColor}`, borderRadius: '18px', padding: '20px', boxShadow: 'var(--app-shadow-card)' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '3px' }}>{label}</div>
+        <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       </div>
-      <h2 className="mt-4 font-heading text-xl font-semibold text-[#001d34]">
-        No expenses recorded yet
-      </h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#2a4b6a]">
-        Start tracking your water station operating costs by adding your first
-        expense.
-      </p>
+      <div style={{ fontSize: valueSmall ? '21px' : '32px', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--app-text)', lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: '12.5px', color: 'var(--app-text-soft)', marginTop: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</div>
     </div>
   )
 }
 
-function ExpensesNoResultsState() {
+function LoadingState() {
   return (
-    <div className="rounded-3xl border border-[#dcecff] bg-white p-8 text-center">
-      <h2 className="font-heading text-lg font-semibold text-[#001d34]">
-        No matching expenses
-      </h2>
-      <p className="mt-2 text-sm text-[#2a4b6a]">
-        Try a different name, reference number, category, payment method, or
-        date.
-      </p>
+    <div style={{ padding: '32px 22px' }}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <div key={i} style={{ height: '52px', borderRadius: '8px', background: 'var(--app-surface-2)', marginBottom: '8px', animation: 'pulse 1.5s ease infinite' }} />
+      ))}
+    </div>
+  )
+}
+
+function EmptyState() {
+  return (
+    <div style={{ padding: '62px 24px', textAlign: 'center' }}>
+      <div style={{ width: '72px', height: '72px', borderRadius: '22px', background: 'var(--app-chip-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--app-brand)' }}>
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5" /><path d="M3 10h18" /><circle cx="16.5" cy="14" r="1.2" fill="currentColor" stroke="none" /></svg>
+      </div>
+      <div style={{ fontSize: '19px', fontWeight: 700, color: 'var(--app-text)', marginBottom: '8px' }}>No expenses recorded yet</div>
+      <p style={{ fontSize: '14px', color: 'var(--app-text-muted)', margin: '0 auto 20px', maxWidth: '380px' }}>Start logging your station&apos;s running costs to see where the money goes each month.</p>
+    </div>
+  )
+}
+
+function NoResultsState({ onClear }: { onClear: () => void }) {
+  return (
+    <div style={{ padding: '56px 24px', textAlign: 'center' }}>
+      <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: 'var(--app-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', color: 'var(--app-text-faint)' }}>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-3.6-3.6" /></svg>
+      </div>
+      <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--app-text)', marginBottom: '6px' }}>No matching expenses</div>
+      <p style={{ fontSize: '14px', color: 'var(--app-text-muted)', margin: '0 0 18px' }}>Try a different keyword or category.</p>
+      <button onClick={onClear} type="button" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', color: 'var(--app-brand)', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, padding: '10px 18px', borderRadius: '11px', cursor: 'pointer' }}>
+        Clear filters
+      </button>
     </div>
   )
 }

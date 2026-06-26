@@ -1,60 +1,43 @@
-import {
-  PackageX,
-  ListX,
-  ReceiptText,
-  FileWarning,
-  AlertTriangle,
-  UsersRound,
-  type LucideIcon,
-} from 'lucide-react'
-import { Reveal } from './reveal'
+const TRUST_NAMES = ['PureDrop', 'CrystalSprings', 'AquaBella', 'BlueWell', 'H2Go Station']
 
-const PAIN_POINTS: { icon: LucideIcon; label: string }[] = [
-  { icon: PackageX, label: 'Missed or forgotten deliveries' },
-  { icon: ListX, label: 'Manual, scattered customer lists' },
-  { icon: ReceiptText, label: 'Untracked or unpaid payments' },
-  { icon: FileWarning, label: 'Messy, hard-to-read sales records' },
-  { icon: AlertTriangle, label: 'Unexpected machine maintenance issues' },
-  { icon: UsersRound, label: 'Hard to monitor staff & daily operations' },
+const HOW_STEPS = [
+  { n: '1', title: 'Customer drops off', desc: 'Scan their container, confirm size and deposit in seconds.' },
+  { n: '2', title: 'Refill & ring up', desc: 'Log gallons, auto-price the refill and take payment at the POS.' },
+  { n: '3', title: 'Schedule delivery', desc: 'Add bulk orders to a driver\'s route with a tap.' },
+  { n: '4', title: 'Close the day', desc: 'Reconcile sales vs. expenses and see tomorrow\'s tasks.' },
 ]
 
 export function ProblemSection() {
   return (
-    <section className="relative overflow-hidden bg-cloud">
-      <div
-        aria-hidden
-        className="absolute left-1/2 top-0 h-px w-[min(1200px,calc(100%-48px))] -translate-x-1/2 bg-gradient-to-r from-transparent via-hairline to-transparent"
-      />
-      <div className="mx-auto max-w-[1200px] px-6 py-16 lg:py-24">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="font-outfit text-sm font-bold uppercase tracking-[0.18em] text-aqua-mid">
-            The daily struggle
-          </p>
-          <h2 className="mt-3 font-outfit text-[2rem] font-bold tracking-[-0.02em] text-aqua-deep">
-            Running a refilling station shouldn&apos;t feel this messy.
-          </h2>
-          <p className="mt-4 text-base leading-[1.7] text-slate">
-            Paper notebooks and chat threads make small mistakes expensive.
-            AquaFlow keeps the day visible before issues pile up.
-          </p>
-        </Reveal>
-
-        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PAIN_POINTS.map(({ icon: Icon, label }) => (
-            <Reveal
-              key={label}
-              className="group flex items-center gap-4 rounded-[1.5rem] bg-[var(--surface-container-low)] px-5 py-4 shadow-[0_8px_30px_rgba(79,181,232,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:bg-cloud hover:shadow-[0_16px_44px_rgba(79,181,232,0.14)]"
-            >
-              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-cloud text-slate shadow-[0_8px_24px_rgba(24,28,31,0.06)] transition-colors group-hover:text-aqua-mid">
-                <Icon className="size-5" />
-              </span>
-              <span className="text-sm font-semibold leading-[1.5] text-ink">
-                {label}
-              </span>
-            </Reveal>
+    <>
+      {/* Trust strip */}
+      {/* <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '14px 32px 40px' }}>
+        <div style={{ textAlign: 'center', color: 'var(--lp-text-faint)', fontSize: '13px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '22px' }}>Trusted by neighborhood refilling stations</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '48px', flexWrap: 'wrap', opacity: 0.7 }}>
+          {TRUST_NAMES.map((name) => (
+            <span key={name} style={{ fontWeight: 700, fontSize: '19px', color: 'var(--lp-text-muted)' }}>{name}</span>
           ))}
         </div>
-      </div>
-    </section>
+      </section> */}
+
+      {/* How it works */}
+      <section id="workflow" style={{ background: 'var(--lp-section-soft)', padding: '70px 0' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 32px' }}>
+          <div style={{ textAlign: 'center', maxWidth: '560px', margin: '0 auto 48px' }}>
+            <h2 style={{ fontSize: '38px', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 12px', color: 'var(--lp-text)' }}>From counter to customer, one flow</h2>
+            <p style={{ fontSize: '17px', color: 'var(--lp-text-muted)', margin: 0, lineHeight: 1.6 }}>A workday at the station, handled step by step.</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '20px' }}>
+            {HOW_STEPS.map(({ n, title, desc }) => (
+              <div key={n} style={{ textAlign: 'center', padding: '0 8px' }}>
+                <div style={{ width: '58px', height: '58px', borderRadius: '18px', background: 'var(--lp-surface)', boxShadow: '0 10px 24px rgba(14,108,196,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: '22px', fontWeight: 800, color: 'var(--lp-brand-text)' }}>{n}</div>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 8px', color: 'var(--lp-text)' }}>{title}</h3>
+                <p style={{ fontSize: '14px', color: 'var(--lp-text-muted)', lineHeight: 1.55, margin: 0 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
   )
 }

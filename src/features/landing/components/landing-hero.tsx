@@ -1,188 +1,136 @@
-import Link from 'next/link'
-import {
-  ArrowRight,
-  CalendarCheck,
-  Check,
-  Droplet,
-  ReceiptText,
-  Route,
-  TrendingUp,
-} from 'lucide-react'
+'use client'
 
-const TRUST_CHIPS = [
-  'No missed delivery slips',
-  'Clear daily cash records',
-  'Works on any device',
-]
-
-const ROUTE_STOPS = [
-  { label: 'Household', time: '8:30 AM', status: 'Delivered' },
-  { label: 'Office refill', time: '10:15 AM', status: 'Next' },
-  { label: 'Restaurant', time: '1:00 PM', status: 'Queued' },
-]
+import { SignUpButton } from '@clerk/nextjs'
 
 export function LandingHero() {
   return (
-    <header className="relative overflow-hidden bg-fog">
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-28 -top-32 size-[32rem] rounded-full bg-aqua-light/30 blur-3xl" />
-        <div className="absolute right-[-8rem] top-16 size-[30rem] rounded-full bg-aqua-bright/25 blur-3xl" />
-        <div className="absolute bottom-[-10rem] left-1/3 size-[28rem] rounded-full bg-aqua-mist/45 blur-3xl" />
-        <svg
-          viewBox="0 0 1200 420"
-          className="absolute inset-x-0 top-28 h-[26rem] w-full text-aqua-mid/20"
-          preserveAspectRatio="none"
-        >
-          <path
-            className="aqua-flow-line"
-            d="M-40 260 C 180 110 340 360 560 200 S 930 90 1240 220"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
+    <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--lp-hero-grad)' }}>
+      {/* Water background */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-160px', right: '8%', width: '520px', height: '520px', borderRadius: '50%', background: 'var(--lp-hero-glow)', animation: 'caustic 11s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', top: '90px', left: '-60px', width: '340px', height: '340px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(125,211,252,0.45), transparent 68%)', filter: 'blur(8px)', animation: 'caustic 14s ease-in-out infinite reverse' }} />
+        <div style={{ position: 'absolute', top: '40%', left: '42%', width: '260px', height: '260px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(56,189,248,0.22), transparent 70%)', filter: 'blur(6px)', animation: 'caustic 9s ease-in-out infinite' }} />
+        {[
+          { left: '12%', size: 14, delay: '0.4s', dur: '9s' },
+          { left: '22%', size: 9,  delay: '2.1s', dur: '11s' },
+          { left: '34%', size: 20, delay: '1.2s', dur: '13s' },
+          { left: '58%', size: 11, delay: '3.4s', dur: '10s' },
+          { left: '70%', size: 16, delay: '0.9s', dur: '12s' },
+          { left: '84%', size: 8,  delay: '2.7s', dur: '9.5s' },
+          { left: '91%', size: 13, delay: '4.2s', dur: '14s' },
+        ].map((b, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              left: b.left,
+              bottom: 0,
+              width: `${b.size}px`,
+              height: `${b.size}px`,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle at 32% 30%, #ffffff, rgba(186,230,253,0.5))',
+              boxShadow: '0 0 0 1px rgba(255,255,255,0.5)',
+              animation: `bubbleRise ${b.dur} ease-in ${b.delay} infinite`,
+            }}
           />
-        </svg>
+        ))}
       </div>
 
-      <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 px-6 py-16 lg:grid-cols-[1.02fr_0.98fr] lg:py-28">
-        <div>
-          <p className="aqua-load aqua-delay-0 inline-flex rounded-full bg-cloud/80 px-4 py-2 font-outfit text-sm font-semibold uppercase tracking-[0.16em] text-aqua-mid shadow-[0_8px_30px_rgba(79,181,232,0.10)] ring-1 ring-[var(--glass-border)] backdrop-blur">
-            Transparent records for busy water stations
-          </p>
-          <h1 className="aqua-load aqua-delay-1 mt-6 max-w-2xl font-outfit text-[clamp(2.5rem,5.8vw,4rem)] font-extrabold leading-[1.08] tracking-[-0.02em] text-aqua-deep">
-            Run your water refilling station with less paperwork and fewer
-            missed deliveries. 
-          </h1>
-          <p className="aqua-load aqua-delay-2 mt-6 max-w-xl text-[1.125rem] leading-[1.75] text-slate">
-            Manage customers, delivery schedules, sales, expenses, and machine
-            maintenance in one simple system built for water refilling
-            businesses.
-          </p>
+      {/* Waves */}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: '-1px', zIndex: 1, lineHeight: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '200%', animation: 'waveDrift2 18s linear infinite' }}>
+          <svg viewBox="0 0 1440 140" width="100%" height="120" preserveAspectRatio="none">
+            <path d="M0 70 C180 20 360 110 540 80 C720 50 900 0 1080 30 C1260 60 1350 90 1440 75 L1440 140 L0 140 Z" fill="var(--lp-wave-1)" opacity="0.55" />
+          </svg>
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '200%', animation: 'waveDrift 14s linear infinite' }}>
+          <svg viewBox="0 0 1440 140" width="100%" height="120" preserveAspectRatio="none">
+            <path d="M0 90 C200 50 380 120 600 95 C820 70 1000 30 1200 60 C1320 78 1390 95 1440 88 L1440 140 L0 140 Z" fill="var(--lp-wave-2)" opacity="0.5" />
+          </svg>
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '200%', animation: 'waveDrift 22s linear infinite' }}>
+          <svg viewBox="0 0 1440 120" width="100%" height="96" preserveAspectRatio="none">
+            <path d="M0 80 C240 110 420 50 720 70 C1020 90 1200 40 1440 70 L1440 120 L0 120 Z" fill="var(--lp-page-bg)" />
+          </svg>
+        </div>
+      </div>
 
-          <div className="aqua-load aqua-delay-3 mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              href="/sign-up"
-              className="inline-flex items-center gap-2 rounded-full bg-aqua-bright px-6 py-3.5 font-outfit text-sm font-bold text-cloud shadow-[0_0_28px_rgba(79,181,232,0.45)] transition-all hover:-translate-y-0.5 hover:bg-aqua-mid hover:shadow-[0_16px_44px_rgba(79,181,232,0.24)]"
-            >
-              Get Started
-              <ArrowRight className="size-4" />
-            </Link>
-            <a
-              href="#features"
-              className="inline-flex rounded-full border border-[var(--glass-border)] bg-cloud/70 px-6 py-3.5 font-outfit text-sm font-bold text-aqua-deep shadow-[0_8px_30px_rgba(79,181,232,0.08)] backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-cloud"
-            >
-              View Features
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: '1200px', margin: '0 auto', padding: '80px 32px 130px', display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: '48px', alignItems: 'center' }}>
+        {/* Text */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--lp-chip-bg)', color: 'var(--lp-brand-text)', fontSize: '13px', fontWeight: 600, padding: '7px 14px', borderRadius: '999px', marginBottom: '22px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+            Built for water refilling stations
+          </div>
+          <h1 style={{ fontSize: '54px', lineHeight: 1.06, fontWeight: 800, letterSpacing: '-0.025em', margin: '0 0 20px', color: 'var(--lp-text)' }}>
+            Run your refill<br />station like{' '}
+            <span style={{ background: 'linear-gradient(120deg,#0ea5e9,#38bdf8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              clear water
+            </span>.
+          </h1>
+          <p style={{ fontSize: '18px', lineHeight: 1.6, color: 'var(--lp-text-muted)', margin: '0 0 32px', maxWidth: '480px' }}>
+            Track refills, container pickups and returns, bottled-water sales, delivery routes and expenses — all in one calm, clean dashboard your staff will actually use.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '30px' }}>
+            <SignUpButton mode="redirect">
+              <button type="button" style={{ background: 'linear-gradient(150deg,#38bdf8,#0a6cc4)', color: '#fff', fontSize: '16px', fontWeight: 600, padding: '15px 30px', borderRadius: '14px', border: 'none', cursor: 'pointer', boxShadow: '0 12px 28px rgba(14,108,196,0.32)', fontFamily: 'inherit' }}>
+                Start for Free
+              </button>
+            </SignUpButton>
+            <a href="#dashboard" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '9px', color: 'var(--lp-text)', fontSize: '16px', fontWeight: 600, padding: '15px 18px' }}>
+              <span style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--lp-surface)', boxShadow: '0 4px 12px rgba(14,108,196,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="#0a6cc4"><path d="M2 1l8 5-8 5V1Z" /></svg>
+              </span>
+              See it in action
             </a>
           </div>
-
-          <ul className="aqua-load aqua-delay-3 mt-8 grid gap-3 sm:grid-cols-3">
-            {TRUST_CHIPS.map((chip) => (
-              <li
-                key={chip}
-                className="flex items-center gap-2 rounded-full bg-cloud/70 px-4 py-2 text-sm font-medium text-slate ring-1 ring-[var(--glass-border)] backdrop-blur"
-              >
-                <Check className="size-4 text-aqua-bright" />
-                {chip}
-              </li>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', color: 'var(--lp-text-soft)', fontSize: '14px' }}>
+            {['No setup fees', '14-day free trial'].map((txt) => (
+              <div key={txt} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="#0ea5e9"><path d="M6.5 11L3 7.5l1.2-1.2 2.3 2.3 5-5L12.7 5 6.5 11Z" /></svg>
+                {txt}
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
-        <div className="aqua-load aqua-delay-2 relative">
-          <div className="aqua-float relative rounded-[2rem] bg-cloud/75 p-5 shadow-[0_26px_80px_rgba(79,181,232,0.22)] ring-1 ring-white/70 backdrop-blur-[18px]">
-            <div className="absolute -right-5 -top-6 grid size-20 place-items-center rounded-full bg-aqua-bright text-cloud shadow-[0_0_34px_rgba(79,181,232,0.55)] ring-4 ring-white">
-              <Droplet className="size-9" fill="currentColor" />
+        {/* Hero card */}
+        <div style={{ position: 'relative', zIndex: 1, animation: 'floaty 6s ease-in-out infinite' }}>
+          <div style={{ background: 'var(--lp-surface)', borderRadius: '22px', padding: '22px', boxShadow: '0 30px 70px rgba(14,108,196,0.18)', border: '1px solid var(--lp-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <div>
+                <div style={{ fontSize: '13px', color: 'var(--lp-text-soft)' }}>{"Today's refills"}</div>
+                <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--lp-text)', letterSpacing: '-0.02em' }}>
+                  248 <span style={{ fontSize: '14px', fontWeight: 600, color: '#22c55e' }}>gal</span>
+                </div>
+              </div>
+              <div style={{ background: 'var(--lp-chip-bg)', color: 'var(--lp-brand-text)', fontSize: '12px', fontWeight: 600, padding: '6px 12px', borderRadius: '999px' }}>+18% vs yest.</div>
             </div>
-
-            <div className="rounded-[1.5rem] bg-[var(--navy-dark)] p-5 text-cloud">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-outfit text-sm font-semibold text-aqua-light">
-                    Today&apos;s Station Flow
-                  </p>
-                  <p className="mt-1 text-xs text-aqua-mist/75">
-                    Live delivery, sales, and expense control
-                  </p>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px', height: '90px', padding: '8px 0 14px', borderBottom: '1px solid var(--lp-border)' }}>
+              {[46, 62, 38, 78, 54, 70, 88].map((h, i) => (
+                <div key={i} style={{ flex: 1, height: `${h}%`, background: i === 3 || i === 6 ? 'linear-gradient(#38bdf8,#0a6cc4)' : 'linear-gradient(#7dd3fc,#bae6fd)', borderRadius: '6px 6px 0 0' }} />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+              {[{ label: 'Containers out', val: '132' }, { label: 'Deliveries due', val: '17' }].map(({ label, val }) => (
+                <div key={label} style={{ flex: 1, background: 'var(--lp-surface-2)', borderRadius: '14px', padding: '14px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--lp-text-soft)', marginBottom: '4px' }}>{label}</div>
+                  <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--lp-text)' }}>{val}</div>
                 </div>
-                <span className="rounded-full bg-success/20 px-3 py-1 text-xs font-bold text-success">
-                  Organized
-                </span>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <HeroMetric
-                  icon={CalendarCheck}
-                  label="Deliveries"
-                  value="18"
-                />
-                <HeroMetric icon={ReceiptText} label="Sales" value="₱8,450" />
-                <HeroMetric icon={TrendingUp} label="Net today" value="₱5,920" />
-                <HeroMetric icon={Route} label="Routes left" value="4" />
-              </div>
-
-              <div className="mt-5 rounded-[1.25rem] bg-white/8 p-4 ring-1 ring-white/10">
-                <div className="flex items-center justify-between">
-                  <p className="font-outfit text-sm font-semibold">
-                    Delivery queue
-                  </p>
-                  <span className="text-xs text-aqua-light">Route A</span>
-                </div>
-                <ul className="mt-4 space-y-3">
-                  {ROUTE_STOPS.map((stop) => (
-                    <li
-                      key={stop.label}
-                      className="grid grid-cols-[auto_1fr_auto] items-center gap-3 text-sm"
-                    >
-                      <span className="grid size-8 place-items-center rounded-full bg-aqua-bright/20 text-aqua-light">
-                        <Droplet className="size-4" />
-                      </span>
-                      <span>
-                        <span className="block font-medium">{stop.label}</span>
-                        <span className="text-xs text-aqua-mist/65">
-                          {stop.time}
-                        </span>
-                      </span>
-                      <span className="rounded-full bg-cloud/10 px-2.5 py-1 text-xs text-aqua-mist">
-                        {stop.status}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mt-5 flex h-24 items-end gap-2">
-                {[44, 68, 52, 88, 64, 78, 58].map((height, index) => (
-                  <span
-                    key={index}
-                    style={{ height: `${height}%` }}
-                    className="relative flex-1 rounded-t-full bg-gradient-to-t from-aqua-mid to-aqua-light shadow-[0_0_18px_rgba(124,208,255,0.36)]"
-                  >
-                    <span className="absolute inset-x-1 top-0 h-px rounded-full bg-cloud/80" />
-                  </span>
-                ))}
-              </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ position: 'absolute', bottom: '-22px', left: '-26px', background: 'var(--lp-surface)', borderRadius: '16px', padding: '13px 16px', boxShadow: '0 16px 36px rgba(14,108,196,0.2)', display: 'flex', alignItems: 'center', gap: '11px' }}>
+            <div style={{ width: '38px', height: '38px', borderRadius: '11px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="#16a34a"><path d="M6.5 11L3 7.5l1.2-1.2 2.3 2.3 5-5L12.7 5 6.5 11Z" /></svg>
+            </div>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--lp-text)' }}>Container returned</div>
+              <div style={{ fontSize: '11px', color: 'var(--lp-text-soft)' }}>5-gal · Maria&apos;s Eatery</div>
             </div>
           </div>
         </div>
       </div>
-    </header>
-  )
-}
-
-function HeroMetric({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof CalendarCheck
-  label: string
-  value: string
-}) {
-  return (
-    <div className="rounded-[1.25rem] bg-white/10 p-4 ring-1 ring-white/10">
-      <Icon className="size-5 text-aqua-light" />
-      <p className="mt-3 text-xs text-aqua-mist/70">{label}</p>
-      <p className="mt-1 font-outfit text-xl font-bold">{value}</p>
-    </div>
+    </section>
   )
 }

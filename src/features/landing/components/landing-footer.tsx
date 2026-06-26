@@ -1,89 +1,36 @@
-import Link from 'next/link'
-import { Droplet } from 'lucide-react'
-
-const COLUMNS = [
-  {
-    title: 'Product',
-    links: [
-      { href: '#features', label: 'Features' },
-      { href: '#preview', label: 'Preview' },
-      { href: '#pricing', label: 'Pricing' },
-    ],
-  },
-  {
-    title: 'Support',
-    links: [
-      { href: '#faq', label: 'FAQ' },
-      { href: '#', label: 'Contact' },
-    ],
-  },
-  {
-    title: 'Legal',
-    links: [
-      { href: '#', label: 'Privacy' },
-      { href: '#', label: 'Terms' },
-    ],
-  },
+const FOOTER_COLS = [
+  { heading: 'Product', links: ['Features', 'Pricing', 'Dashboard'] },
+  { heading: 'Company', links: ['About', 'Contact'] },
+  { heading: 'Support', links: ['Help center', 'Setup guide'] },
 ]
 
 export function LandingFooter() {
   return (
-    <footer className="relative bg-[var(--navy-dark)]">
-      {/* Decorative wave top edge */}
-      <div aria-hidden className="absolute inset-x-0 -top-px overflow-hidden leading-none">
-        <svg
-          viewBox="0 0 1200 40"
-          preserveAspectRatio="none"
-          className="h-8 w-full"
-        >
-          <path
-            d="M0 20 C 200 40 400 0 600 20 C 800 40 1000 0 1200 20 L1200 40 L0 40 Z"
-            fill="var(--navy-dark)"
-          />
-        </svg>
-      </div>
-
-      <div className="mx-auto max-w-[1200px] px-6 py-14">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          <div className="col-span-2 md:col-span-1">
-            <Link
-              href="/"
-              className="flex items-center gap-2 font-outfit text-lg font-extrabold text-cloud"
-            >
-              <span className="grid size-9 place-items-center rounded-full bg-aqua-bright text-cloud shadow-[0_0_24px_rgba(79,181,232,0.35)]">
-                <Droplet className="size-5" fill="currentColor" />
-              </span>
-              AquaFlow
-            </Link>
-            <p className="mt-3 max-w-xs text-sm leading-[1.65] text-aqua-mist">
-              Simple management for water refilling stations.
-            </p>
-          </div>
-
-          {COLUMNS.map((column) => (
-            <div key={column.title}>
-              <h3 className="font-outfit text-sm font-bold text-cloud">
-                {column.title}
-              </h3>
-              <ul className="mt-3 space-y-2">
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-sm text-aqua-mist transition-colors hover:text-aqua-light"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+    <footer style={{ borderTop: '1px solid var(--lp-border-strong)', padding: '48px 32px 36px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr', gap: '32px' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(150deg,#38bdf8,#0a6cc4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="17" height="17" viewBox="0 0 24 24"><path d="M12 2.5c4 5 6.5 8 6.5 11.5a6.5 6.5 0 1 1-13 0C5.5 10.5 8 7.5 12 2.5Z" fill="#fff" /></svg>
             </div>
-          ))}
+            <span style={{ fontWeight: 700, fontSize: '18px', color: 'var(--lp-text)' }}>AquaFlow</span>
+          </div>
+          <p style={{ fontSize: '14px', color: 'var(--lp-text-soft)', lineHeight: 1.6, margin: 0, maxWidth: '260px' }}>Management software made for water refilling stations — pure, simple, and built around how you really work.</p>
         </div>
-
-        <div className="mt-12 border-t border-[rgba(255,255,255,0.12)] pt-6 text-sm text-aqua-mist">
-          Copyright {new Date().getFullYear()} AquaFlow. All rights reserved.
-        </div>
+        {FOOTER_COLS.map(({ heading, links }) => (
+          <div key={heading}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--lp-text)', marginBottom: '14px' }}>{heading}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+              {links.map((link) => (
+                <a key={link} href="#" style={{ textDecoration: 'none', color: 'var(--lp-text-soft)' }}>{link}</a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ maxWidth: '1200px', margin: '32px auto 0', paddingTop: '24px', borderTop: '1px solid var(--lp-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', color: 'var(--lp-text-faint)' }}>
+        <span>© 2026 AquaFlow. All rights reserved.</span>
+        <span>Made for clean water businesses 💧</span>
       </div>
     </footer>
   )

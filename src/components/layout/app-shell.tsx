@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { AppSidebar } from '@/components/layout/app-sidebar'
+import { AppHeader } from '@/components/layout/app-header'
 
 type AppShellProps = {
   children: ReactNode
@@ -8,10 +9,11 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-[#f7f9ff] text-[#001d34]">
-      <div className="md:flex">
-        <AppSidebar />
-        <main className="min-w-0 flex-1">
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--app-page-bg)', color: 'var(--app-text)' }}>
+      <AppSidebar />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <AppHeader />
+        <main style={{ flex: 1, overflowY: 'auto' }}>
           {children}
         </main>
       </div>

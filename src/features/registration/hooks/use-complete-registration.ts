@@ -31,7 +31,8 @@ export function useCompleteRegistration(): UseMutationResult<
 
   return useMutation<void, Error, RegistrationInput>({
     mutationFn: async (input) => {
-      const token = await getToken({ template: "water-station" });
+      const token = await getToken();
+      // const token = await getToken({ template: "water-station" });
       if (!token) {
         throw new Error('You must be signed in to complete registration.')
       }

@@ -1,3 +1,6 @@
+import type { Product } from '@/features/products/products.types'
+
+import type { StatusTransitionItem } from './deliveries.transitions'
 import type {
   Delivery,
   DeliveryFormValues,
@@ -7,7 +10,10 @@ import type {
   DeliveryItemRow,
   DeliveryOwner,
   DeliveryRow,
+  DeliveryScheduleFormValues,
   DeliveryScheduleInsert,
+  DeliveryScheduleItemInsert,
+  DeliveryWeeklyScheduleInsert,
 } from './deliveries.types'
 
 function emptyToNull(value: string | undefined): string | null {
@@ -41,6 +47,48 @@ export function toScheduleInsertRow(
   }
 }
 
+export function toWeeklyScheduleInsertRow(
+  values: DeliveryScheduleFormValues,
+  owner: DeliveryOwner,
+): DeliveryWeeklyScheduleInsert {
+  const isCustomerDelivery = values.targetType === 'customer'
+
+  return {
+    customer_id: isCustomerDelivery ? values.customerId ?? null : null,
+    guest_name: isCustomerDelivery ? null : emptyToNull(values.guestName),
+    guest_contact: isCustomerDelivery ? null : emptyToNull(values.guestContact),
+    guest_address: isCustomerDelivery ? null : emptyToNull(values.guestAddress),
+    recurrence_type: 'weekly',
+    delivery_date: null,
+    start_date: values.startDate,
+    weekdays: values.weekdays,
+    interval_weeks: values.intervalWeeks,
+    day_of_month: null,
+    interval_months: null,
+    end_date: values.endDate,
+    status: 'active',
+    notes: emptyToNull(values.notes),
+    org_id: owner.orgId,
+    created_by: owner.createdBy,
+  }
+}
+
+export function toScheduleItemInsertRows(
+  scheduleId: number,
+  values: Pick<DeliveryScheduleFormValues, 'items'>,
+  owner: DeliveryOwner,
+): DeliveryScheduleItemInsert[] {
+  return values.items.map((item) => ({
+    schedule_id: scheduleId,
+    product_id: item.productId,
+    quantity: item.quantity,
+    // ponytail: snapshot the form price as the override; null-fallback path lives
+    // in the materializer for schedules created elsewhere.
+    unit_price: item.unitPrice,
+    org_id: owner.orgId,
+  }))
+}
+
 export function toDeliveryInsertRow(
   scheduleId: number,
   values: DeliveryFormValues,
@@ -58,7 +106,7 @@ export function toDeliveryInsertRow(
 
 export function toDeliveryItemInsertRows(
   deliveryId: number,
-  values: DeliveryFormValues,
+  values: Pick<DeliveryFormValues, 'items'>,
   owner: DeliveryOwner,
 ): DeliveryItemInsert[] {
   return values.items.map((item) => ({
@@ -102,6 +150,7 @@ export function toDelivery(
     failureRemarks: row.failure_remarks,
     notes: row.notes,
     deliveredBy: row.delivered_by,
+    completedAt: row.completed_at,
     orgId: row.org_id,
     createdBy: row.created_by,
     createdAt: row.created_at,
@@ -110,4 +159,18 @@ export function toDelivery(
     items,
     total: items.reduce((sum, item) => sum + item.lineTotal, 0),
   }
+}
+
+export function toStatusTransitionItems(
+  items: Pick<DeliveryItem, 'productId' | 'productName' | 'quantity'>[],
+  products: Pick<Product, 'id' | 'isStockTracked'>[],
+): StatusTransitionItem[] {
+  const trackedById = new Map(products.map((p) => [p.id, p.isStockTracked]))
+  return items.map((item) => ({
+    productId: item.productId,
+    productName: item.productName,
+    quantity: item.quantity,
+    // ponytail: missing/soft-deleted product → untracked; can't deduct what we can't see.
+    isStockTracked: trackedById.get(item.productId) ?? false,
+  }))
 }

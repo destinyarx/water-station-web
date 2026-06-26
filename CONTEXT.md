@@ -73,6 +73,35 @@ later product price changes do not alter past delivery records.
 **Guest / named delivery** — a Delivery Schedule not linked to a Customer
 record, identified only by a display label (e.g. walk-in or one-off recipient).
 
+**Current delivery queue** — the actionable working set shown on the main
+deliveries page: all `pending`/`for_delivery` occurrences that are overdue
+(`delivery_date < today`) or due today, **plus** each active schedule's single
+nearest upcoming occurrence. The full materialization horizon still exists in
+the database but is not part of the "current" queue until each row becomes the
+nearest upcoming one.
+_Avoid_: equating "current queue" with "everything materialized".
+
+**Delivery History** — the modal datatable of terminal occurrences only
+(`completed` + `failed`). Not editable except to send a row back to
+`pending`/`for_delivery`, which returns it to the current queue.
+
+**Recurring schedule list** — the modal datatable of parent `delivery_schedules`
+recurrence rules (not dated occurrences); its only action is stop/resume.
+
+**Stop / Resume (a schedule)** — _Stop_ sets a recurring schedule to `paused`
+and soft-deletes its pending occurrences dated today or later (in-flight
+`for_delivery` rows and terminal history are kept; overdue pending is kept).
+_Resume_ sets it back to `active` and materialization continues forward from the
+current date on the schedule's **original `start_date` anchor** — the paused gap
+is not back-filled. Distinct from archiving (owner-only soft delete of the
+schedule itself), which is deferred.
+_Avoid_: treating Stop as deleting history or as archiving the schedule.
+
+**Stock-out window** — a delivery's items are deducted from `products.stock`
+exactly while its status is `for_delivery` or `completed` (stock-tracked
+products only). Entering that window deducts (blocked if it would go negative);
+leaving it restores. See `005` ADR 0003.
+
 ## Important Product Rule
 
 Products are classified by whether the station tracks their stock quantity.

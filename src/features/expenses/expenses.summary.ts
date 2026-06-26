@@ -10,7 +10,12 @@ export interface ExpenseFilters {
 export interface ExpenseSummary {
   totalExpenses: number
   thisMonth: number
+  thisMonthCount: number
+  thisMonthLabel: string
   largestCategoryLabel: string
+  largestCategoryTotal: number
+  largestExpense: number
+  largestExpenseLabel: string
   recentExpenseCount: number
 }
 
@@ -89,10 +94,23 @@ export function createExpenseSummary(
     (left, right) => right.amount - left.amount,
   )[0]
 
+  const largestExpenseEntry = activeExpenses.reduce<Expense | null>(
+    (mx, e) => (mx === null || e.amount > mx.amount ? e : mx),
+    null,
+  )
+
   return {
     totalExpenses,
     thisMonth,
+    thisMonthCount: activeExpenses.filter(
+      (e) => new Date(`${e.dateIncurred}T00:00:00`).getMonth() === month &&
+             new Date(`${e.dateIncurred}T00:00:00`).getFullYear() === year,
+    ).length,
+    thisMonthLabel: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     largestCategoryLabel: largestCategory?.label ?? 'None',
+    largestCategoryTotal: largestCategory?.amount ?? 0,
+    largestExpense: largestExpenseEntry?.amount ?? 0,
+    largestExpenseLabel: largestExpenseEntry?.name ?? 'No expenses yet',
     recentExpenseCount,
   }
 }

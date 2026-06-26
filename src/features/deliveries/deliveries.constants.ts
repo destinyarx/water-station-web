@@ -4,12 +4,20 @@ export const DELIVERY_SCHEDULES_TABLE = 'delivery_schedules'
 export const DELIVERIES_TABLE = 'deliveries'
 export const DELIVERY_ITEMS_TABLE = 'delivery_items'
 export const DELIVERY_SCHEDULE_ITEMS_TABLE = 'delivery_schedule_items'
+export const CURRENT_DELIVERIES_VIEW = 'v_current_deliveries'
+
+// View columns mirror the delivery row minus `deleted_at` (the view filters it).
+export const CURRENT_DELIVERY_COLUMNS =
+  'id, schedule_id, delivery_date, status, failure_remarks, notes, delivered_by, completed_at, org_id, created_by, created_at, updated_at'
+
+// Rolling horizon (days) materialized ahead for a weekly schedule.
+export const MATERIALIZE_HORIZON_DAYS = 14
 
 export const DELIVERY_SCHEDULE_COLUMNS =
   'id, customer_id, guest_name, guest_contact, guest_address, recurrence_type, start_date, delivery_date, weekdays, interval_weeks, day_of_month, interval_months, end_date, status, notes, org_id, created_by, created_at, updated_at, deleted_at'
 
 export const DELIVERY_COLUMNS =
-  'id, schedule_id, delivery_date, status, failure_remarks, notes, delivered_by, org_id, created_by, created_at, updated_at, deleted_at'
+  'id, schedule_id, delivery_date, status, failure_remarks, notes, delivered_by, completed_at, org_id, created_by, created_at, updated_at, deleted_at'
 
 export const DELIVERY_ITEM_COLUMNS =
   'id, delivery_id, product_id, product_name, unit_price, quantity, org_id, created_at, updated_at'

@@ -1,272 +1,213 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
-import {
-  BadgeDollarSign,
-  PanelLeft,
-  LayoutDashboard,
-  Menu,
-  Package,
-  ReceiptText,
-  Sparkles,
-  Truck,
-  UsersRound,
-  Wrench,
-  type LucideIcon,
-} from 'lucide-react'
-import { useState } from 'react'
 
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { useIsCollapsed } from '@/stores/use-sidebar'
 
 type NavItem = {
-  title: string
+  key: string
+  label: string
   href: string
-  icon: LucideIcon
+  icon: React.ReactNode
 }
 
-const navItems: NavItem[] = [
+const NAV_ITEMS: NavItem[] = [
   {
-    title: 'Dashboard',
+    key: 'dashboard',
+    label: 'Dashboard',
     href: '/dashboard',
-    icon: LayoutDashboard,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <rect x="3" y="3" width="7.5" height="7.5" rx="1.6" />
+        <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" />
+        <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" />
+        <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" />
+      </svg>
+    ),
   },
   {
-    title: 'Deliveries',
-    href: '/deliveries',
-    icon: Truck,
-  },
-  {
-    title: 'Customers',
+    key: 'customers',
+    label: 'Customers',
     href: '/customers',
-    icon: UsersRound,
+    icon: (
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="9" cy="8" r="3.2" />
+        <path d="M3.5 19c0-3.1 2.5-5 5.5-5s5.5 1.9 5.5 5" />
+        <path d="M16.2 5.3a3 3 0 0 1 0 5.6M17.8 19c0-2.2-.7-3.7-1.9-4.7" />
+      </svg>
+    ),
   },
   {
-    title: 'Sales',
-    href: '/sales',
-    icon: BadgeDollarSign,
-  },
-  {
-    title: 'Products',
+    key: 'products',
+    label: 'Products',
     href: '/products',
-    icon: Package,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round">
+        <path d="M12 3 3.5 7.3v9.4L12 21l8.5-4.3V7.3L12 3Z" />
+        <path d="M3.6 7.4 12 11.7l8.4-4.3M12 11.7V21" />
+      </svg>
+    ),
   },
   {
-    title: 'Maintenances',
+    key: 'deliveries',
+    label: 'Deliveries',
+    href: '/deliveries',
+    icon: (
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round">
+        <path d="M3 6.5h10v9H3z" />
+        <path d="M13 9.5h3.6l3.4 3.3v2.7H13z" />
+        <circle cx="7" cy="17.5" r="1.7" />
+        <circle cx="17" cy="17.5" r="1.7" />
+      </svg>
+    ),
+  },
+  {
+    key: 'maintenances',
+    label: 'Maintenance',
     href: '/maintenances',
-    icon: Wrench,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round">
+        <path d="M14.7 6.3a3.7 3.7 0 0 0-4.9 4.6L4 16.7 7.3 20l5.8-5.8a3.7 3.7 0 0 0 4.6-4.9l-2.4 2.4-2-2 2.4-2.4Z" />
+      </svg>
+    ),
   },
   {
-    title: 'Expenses',
+    key: 'expenses',
+    label: 'Expenses',
     href: '/expenses',
-    icon: ReceiptText,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round">
+        <rect x="3" y="6" width="18" height="13" rx="2.5" />
+        <path d="M3 10h18" />
+        <circle cx="16.5" cy="14" r="1.2" fill="currentColor" stroke="none" />
+      </svg>
+    ),
   },
 ]
 
-function isActiveRoute(pathname: string, href: string): boolean {
+function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
 export function AppSidebar() {
+  const isCollapsed = useIsCollapsed()
   const pathname = usePathname()
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
-
-  function toggleSidebar(): void {
-    setIsCollapsed((current) => !current)
-  }
-
-  function toggleMobileSidebar(): void {
-    setIsMobileOpen((current) => !current)
-  }
 
   return (
-    <>
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-hairline/60 bg-cloud/90 px-4 py-3 backdrop-blur-xl md:hidden">
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <Image
-            src="/icon.png"
-            alt="AquaFlow logo"
-            width={36}
-            height={36}
-            className="rounded-full"
-            priority
-          />
-          <span className="font-heading text-base font-bold text-aqua-deep">
+    <aside
+      style={{
+        flex: 'none',
+        width: isCollapsed ? '78px' : '252px',
+        background: 'var(--app-sidebar-bg)',
+        borderRight: '1px solid var(--app-sidebar-border)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        transition: 'width 0.2s ease',
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+      }}
+    >
+      {/* Logo */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '11px',
+          justifyContent: isCollapsed ? 'center' : 'flex-start',
+          padding: '20px 18px 16px',
+        }}
+      >
+        <div
+          style={{
+            flexShrink: 0,
+            width: '38px',
+            height: '38px',
+            borderRadius: '12px',
+            background: 'linear-gradient(150deg,#5cc6f7,#0a6cc4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 6px 14px rgba(14,108,196,0.28)',
+          }}
+        >
+          <svg width="21" height="21" viewBox="0 0 24 24">
+            <path d="M12 2.5c4 5 6.5 8 6.5 11.5a6.5 6.5 0 1 1-13 0C5.5 10.5 8 7.5 12 2.5Z" fill="#fff" />
+          </svg>
+        </div>
+        {!isCollapsed && (
+          <span style={{ fontWeight: 700, fontSize: '19px', color: 'var(--app-text)', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
             AquaFlow
           </span>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          <UserButton />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={isMobileOpen ? 'Close navigation' : 'Open navigation'}
-            aria-expanded={isMobileOpen}
-            onClick={toggleMobileSidebar}
-            className="rounded-full text-aqua-deep hover:bg-aqua-mist/50"
-          >
-            <Menu className="size-4" />
-          </Button>
-        </div>
-      </header>
-
-      {isMobileOpen ? (
-        <div className="border-b border-hairline/60 bg-cloud/95 p-3 shadow-[0_16px_40px_rgba(79,181,232,0.12)] backdrop-blur-xl md:hidden">
-          <nav aria-label="Primary mobile navigation" className="space-y-3">
-            {navItems.map((item) => (
-              <SidebarLink
-                key={item.href}
-                item={item}
-                isActive={isActiveRoute(pathname, item.href)}
-                isCollapsed={false}
-                onNavigate={() => setIsMobileOpen(false)}
-              />
-            ))}
-          </nav>
-        </div>
-      ) : null}
-
-      <aside
-        className={cn(
-          'sticky top-0 hidden h-screen shrink-0 overflow-hidden border-r border-[#ddebff] bg-white/70 p-3 shadow-[0_8px_24px_rgba(0,48,73,0.08)] backdrop-blur-md transition-[width] duration-300 md:block',
-          isCollapsed ? 'w-22' : 'w-72'
         )}
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_30%_20%,rgba(0,180,216,0.18),transparent_38%),radial-gradient(circle_at_85%_8%,rgba(0,245,212,0.16),transparent_34%)]" />
-        <div className="pointer-events-none absolute -bottom-16 -left-20 h-48 w-48 rounded-full bg-[#00b4d8]/10 blur-3xl" />
-        <div className="flex h-full flex-col">
-          <div
-            className={cn(
-              'relative flex items-center gap-3 px-2 py-2',
-              isCollapsed && 'justify-center'
-            )}
-          >
-            <Link
-              href="/dashboard"
-              className="flex min-w-0 items-center gap-3"
-              aria-label="AquaFlow dashboard"
-            >
-              <Image
-                src="/icon.png"
-                alt="AquaFlow logo"
-                width={44}
-                height={44}
-                className="rounded-2xl shadow-[0_10px_28px_rgba(0,180,216,0.18)]"
-                priority
-              />
-              <span
-                className={cn(
-                  'truncate font-heading text-lg font-bold text-aqua-deep transition-opacity',
-                  isCollapsed && 'sr-only'
-                )}
-              >
-                AquaFlow
-              </span>
-            </Link>
-          </div>
+      </div>
 
-          <div className={cn("flex w-full mt-7 mb-2", isCollapsed ? ' justify-center' : 'justify-end')}>
-            <Button
-              type="button"
-              variant="ghost"
-              size={isCollapsed ? 'icon' : 'sm'}
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              aria-expanded={!isCollapsed}
-              onClick={toggleSidebar}
-              className="rounded-md border border-[#ddebff] bg-[#f0f7ff]/80 text-[#00414f] shadow-[0_8px_24px_rgba(0,48,73,0.06)] transition-all duration-200 hover:bg-[#dff3ff]">
-
-              <PanelLeft
-                className={cn(
-                  'size-5 transition-transform',
-                )}
-              />
-            </Button>
-          </div>
-
-          <nav aria-label="Primary navigation" className="relative mt-3 space-y-1">
-            {navItems.map((item) => (
-              <SidebarLink
-                key={item.href}
-                item={item}
-                isActive={isActiveRoute(pathname, item.href)}
-                isCollapsed={isCollapsed}
-              />
-            ))}
-          </nav>
-
-          <div
-            className={cn(
-              'relative mt-auto flex items-center gap-3 rounded-2xl border border-[#ddebff] bg-white/80 px-3 py-3 shadow-[0_8px_24px_rgba(0,48,73,0.08)]',
-              isCollapsed && 'justify-center rounded-md bg-transparent px-0'
-            )}
-          >
-            <UserButton />
-            <div
-              className={cn(
-                'min-w-0 transition-opacity',
-                isCollapsed && 'sr-only'
-              )}
-            >
-              <p className="truncate text-sm font-semibold text-aqua-deep">
-                Station account
-              </p>
-              <p className="truncate text-xs text-[#2a4b6a]">Signed in</p>
-            </div>
-          </div>
+      {/* Workspace label */}
+      {!isCollapsed && (
+        <div style={{ padding: '8px 20px 8px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--app-text-faint)', whiteSpace: 'nowrap' }}>
+          Workspace
         </div>
-      </aside>
-    </>
-  )
-}
-
-type SidebarLinkProps = {
-  item: NavItem
-  isActive: boolean
-  isCollapsed: boolean
-  onNavigate?: () => void
-}
-
-function SidebarLink({
-  item,
-  isActive,
-  isCollapsed,
-  onNavigate,
-}: SidebarLinkProps) {
-  const Icon = item.icon
-
-  return (
-    <Button
-      asChild
-      variant="ghost"
-      size="lg"
-      className={cn(
-        'h-11 w-full rounded-md px-3 text-[#2a4b6a] transition-all duration-200 hover:bg-[#f0f7ff] hover:text-[#03045e]',
-        'focus-visible:ring-[#00b4d8]/30',
-        isCollapsed ? 'justify-center' : 'justify-start gap-3',
-        isActive &&
-          'bg-[#00b4d8] text-white shadow-[0_8px_24px_rgba(0,180,216,0.28)] hover:bg-[#00b4d8] hover:text-white'
       )}
-    >
-      <Link
-        href={item.href}
-        onClick={onNavigate}
-        aria-current={isActive ? 'page' : undefined}
-        title={isCollapsed ? item.title : undefined}
-      >
-        <Icon className="size-7" aria-hidden="true" />
-        <span className={cn('text-lg', isCollapsed && 'sr-only')}>
-          {item.title}
-        </span>
-        {isActive && !isCollapsed ? (
-          <Sparkles className="ml-auto size-3.5 text-white/80" aria-hidden="true" />
-        ) : null}
-      </Link>
-    </Button>
+
+      {/* Nav */}
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '4px 12px', flex: 1 }}>
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(pathname, item.href)
+          return (
+            <Link
+              key={item.key}
+              href={item.href}
+              title={isCollapsed ? item.label : undefined}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '13px',
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                padding: '11px 13px',
+                borderRadius: '11px',
+                textDecoration: 'none',
+                background: active ? 'var(--app-sidebar-active-bg)' : 'transparent',
+                color: active ? 'var(--app-sidebar-active-text)' : 'var(--app-sidebar-text)',
+                fontSize: '14.5px',
+                fontWeight: active ? 600 : 500,
+                transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              <span style={{ flexShrink: 0, width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {item.icon}
+              </span>
+              {!isCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* User card */}
+      <div style={{ padding: '12px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '11px',
+            justifyContent: isCollapsed ? 'center' : 'flex-start',
+            padding: '9px 10px',
+            borderRadius: '12px',
+            background: 'var(--app-surface-2)',
+            border: '1px solid var(--app-sidebar-border)',
+          }}
+        >
+          <UserButton />
+          {!isCollapsed && (
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--app-text)', whiteSpace: 'nowrap' }}>Station account</div>
+              <div style={{ fontSize: '11px', color: 'var(--app-text-soft)', whiteSpace: 'nowrap' }}>Signed in</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </aside>
   )
 }
