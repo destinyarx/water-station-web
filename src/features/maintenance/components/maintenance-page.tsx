@@ -59,7 +59,7 @@ export function MaintenancePage() {
   }, [views, search, filter, showInactive])
 
   return (
-    <div style={{ width: '90%', maxWidth: '1320px', margin: '0 auto', padding: '26px 28px 56px' }}>
+    <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '26px 28px 56px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '24px' }}>
         <div>
           <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-brand)', marginBottom: '9px' }}>Equipment upkeep</div>
@@ -132,7 +132,7 @@ export function MaintenancePage() {
 
 function AddButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} style={{ flex: 'none', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '9px', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: '14.5px', fontWeight: 600, padding: '12px 21px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 10px 22px rgba(14,108,196,0.28)' }}>
+    <button className="text-md" type="button" onClick={onClick} style={{ flex: 'none', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '9px', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', border: 'none', fontFamily: 'inherit', fontWeight: 600, padding: '12px 21px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 10px 22px rgba(14,108,196,0.28)' }}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
       Schedule task
     </button>

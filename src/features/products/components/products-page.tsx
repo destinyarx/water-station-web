@@ -75,7 +75,7 @@ export function ProductsPage() {
   }
 
   return (
-    <div style={{ maxWidth: '1160px', margin: '0 auto', padding: '26px 28px 56px' }}>
+    <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '26px 28px 56px' }}>
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '24px' }}>
         <div>

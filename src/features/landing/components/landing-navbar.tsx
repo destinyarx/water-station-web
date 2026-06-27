@@ -74,7 +74,7 @@ export function LandingNavbar() {
         borderBottom: '1px solid var(--lp-border)',
       }}
     >
-      <div className="max-w-[80vw]" style={{ margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{  maxWidth: '1600px', margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: 'linear-gradient(150deg,#38bdf8,#0a6cc4)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 16px rgba(14,108,196,0.32)' }}>
