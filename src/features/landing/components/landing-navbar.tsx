@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import Image from 'next/image'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
+import { useAuth } from '@clerk/nextjs'
+import Link from 'next/link'
 
 import { initTheme, toggleTheme } from '@/stores/theme-store'
 import { useTheme } from '@/stores/use-theme'
@@ -14,8 +16,47 @@ const NAV_LINKS = [
   { href: '#pricing', label: 'Pricing' },
 ]
 
+const DashboardButton = () => (
+  <Link href="/dashboard">
+    <button
+      type="button"
+      style={{
+        background: 'linear-gradient(150deg,#38bdf8,#0a6cc4)',
+        color: '#fff',
+        fontSize: '15px',
+        fontWeight: 600,
+        padding: '11px 22px',
+        borderRadius: '12px',
+        border: 'none',
+        cursor: 'pointer',
+        boxShadow: '0 8px 20px rgba(14,108,196,0.28)',
+        fontFamily: 'inherit',
+      }}
+    >
+      Dashboard
+    </button>
+  </Link>
+)
+
+const AuthButtons = () => (
+  <div className="flex flex-row gap-4">
+    <SignInButton mode="redirect">
+      <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--lp-brand-text)', fontSize: '15px', fontWeight: 600, fontFamily: 'inherit' }}>
+        Sign in
+      </button>
+    </SignInButton>
+
+    <SignUpButton mode="redirect">
+      <button type="button" style={{ background: 'linear-gradient(150deg,#38bdf8,#0a6cc4)', color: '#fff', fontSize: '15px', fontWeight: 600, padding: '11px 22px', borderRadius: '12px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 20px rgba(14,108,196,0.28)', fontFamily: 'inherit' }}>
+        Register Now
+      </button>
+    </SignUpButton>
+  </div>
+)
+
 export function LandingNavbar() {
   const isDark = useTheme()
+  const { userId, isLoaded } = useAuth()
 
   useEffect(() => {
     initTheme()
@@ -88,17 +129,7 @@ export function LandingNavbar() {
             )}
           </button>
 
-          <SignInButton mode="redirect">
-            <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--lp-brand-text)', fontSize: '15px', fontWeight: 600, fontFamily: 'inherit' }}>
-              Sign in
-            </button>
-          </SignInButton>
-
-          <SignUpButton mode="redirect">
-            <button type="button" style={{ background: 'linear-gradient(150deg,#38bdf8,#0a6cc4)', color: '#fff', fontSize: '15px', fontWeight: 600, padding: '11px 22px', borderRadius: '12px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 20px rgba(14,108,196,0.28)', fontFamily: 'inherit' }}>
-              Register Now
-            </button>
-          </SignUpButton>
+          {(isLoaded && userId) ? <DashboardButton /> : <AuthButtons />}
         </div>
       </div>
     </header>
