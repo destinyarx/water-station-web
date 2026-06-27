@@ -192,3 +192,23 @@ Active/Inactive (customers) and Active/Discontinued (products) are backed by `is
 ### Pagination
 
 Client-side: the filtered+sorted array is sliced (`PER_PAGE` = 6 customers / 8 products) with a `Showing X–Y of N` footer and prev / numbered / next controls.
+
+## Module Patterns (feature 008 — Maintenance)
+
+The **Maintenance** page reuses the same plain-React + `--app-*` shell, narrowed to `maxWidth:1000px` (a single-column task list, not a grid). Eyebrow "Equipment upkeep" / title "Maintenance schedule".
+
+### Stat cards
+
+Four progress-less variants of the products stat card (label + icon row, big number, 3px left accent): **Due this week** (brand), **Overdue** (red, falls back to gray at zero), **Done this month** (green), **Recurring** (violet `#8b5cf6`). Counts ignore inactive schedules except "Done this month".
+
+### Task rows
+
+Flat list of cards (`gap:12px`), each: a round complete-toggle (green tick when done, wired to `useCompleteTask`), title (struck through when completed) with a violet **recurrence chip** (Daily / Once–Thrice a week) and an `Inactive` chip, a meta row (wrench+equipment, person+assignee, priority pill), a **due pill** colored by `displayStatus` (red overdue / brand upcoming / green completed), and the shared kebab (`MaintenanceRowActions`: edit / toggle schedule active / delete — delete owner-only). Inactive-schedule rows render at `opacity:0.6`.
+
+### Due label
+
+Overrides any date in the mockup: `Overdue N days` / `Due today` / `Tomorrow` / `In N days` (≤3 only) / formatted date otherwise. Logic in `maintenance.view.ts:dueLabelFor`.
+
+### Recurrence picker (create dialog)
+
+Violet-accented panel with One-time / Everyday / Weekly pills. One-time reveals a hand-rolled `MultiDateCalendar` (multi-select, past disabled); Everyday/Weekly reveal a `min=today` start date; Weekly adds a `WeekdayPicker` (Mon–Sun toggles, frequency = number selected, 1–3). Cadence is fixed after creation — the edit dialog shows it read-only and only edits this occurrence's date/assignee/descriptive fields. See `CONTEXT.md` → Maintenance Domain and ADR 0006.

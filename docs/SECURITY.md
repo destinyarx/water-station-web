@@ -74,6 +74,7 @@ Allowed on frontend:
 
 Never expose:
 
+- env keys that is not public
 - Supabase service role key
 - Database password
 - Private API keys

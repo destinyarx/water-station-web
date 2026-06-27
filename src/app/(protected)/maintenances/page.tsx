@@ -1,7 +1,7 @@
+import { MaintenancePage } from '@/features/maintenance'
+
+export const dynamic = 'force-dynamic'
+
 export default function Maintenances() {
-    return (
-        <div>
-            <h1>Maintenances</h1>
-        </div>
-    );
+  return <MaintenancePage />
 }
