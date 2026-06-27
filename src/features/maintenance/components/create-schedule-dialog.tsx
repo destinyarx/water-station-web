@@ -74,7 +74,7 @@ export function CreateScheduleDialog({ open, onOpenChange }: CreateScheduleDialo
   const isPending = mutation.isPending
 
   return (
-    <ScheduleFormDialog open={open} onOpenChange={handleOpenChange} title="Schedule task" description="Plan recurring or one-time equipment upkeep.">
+    <ScheduleFormDialog open={open} onOpenChange={handleOpenChange} title="Schedule Task" description="Plan recurring or one-time equipment upkeep.">
       <form onSubmit={submit} noValidate>
         <div style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div>
@@ -160,7 +160,7 @@ export function CreateScheduleDialog({ open, onOpenChange }: CreateScheduleDialo
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', padding: '18px 26px', borderTop: '1px solid var(--app-border)', background: 'var(--app-surface-2)' }}>
           <button type="button" disabled={isPending} onClick={() => handleOpenChange(false)} style={{ padding: '11px 20px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-          <button type="submit" disabled={isPending} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 24px', borderRadius: '11px', border: 'none', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 10px 22px rgba(14,108,196,0.3)' }}>{isPending ? 'Saving…' : 'Schedule task'}</button>
+          <button type="submit" disabled={isPending} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 24px', borderRadius: '11px', border: 'none', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 10px 22px rgba(14,108,196,0.3)' }}>{isPending ? 'Saving…' : 'Schedule Task'}</button>
         </div>
       </form>
     </ScheduleFormDialog>

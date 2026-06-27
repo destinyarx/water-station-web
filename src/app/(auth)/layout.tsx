@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-fog px-6 py-16">
       <Link
         href="/"
-        className="flex items-center gap-2 font-sora text-lg font-bold text-aqua-deep"
+        className="flex items-center gap-2 font-sans text-lg font-bold text-aqua-deep"
       >
         <span
           aria-hidden

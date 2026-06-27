@@ -164,19 +164,19 @@ export function AppSidebar() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '13px',
+                gap: '10px',
                 justifyContent: isCollapsed ? 'center' : 'flex-start',
                 padding: '11px 13px',
                 borderRadius: '11px',
                 textDecoration: 'none',
                 background: active ? 'var(--app-sidebar-active-bg)' : 'transparent',
                 color: active ? 'var(--app-sidebar-active-text)' : 'var(--app-sidebar-text)',
-                fontSize: '14.5px',
+                fontSize: '15px',
                 fontWeight: active ? 600 : 500,
                 transition: 'background 0.15s, color 0.15s',
               }}
             >
-              <span style={{ flexShrink: 0, width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ flexShrink: 0, width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {item.icon}
               </span>
               {!isCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
