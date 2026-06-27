@@ -3,7 +3,10 @@ export const PRODUCTS_TABLE = 'products'
 
 /** Columns selected from `public.products` for active list and mutations. */
 export const PRODUCT_COLUMNS =
-  'id, product_name, price, is_stock_tracked, stock, descriptions, org_id, created_by, created_at, updated_at, deleted_at'
+  'id, product_name, price, is_stock_tracked, stock, descriptions, is_active, org_id, created_by, created_at, updated_at, deleted_at'
+
+/** Stock at or below this (and above 0) is surfaced as "low stock" in the UI. */
+export const LOW_STOCK_THRESHOLD = 10
 
 export const PRODUCTS_LOAD_ERROR = 'Unable to load products. Please try again.'
 export const PRODUCT_SAVE_ERROR = 'Unable to save product. Please try again.'

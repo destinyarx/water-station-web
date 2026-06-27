@@ -1,5 +1,5 @@
 export { ProductsPage } from './components/products-page'
-export { ProductsTable } from './components/products-table'
+export { ProductsGrid } from './components/products-table'
 export { useProducts } from './hooks/use-products'
 export {
   createProduct,

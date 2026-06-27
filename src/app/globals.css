@@ -312,6 +312,9 @@
   --app-sidebar-border: rgba(70, 150, 220, 0.14);
   --app-overlay: rgba(14, 42, 62, 0.42);
   --app-shadow-card: 0 6px 22px rgba(20, 100, 180, 0.06);
+  --app-card-refill-bg: linear-gradient(135deg, #c2e5fb, #ddf0ff);
+  --app-card-stock-bg: linear-gradient(135deg, #beefd6, #d8f5e8);
+  --app-card-disc-bg: linear-gradient(135deg, #e4eaef, #edf2f6);
 }
 
 html.dark {
@@ -364,6 +367,9 @@ html.dark {
   --app-sidebar-border: rgba(125, 211, 252, 0.12);
   --app-overlay: rgba(2, 10, 18, 0.62);
   --app-shadow-card: 0 6px 22px rgba(0, 0, 0, 0.28);
+  --app-card-refill-bg: linear-gradient(135deg, #0c2d42, #103448);
+  --app-card-stock-bg: linear-gradient(135deg, #0c2e22, #0e3828);
+  --app-card-disc-bg: linear-gradient(135deg, #1a2530, #1f2e3c);
 }
 
 /* Landing + app shared animations */

@@ -8,6 +8,7 @@ export const productRowSchema = z.object({
   is_stock_tracked: z.boolean(),
   stock: z.number().int().min(0),
   descriptions: z.string().max(255).nullable(),
+  is_active: z.boolean(),
   org_id: z.number().int(),
   created_by: z.string().max(255),
   created_at: z.string(),

@@ -21,6 +21,7 @@ const row = {
   is_stock_tracked: true,
   stock: 120,
   descriptions: 'Retail bottle',
+  is_active: true,
   org_id: 7,
   created_by: 'user_2abcDEF',
   created_at: '2026-06-13T00:00:00.000Z',

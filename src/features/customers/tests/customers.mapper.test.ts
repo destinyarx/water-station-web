@@ -15,6 +15,7 @@ const baseRow: CustomerRow = {
   municipality: 'Pasig',
   province: 'Metro Manila',
   full_address: null,
+  is_active: true,
   org_id: 7,
   created_by: 'user_2abcDEF',
   created_at: '2026-01-01T00:00:00.000Z',

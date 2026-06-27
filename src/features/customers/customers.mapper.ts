@@ -54,6 +54,7 @@ export function toCustomer(row: CustomerRow): Customer {
           row.municipality,
           row.province,
         ]),
+    isActive: row.is_active,
     orgId: row.org_id,
     createdBy: row.created_by,
     createdAt: row.created_at,

@@ -1,18 +1,11 @@
 'use client'
 
-import type { ComponentProps } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { PRODUCT_FORM_DEFAULTS } from '../products.constants'
 import { productFormSchema } from '../products.schema'
-import type {
-  ProductFormInput,
-  ProductFormValues,
-} from '../products.types'
+import type { ProductFormInput, ProductFormValues } from '../products.types'
 
 interface ProductFormProps {
   defaultValues?: ProductFormValues
@@ -22,6 +15,27 @@ interface ProductFormProps {
   submitLabel: string
   pendingLabel: string
   onCancel?: () => void
+}
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '11px 13px',
+  border: '1px solid var(--app-border-strong)',
+  borderRadius: '11px',
+  background: 'var(--app-surface)',
+  color: 'var(--app-text)',
+  fontSize: '14px',
+  fontFamily: 'inherit',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
+const LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  fontSize: '13px',
+  fontWeight: 600,
+  color: 'var(--app-text)',
+  marginBottom: '6px',
 }
 
 export function ProductForm({
@@ -37,6 +51,7 @@ export function ProductForm({
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ProductFormInput, unknown, ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -49,134 +64,80 @@ export function ProductForm({
     value.trim() === '' ? undefined : Number(value)
 
   return (
-    <form onSubmit={submit} className="space-y-5" noValidate>
-      <div className="rounded-2xl border border-[#dcecff] bg-[#eef7ff]/50 p-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-2 sm:col-span-2">
-            <FieldLabel htmlFor="productName">Product name</FieldLabel>
-            <StyledInput
-              id="productName"
-              placeholder="e.g. 5 Gallon Water Refill"
-              disabled={isPending}
-              aria-invalid={'productName' in errors}
-              {...register('productName')}
-            />
-            <FieldError message={errors.productName?.message} />
-          </div>
+    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} noValidate>
+      {/* name + description */}
+      <div style={{ background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '14px', padding: '18px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--app-brand)', marginBottom: '14px' }}>Product info</div>
+        <div style={{ marginBottom: '14px' }}>
+          <label style={LABEL_STYLE}>Product name <span style={{ color: '#dc2626' }}>*</span></label>
+          <input placeholder="e.g. 5-Gallon Refill or Bottled Water 1L" disabled={isPending} style={INPUT_STYLE} {...register('productName')} />
+          {errors.productName?.message ? <FieldError message={errors.productName.message} /> : null}
+        </div>
+        <div>
+          <label style={LABEL_STYLE}>Description</label>
+          <textarea placeholder="Brief description shown on receipts and reports…" rows={3} disabled={isPending} style={{ ...INPUT_STYLE, resize: 'vertical', lineHeight: 1.5 }} {...register('description')} />
+          {errors.description?.message ? <FieldError message={errors.description.message} /> : null}
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <FieldLabel htmlFor="price">Price</FieldLabel>
-            <StyledInput
-              id="price"
-              inputMode="decimal"
-              placeholder="0.00"
-              disabled={isPending}
-              aria-invalid={'price' in errors}
-              {...register('price', { setValueAs: numberSetValueAs })}
-            />
-            <FieldError message={errors.price?.message} />
+      {/* price + refillable */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+        <div>
+          <label style={LABEL_STYLE}>Unit price (₱) <span style={{ color: '#dc2626' }}>*</span></label>
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', fontSize: '15px', fontWeight: 700, color: 'var(--app-text-soft)' }}>₱</span>
+            <input placeholder="0.00" inputMode="decimal" disabled={isPending} style={{ ...INPUT_STYLE, paddingLeft: '26px' }} {...register('price', { setValueAs: numberSetValueAs })} />
           </div>
-
-          <div className="space-y-2">
-            <FieldLabel htmlFor="stock">Stock</FieldLabel>
-            <StyledInput
-              id="stock"
-              inputMode="numeric"
-              placeholder={isStockTracked ? '0' : 'Not tracked'}
-              disabled={isPending || !isStockTracked}
-              aria-invalid={'stock' in errors}
-              {...register('stock', { setValueAs: numberSetValueAs })}
-            />
-            <FieldError message={errors.stock?.message} />
+          {errors.price?.message ? <FieldError message={errors.price.message} /> : null}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <div style={{ width: '100%', background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '11px', padding: '12px 14px' }}>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '11px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={!isStockTracked}
+                disabled={isPending}
+                onChange={(event) => setValue('isStockTracked', !event.target.checked, { shouldValidate: true })}
+                style={{ marginTop: '2px', width: '18px', height: '18px', accentColor: '#0a6cc4', cursor: 'pointer', flex: 'none' }}
+              />
+              <div>
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)', lineHeight: 1.3 }}>Refillable service</div>
+                <div style={{ fontSize: '12px', color: 'var(--app-text-soft)', marginTop: '3px', lineHeight: 1.4 }}>No stock count needed — unlimited refill.</div>
+              </div>
+            </label>
           </div>
         </div>
       </div>
 
-      <label className="flex items-start gap-3 rounded-2xl border border-[#dcecff] bg-white p-4 text-sm text-[#2a4b6a]">
-        <input
-          type="checkbox"
-          disabled={isPending}
-          className="mt-1 size-4 rounded border-[#00b4d8] text-[#00b4d8]"
-          {...register('isStockTracked')}
-        />
-        <span>
-          <span className="block font-semibold text-[#001d34]">
-            Track stock for this product
-          </span>
-          Use this for bottled water, containers, caps, dispensers, and other
-          physical inventory. Turn it off for refill services and fees.
-        </span>
-      </label>
-
-      <div className="space-y-2">
-        <FieldLabel htmlFor="description">Description</FieldLabel>
-        <StyledInput
-          id="description"
-          placeholder="Optional short description"
-          disabled={isPending}
-          aria-invalid={'description' in errors}
-          {...register('description')}
-        />
-        <FieldError message={errors.description?.message} />
-      </div>
+      {/* stock qty (only when stock-tracked) */}
+      {isStockTracked ? (
+        <div>
+          <label style={LABEL_STYLE}>Current stock (units) <span style={{ color: '#dc2626' }}>*</span></label>
+          <input placeholder="0" inputMode="numeric" disabled={isPending} style={INPUT_STYLE} {...register('stock', { setValueAs: numberSetValueAs })} />
+          {errors.stock?.message ? <FieldError message={errors.stock.message} /> : null}
+        </div>
+      ) : null}
 
       {errorMessage ? (
-        <p
-          role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-        >
+        <p role="alert" style={{ borderRadius: '11px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '10px 13px', fontSize: '13.5px', color: '#dc2626', margin: 0 }}>
           {errorMessage}
         </p>
       ) : null}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '2px' }}>
         {onCancel ? (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isPending}
-            onClick={onCancel}
-            className="rounded-xl border-[#bdefff] text-[#00677d] hover:bg-[#eef7ff]"
-          >
+          <button type="button" disabled={isPending} onClick={onCancel} style={{ padding: '11px 20px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
             Cancel
-          </Button>
+          </button>
         ) : null}
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="rounded-xl bg-[#00b4d8] text-white shadow-[0_10px_24px_rgba(0,180,216,0.22)] hover:bg-[#009ec2]"
-        >
+        <button type="submit" disabled={isPending} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 24px', borderRadius: '11px', border: 'none', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 10px 22px rgba(14,108,196,0.3)' }}>
           {isPending ? pendingLabel : submitLabel}
-        </Button>
+        </button>
       </div>
     </form>
   )
 }
 
-function FieldLabel({
-  children,
-  htmlFor,
-}: {
-  children: string
-  htmlFor: string
-}) {
-  return (
-    <Label htmlFor={htmlFor} className="text-sm font-semibold text-[#001d34]">
-      {children}
-    </Label>
-  )
-}
-
-function StyledInput(props: ComponentProps<typeof Input>) {
-  return (
-    <Input
-      className="rounded-xl border-[#dcecff] bg-[#eef7ff]/70 text-[#001d34] placeholder:text-[#6d797e] focus-visible:border-[#00b4d8] focus-visible:ring-[#00b4d8]/20"
-      {...props}
-    />
-  )
-}
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null
-  return <p className="text-sm text-red-600">{message}</p>
+function FieldError({ message }: { message: string }) {
+  return <div style={{ fontSize: '12.5px', color: '#dc2626', marginTop: '6px' }}>{message}</div>
 }

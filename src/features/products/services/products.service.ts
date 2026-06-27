@@ -87,3 +87,24 @@ export async function softDeleteProduct(
     throw new Error(PRODUCT_DELETE_ERROR)
   }
 }
+
+/**
+ * Toggles a product's active/discontinued status. Independent of soft-delete:
+ * the row stays in the active list either way (it is only hidden by
+ * `deleted_at`). The `deleted_at is null` filter keeps archived rows untouched.
+ */
+export async function setProductStatus(
+  client: SupabaseClient,
+  id: number,
+  isActive: boolean,
+): Promise<void> {
+  const { error } = await client
+    .from(PRODUCTS_TABLE)
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .is('deleted_at', null)
+
+  if (error) {
+    throw new Error(PRODUCT_SAVE_ERROR)
+  }
+}

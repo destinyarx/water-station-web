@@ -21,6 +21,7 @@ export const customerRowSchema = z.object({
   municipality: z.string().max(70).nullable(),
   province: z.string().max(70).nullable(),
   full_address: z.string().max(255).nullable(),
+  is_active: z.boolean(),
   org_id: z.number().int(),
   created_by: z.string().max(255),
   created_at: z.string(),

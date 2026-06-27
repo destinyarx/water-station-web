@@ -7,6 +7,7 @@ import {
   CUSTOMER_COLUMNS,
   CUSTOMER_SAVE_ERROR,
   CUSTOMER_ARCHIVE_ERROR,
+  CUSTOMER_STATUS_ERROR,
 } from '../customers.constants'
 import { customerRowSchema } from '../customers.schema'
 import { toCustomer, toInsertRow, toUpdateRow } from '../customers.mapper'
@@ -86,6 +87,28 @@ export async function archiveCustomer(
 
   if (error) {
     throw new Error(CUSTOMER_ARCHIVE_ERROR)
+  }
+}
+
+/**
+ * Toggles a customer's active/inactive status. Independent of archive: the row
+ * stays in the active list either way (only `deleted_at` hides it). The
+ * `deleted_at is null` filter leaves archived rows untouched; RLS blocks
+ * cross-tenant updates.
+ */
+export async function setCustomerStatus(
+  client: SupabaseClient,
+  id: number,
+  isActive: boolean,
+): Promise<void> {
+  const { error } = await client
+    .from(CUSTOMERS_TABLE)
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .is('deleted_at', null)
+
+  if (error) {
+    throw new Error(CUSTOMER_STATUS_ERROR)
   }
 }
 

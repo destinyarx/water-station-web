@@ -1,18 +1,11 @@
 'use client'
 
-import type { ComponentProps } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { customerFormSchema } from '../customers.schema'
 import { CUSTOMER_FORM_DEFAULTS } from '../customers.constants'
-import type {
-  CustomerFormInput,
-  CustomerFormValues,
-} from '../customers.types'
+import { customerFormSchema } from '../customers.schema'
+import type { CustomerFormInput, CustomerFormValues } from '../customers.types'
 
 interface CustomerFormProps {
   defaultValues?: CustomerFormValues
@@ -24,11 +17,40 @@ interface CustomerFormProps {
   onCancel?: () => void
 }
 
-/**
- * Presentational create/edit customer form. Owns validation and field-level
- * messages only; persistence is passed in via `onSubmit` so the same form backs
- * both the create and edit mutations without embedding Supabase calls.
- */
+const INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '11px 13px',
+  border: '1px solid var(--app-border-strong)',
+  borderRadius: '11px',
+  background: 'var(--app-surface)',
+  color: 'var(--app-text)',
+  fontSize: '14px',
+  fontFamily: 'inherit',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
+const SUB_INPUT_STYLE: React.CSSProperties = {
+  ...INPUT_STYLE,
+  background: 'var(--app-surface-2)',
+}
+
+const LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  fontSize: '13px',
+  fontWeight: 600,
+  color: 'var(--app-text)',
+  marginBottom: '6px',
+}
+
+const SECTION_LABEL: React.CSSProperties = {
+  fontSize: '11.5px',
+  fontWeight: 700,
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase',
+  marginBottom: '14px',
+}
+
 export function CustomerForm({
   defaultValues,
   onSubmit,
@@ -49,198 +71,100 @@ export function CustomerForm({
 
   const submit = handleSubmit((values) => onSubmit(values))
 
-  const numberSetValueAs = (value: string): number | undefined =>
-    value.trim() === '' ? undefined : Number(value)
-
   return (
-    <form onSubmit={submit} className="space-y-5" noValidate>
-      <div className="rounded-2xl border border-[#dcecff] bg-[#eef7ff]/50 p-4">
-        <div className="space-y-2">
-          <FieldLabel htmlFor="name">Name</FieldLabel>
-          <StyledInput
-            id="name"
-            placeholder="e.g. Crystal Springs"
-            disabled={isPending}
-            aria-invalid={'name' in errors}
-            {...register('name')}
-          />
-          <FieldError message={errors.name?.message} />
-        </div>
-
-        <label className="mt-4 flex items-center gap-3 rounded-2xl border border-[#dcecff] bg-white/80 px-4 py-3 text-sm font-semibold text-[#001d34]">
-          <input
-            type="checkbox"
-            className="size-4 rounded border-[#bcd8f2] accent-[#00b4d8]"
-            disabled={isPending}
-            {...register('isBusiness')}
-          />
-          This is a business customer
+    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }} noValidate>
+      {/* Identity */}
+      <div style={{ background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '14px', padding: '18px' }}>
+        <div style={{ ...SECTION_LABEL, color: 'var(--app-brand)' }}>Identity</div>
+        <label style={LABEL_STYLE}>
+          Name <span style={{ color: '#dc2626' }}>*</span>
+        </label>
+        <input
+          placeholder="e.g. Maria Santos or Sunrise Café"
+          disabled={isPending}
+          style={INPUT_STYLE}
+          {...register('name')}
+        />
+        {errors.name?.message ? <FieldError message={errors.name.message} /> : null}
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px', cursor: 'pointer', userSelect: 'none' }}>
+          <input type="checkbox" disabled={isPending} style={{ width: '18px', height: '18px', accentColor: '#0a6cc4', cursor: 'pointer' }} {...register('isBusiness')} />
+          <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--app-text)' }}>This is a business customer</span>
         </label>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <FieldLabel htmlFor="contactNumber">Contact number</FieldLabel>
-          <StyledInput
-            id="contactNumber"
-            type="tel"
-            placeholder="e.g. 0917 123 4567"
-            disabled={isPending}
-            aria-invalid={'contactNumber' in errors}
-            {...register('contactNumber')}
-          />
-          <FieldError message={errors.contactNumber?.message} />
-        </div>
-
-        <div className="space-y-2">
-          <FieldLabel htmlFor="facebookUrl">Facebook link</FieldLabel>
-          <StyledInput
-            id="facebookUrl"
-            placeholder="https://facebook.com/..."
-            disabled={isPending}
-            aria-invalid={'facebookUrl' in errors}
-            {...register('facebookUrl')}
-          />
-          <FieldError message={errors.facebookUrl?.message} />
+      {/* Contact */}
+      <div>
+        <div style={{ ...SECTION_LABEL, color: 'var(--app-text-faint)' }}>Contact</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <Field label="Contact number" error={errors.contactNumber?.message}>
+            <input placeholder="0917 555 0142" disabled={isPending} style={INPUT_STYLE} {...register('contactNumber')} />
+          </Field>
+          <Field label="Facebook link" error={errors.facebookUrl?.message}>
+            <input placeholder="https://facebook.com/…" disabled={isPending} style={INPUT_STYLE} {...register('facebookUrl')} />
+          </Field>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#dcecff] bg-white/70 p-4">
-        <p className="mb-4 text-sm font-semibold text-[#001d34]">
-          Delivery address
-        </p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <FieldLabel htmlFor="streetAddress">Street address</FieldLabel>
-            <StyledInput
-              id="streetAddress"
-              disabled={isPending}
-              aria-invalid={'streetAddress' in errors}
-              {...register('streetAddress')}
-            />
-            <FieldError message={errors.streetAddress?.message} />
-          </div>
-
-          <div className="space-y-2">
-            <FieldLabel htmlFor="barangay">Barangay</FieldLabel>
-            <StyledInput
-              id="barangay"
-              disabled={isPending}
-              aria-invalid={'barangay' in errors}
-              {...register('barangay')}
-            />
-            <FieldError message={errors.barangay?.message} />
-          </div>
-
-          <div className="space-y-2">
-            <FieldLabel htmlFor="municipality">Municipality</FieldLabel>
-            <StyledInput
-              id="municipality"
-              disabled={isPending}
-              aria-invalid={'municipality' in errors}
-              {...register('municipality')}
-            />
-            <FieldError message={errors.municipality?.message} />
-          </div>
-
-          <div className="space-y-2">
-            <FieldLabel htmlFor="province">Province</FieldLabel>
-            <StyledInput
-              id="province"
-              disabled={isPending}
-              aria-invalid={'province' in errors}
-              {...register('province')}
-            />
-            <FieldError message={errors.province?.message} />
-          </div>
+      {/* Delivery address */}
+      <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '14px', padding: '18px' }}>
+        <div style={{ ...SECTION_LABEL, color: 'var(--app-brand)' }}>Delivery address</div>
+        <Field label="Street address" error={errors.streetAddress?.message}>
+          <input placeholder="24 Mabini St." disabled={isPending} style={SUB_INPUT_STYLE} {...register('streetAddress')} />
+        </Field>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
+          <Field label="Barangay" error={errors.barangay?.message}>
+            <input placeholder="San Roque" disabled={isPending} style={SUB_INPUT_STYLE} {...register('barangay')} />
+          </Field>
+          <Field label="Municipality" error={errors.municipality?.message}>
+            <input placeholder="Calamba" disabled={isPending} style={SUB_INPUT_STYLE} {...register('municipality')} />
+          </Field>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <FieldLabel htmlFor="latitude">Latitude</FieldLabel>
-          <StyledInput
-            id="latitude"
-            inputMode="decimal"
-            placeholder="e.g. 14.5995"
-            disabled={isPending}
-            aria-invalid={'latitude' in errors}
-            {...register('latitude', { setValueAs: numberSetValueAs })}
-          />
-          <FieldError message={errors.latitude?.message} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
+          <Field label="Province" error={errors.province?.message}>
+            <input placeholder="Laguna" disabled={isPending} style={SUB_INPUT_STYLE} {...register('province')} />
+          </Field>
+          <div />
         </div>
-
-        <div className="space-y-2">
-          <FieldLabel htmlFor="longitude">Longitude</FieldLabel>
-          <StyledInput
-            id="longitude"
-            inputMode="decimal"
-            placeholder="e.g. 120.9842"
-            disabled={isPending}
-            aria-invalid={'longitude' in errors}
-            {...register('longitude', { setValueAs: numberSetValueAs })}
-          />
-          <FieldError message={errors.longitude?.message} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
+          <Field label="Latitude" error={errors.latitude?.message}>
+            <input placeholder="14.2117" inputMode="decimal" disabled={isPending} style={SUB_INPUT_STYLE} {...register('latitude')} />
+          </Field>
+          <Field label="Longitude" error={errors.longitude?.message}>
+            <input placeholder="121.1653" inputMode="decimal" disabled={isPending} style={SUB_INPUT_STYLE} {...register('longitude')} />
+          </Field>
         </div>
       </div>
 
       {errorMessage ? (
-        <p
-          role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-        >
+        <p role="alert" style={{ borderRadius: '11px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '10px 13px', fontSize: '13.5px', color: '#dc2626', margin: 0 }}>
           {errorMessage}
         </p>
       ) : null}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '2px' }}>
         {onCancel ? (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isPending}
-            onClick={onCancel}
-            className="rounded-xl border-[#bdefff] text-[#00677d] hover:bg-[#eef7ff]"
-          >
+          <button type="button" disabled={isPending} onClick={onCancel} style={{ padding: '11px 20px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
             Cancel
-          </Button>
+          </button>
         ) : null}
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="rounded-xl bg-[#00b4d8] text-white shadow-[0_10px_24px_rgba(0,180,216,0.22)] hover:bg-[#009ec2]"
-        >
+        <button type="submit" disabled={isPending} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 24px', borderRadius: '11px', border: 'none', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 10px 22px rgba(14,108,196,0.3)' }}>
           {isPending ? pendingLabel : submitLabel}
-        </Button>
+        </button>
       </div>
     </form>
   )
 }
 
-function FieldLabel({
-  children,
-  htmlFor,
-}: {
-  children: string
-  htmlFor: string
-}) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
-    <Label htmlFor={htmlFor} className="text-sm font-semibold text-[#001d34]">
+    <div>
+      <label style={LABEL_STYLE}>{label}</label>
       {children}
-    </Label>
+      {error ? <FieldError message={error} /> : null}
+    </div>
   )
 }
 
-function StyledInput(props: ComponentProps<typeof Input>) {
-  return (
-    <Input
-      className="rounded-xl border-[#dcecff] bg-[#eef7ff]/70 text-[#001d34] placeholder:text-[#6d797e] focus-visible:border-[#00b4d8] focus-visible:ring-[#00b4d8]/20"
-      {...props}
-    />
-  )
-}
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null
-  return <p className="text-sm text-red-600">{message}</p>
+function FieldError({ message }: { message: string }) {
+  return <div style={{ fontSize: '12.5px', color: '#dc2626', marginTop: '6px' }}>{message}</div>
 }

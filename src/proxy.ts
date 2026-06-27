@@ -8,7 +8,7 @@ import {
 } from '@/features/registration/registration.constants'
 
 const isPublicRoute = createRouteMatcher([
-  // '/',
+  '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
 ])

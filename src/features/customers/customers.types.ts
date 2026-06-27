@@ -71,6 +71,7 @@ export interface Customer {
   municipality: string | null
   province: string | null
   fullAddress: string | null
+  isActive: boolean
   orgId: number
   createdBy: string
   createdAt: string

@@ -62,6 +62,17 @@ AquaFlow uses a two-surface token system: `--lp-*` for the public landing page a
 | `--app-chip-gray-text` | `#475569` | `#94a3b8` |
 | `--app-overlay-bg` | `rgba(8,21,33,0.55)` | `rgba(4,12,20,0.7)` |
 
+#### Product-card gradients (feature 007)
+
+Themed background gradients for the product card "visual" header, since they
+differ per state and must follow dark mode.
+
+| Token | Light | Dark |
+|---|---|---|
+| `--app-card-refill-bg` | `linear-gradient(135deg,#c2e5fb,#ddf0ff)` | `linear-gradient(135deg,#0c2d42,#103448)` |
+| `--app-card-stock-bg` | `linear-gradient(135deg,#beefd6,#d8f5e8)` | `linear-gradient(135deg,#0c2e22,#0e3828)` |
+| `--app-card-disc-bg` | `linear-gradient(135deg,#e4eaef,#edf2f6)` | `linear-gradient(135deg,#1a2530,#1f2e3c)` |
+
 ---
 
 ## Animations
@@ -84,7 +95,7 @@ All animations are defined as `@keyframes` in `globals.css` and referenced by na
 
 **Implementation:** `html.dark` class toggled by JavaScript, persisted to `localStorage` key `aqua-theme`.
 
-**Scope:** Landing page, app sidebar + header, and expenses module only. Other modules (customers, deliveries, products, maintenance) are unaffected.
+**Scope:** Landing page, app sidebar + header, expenses, **customers, and products** modules. Customers and products were added in feature 007 (extends ADR 0004's original three-surface scope). Remaining modules (deliveries, maintenance) are still unaffected.
 
 **State management:** Module-level pub/sub singletons in `src/stores/theme-store.ts` and `src/stores/sidebar-store.ts`. React components subscribe via `useSyncExternalStore` in `src/stores/use-theme.ts` and `src/stores/use-sidebar.ts`.
 
@@ -149,4 +160,35 @@ Use **shadcn/ui** for existing non-redesigned modules. The redesigned surfaces (
 
 ## Dialogs
 
-Custom overlay dialogs (expenses module) use `position:fixed; inset:0; z-index:80` with `var(--app-overlay-bg)` background. Enter animation: `floatUp 0.22s ease`. The dialog card uses `borderRadius:20px` with `var(--app-surface)` background.
+Custom overlay dialogs (expenses, customers, products) use `position:fixed; inset:0; z-index:80` with `var(--app-overlay)` background + `backdrop-filter:blur(4px)`. Enter animation: `floatUp .26s ease`. The dialog card uses `borderRadius:20px` with `var(--app-surface)` background and a gradient brand badge in the header. Form dialogs anchor to the top (`alignItems:flex-start`, `padding:40px`); the form remounts on open via a `key` to reset state.
+
+**Confirm dialog** — destructive confirmations (customer archive, product delete) use the shared `src/components/app/confirm-dialog.tsx`: centered (`alignItems:center`), `maxWidth:430px`, a red rounded icon tile, title + body, and Cancel / destructive buttons. App-themed so it follows dark mode.
+
+---
+
+## Module Patterns (feature 007)
+
+These patterns back the redesigned **Customers** and **Products** pages. Both pages are plain React + inline styles consuming `--app-*` tokens (no shadcn), wrapped in `maxWidth:1160px; padding:26px 28px 56px`.
+
+### Stat cards
+
+Two variants, both with a 3px left accent border and `var(--app-shadow-card)`:
+
+- **Glow + wave** (customers): a radial `glow` circle (top-right) and a bottom `<svg>` wave, big number, helper line.
+- **Progress bar** (products): label + icon row, big number, a 3px progress bar (`barWidth` %), helper line. Inactive metrics (zero low/out) fall back to gray tokens.
+
+### Product cards
+
+Responsive grid `repeat(auto-fill,minmax(236px,1fr))`. Each card has a 104px gradient "visual" header (`--app-card-*-bg` by state) with layered waves, a frosted icon tile (jug for refill / bottle for stocked), a type tag, a frosted kebab, and a `Discontinued` overlay when `is_active = false`. Body shows name, 2-line clamped description, price, and a stock badge (out / low / in-stock) or a `Refillable` pill.
+
+### Directory rows (customers)
+
+CSS-grid "table" (`minmax(200px,1.4fr) 160px minmax(150px,1fr) minmax(160px,1fr) 64px`) with an avatar (business/home icon) carrying a status dot, a derived `#000123` code, a type chip, an `Inactive` chip, contact, and address. Inactive rows render at `opacity:0.6`.
+
+### Record status
+
+Active/Inactive (customers) and Active/Discontinued (products) are backed by `is_active` and are **distinct from archive** (`deleted_at`). Toggled from the row/card kebab menu (`Set inactive`/`Discontinue` ↔ reactivate). See `CONTEXT.md` → Record Status Vocabulary and ADR 0005.
+
+### Pagination
+
+Client-side: the filtered+sorted array is sliced (`PER_PAGE` = 6 customers / 8 products) with a `Showing X–Y of N` footer and prev / numbered / next controls.

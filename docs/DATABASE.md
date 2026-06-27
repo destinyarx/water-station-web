@@ -24,11 +24,19 @@ Migration: `supabase/migrations/0001_customers.sql`
 | municipality    | varchar(70)    | nullable                                           |
 | province        | varchar(70)    | nullable                                           |
 | full_address    | varchar(255)   | nullable; denormalized display value               |
+| is_active       | boolean        | default `true`; `false` = inactive (on file, not served) |
 | org_id          | integer (fk)   | → `organizations(organization_code)`; tenant scope |
 | created_by      | varchar(255) fk| → `users(clerk_id)`; the Clerk user id (`sub`)     |
 | created_at      | timestamp      | default `now()`                                    |
 | updated_at      | timestamp      | nullable                                           |
 | deleted_at      | timestamp      | nullable; non-null = archived                      |
+
+> **`is_active` vs `deleted_at` (feature 007):** independent states.
+> `is_active = false` keeps the customer in the active list (greyed as
+> *Inactive*); `deleted_at` removes them entirely. Migration:
+> `docs/specs/007-remap-ui-products-customers/007-status-columns.sql`. No RLS
+> change — toggling `is_active` is a normal UPDATE on a `deleted_at is null` row.
+> See `docs/adr/0005-record-status-distinct-from-archive.md`.
 
 ### Identity / org resolution
 
@@ -104,11 +112,18 @@ Table exists in Supabase. Repository feature spec:
 | is_stock_tracked   | boolean         | default `true`; controls whether stock is counted  |
 | stock              | integer         | default `0`; meaningful only for stock-tracked products |
 | descriptions       | varchar(255)    | nullable short description                         |
+| is_active          | boolean         | default `true`; `false` = discontinued (offered no more, kept for history) |
 | org_id             | integer (fk)    | -> `organizations(organization_code)`; tenant scope |
 | created_by         | varchar(255) fk | -> `users(clerk_id)`; the Clerk user id (`sub`)     |
 | created_at         | timestamp       | default `now()`                                    |
 | updated_at         | timestamp       | nullable                                           |
 | deleted_at         | timestamp       | nullable; non-null = deleted from active list      |
+
+> **`is_active` vs `deleted_at` (feature 007):** independent states.
+> `is_active = false` keeps the product in the catalog (greyed as
+> *Discontinued*); `deleted_at` removes it. Migration:
+> `docs/specs/007-remap-ui-products-customers/007-status-columns.sql`. No RLS
+> change. See `docs/adr/0005-record-status-distinct-from-archive.md`.
 
 ### Identity / org resolution
 
@@ -242,3 +257,59 @@ archiving (soft-deleting) a Delivery Schedule.
 See `docs/specs/004-deliveries-module/004-deliveries-schema.md` §7 for the full
 checklist (cross-org isolation, idempotent materialization, owner-only schedule
 archive, failure-remarks CHECK, failed-occurrence-does-not-pause-schedule).
+
+## Maintenance tables (feature 008-build-maintenance-module)
+
+Two tables model maintenance: `maintenance_schedules` (the recurring/one-time
+plan) and `maintenance_tasks` (individual dated occurrences). Unlike deliveries
+there is **no rolling-materialization engine** — recurring schedules keep one
+`pending` occurrence that rolls forward on completion (ADR 0006). Authoritative
+schema (columns, enums, constraints, indexes, policies):
+`docs/specs/008-build-maintenance-module/maintenance_migration.md` — run manually
+in the Supabase dashboard. Keep it and this section synchronized.
+
+### `public.maintenance_schedules`
+
+The plan. Enums: `priority` (`low|medium|high`), `recurrence_type`
+(`one_time|everyday|weekly`). `weekdays smallint[]` (ISO 1–7) + `times_per_week`
+(1–3) apply to `weekly` only, with a CHECK that `times_per_week =
+array_length(weekdays,1)`. `equipment_other` is required iff `equipment =
+'Others'` (CHECK). `is_active` (active/inactive) is **distinct from** `deleted_at`
+(archive, owner-only). Standard `org_id`, `created_by`, audit, soft-delete.
+
+### `public.maintenance_tasks`
+
+A single dated occurrence carrying `status` (`pending|completed`), `assigned_to`
+(nullable FK `users(clerk_id)` — the per-occurrence assignee), `completed_at`,
+`completed_by`. Unique `(schedule_id, due_date) where deleted_at is null` makes
+roll-forward idempotent. Standard tenant/audit/soft-delete columns.
+
+### Identity / org resolution
+
+Same Clerk→Supabase contract as the other modules: `org_id` and `created_by`
+written from the resolved Clerk identity, never from form input; RLS reads
+`organization`, `sub`, `is_owner` from `auth.jwt()`.
+
+### Policies (summary)
+
+| Table | SELECT | INSERT | UPDATE | Delete |
+| ----- | ------ | ------ | ------ | ------ |
+| `maintenance_schedules` | org + `deleted_at is null` | org + `created_by = sub` | any org member; **soft-delete owner-only** | soft delete via UPDATE |
+| `maintenance_tasks` | org + `deleted_at is null` | org + `created_by = sub` | any org member (status/assignee) | soft delete via UPDATE |
+
+Maintenance is a **shared org queue**: any member may operate occurrences and
+manage schedules regardless of `created_by`; only archiving a schedule is
+owner-restricted.
+
+> **Assignee picker prerequisite.** The form lists org staff from
+> `public.users` (`clerk_id`, `name`, `org_id`). The migration adds a
+> `users_select_org_members` SELECT policy if absent so members can read
+> co-members within their org. Verify the `users` table actually has an `org_id`
+> column scoped to `organizations(organization_code)`; adjust the policy if your
+> column name differs.
+
+### Manual RLS verification
+
+See `maintenance_migration.md` → "Manual RLS verification" (cross-org isolation,
+owner-only archive, shared queue, roll-forward idempotency, weekly CHECK,
+assignee-picker org scope).

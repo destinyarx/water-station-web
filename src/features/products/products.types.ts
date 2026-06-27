@@ -46,6 +46,7 @@ export interface Product {
   isStockTracked: boolean
   stock: number
   description: string | null
+  isActive: boolean
   orgId: number
   createdBy: string
   createdAt: string

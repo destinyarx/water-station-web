@@ -102,6 +102,60 @@ exactly while its status is `for_delivery` or `completed` (stock-tracked
 products only). Entering that window deducts (blocked if it would go negative);
 leaving it restores. See `005` ADR 0003.
 
+## Maintenance Domain (feature 008-build-maintenance-module)
+
+**Maintenance Schedule** — the *plan* for keeping a piece of equipment in good
+order: what task, on what equipment, at what priority, and on what rhythm
+(`one_time` with one or more hand-picked dates, `everyday`, or `weekly` on 1–3
+chosen weekdays). A schedule is the thing the user sets **inactive**. Backed by
+`maintenance_schedules`. _Avoid_: confusing a schedule with a single occurrence.
+
+**Maintenance Task** (a.k.a. occurrence) — a single dated upkeep job staff
+actually perform; it moves `pending → completed`. A one-time schedule has one
+task per chosen date; a recurring schedule keeps exactly **one** pending task
+that **rolls forward** to the next due date when completed. Backed by
+`maintenance_tasks`. _Avoid_: "task" meaning the recurrence rule. See ADR 0006.
+
+**Weekly frequency** — Once / Twice / Thrice means the number of selected
+weekdays (1/2/3). `times_per_week` always equals `array_length(weekdays)`.
+_Avoid_: a frequency independent of the chosen days.
+
+**Equipment "Others"** — when the equipment is not in the known list, the user
+picks *Others* and must describe it in `equipment_other`; a general `notes` field
+further clarifies the task. _Avoid_: free-typing equipment outside the option set.
+
+**Assignee** — the org staff member responsible for a task. Must be a real
+`public.users` row in the caller's organization (or Unassigned); stored on the
+occurrence so it can change per task. _Avoid_: free-text assignee names.
+
+**Schedule status** — *active* (running), *inactive* (paused, hidden unless
+"Show inactive"), or *completed* (one-time schedules only, all occurrences done;
+recurring schedules are never "completed"). Inactive is distinct from **archive**
+(`deleted_at`, owner-only). _Avoid_: equating inactive with archived/completed.
+
+## Record Status Vocabulary
+
+The app distinguishes a record being **operationally on/off** from it being
+**removed**. These are independent.
+
+**Active / Inactive (customer)** — an *active* customer is one the station still
+serves; an *inactive* customer is kept on file but not currently served (e.g. a
+household that paused service). Inactive customers still appear in the directory,
+visually de-emphasised. Backed by `customers.is_active`. _Avoid_: treating
+inactive as archived/deleted.
+
+**Active / Discontinued (product)** — an *active* product is still offered;
+a *discontinued* product is retired from the catalog but kept for history and
+past records. Discontinued products still appear in the catalog, de-emphasised.
+Backed by `products.is_active`. _Avoid_: treating discontinued as deleted.
+
+**Archived** — a record soft-deleted via `deleted_at`. Archived records are
+excluded from active lists entirely (the SELECT RLS policy filters
+`deleted_at is null`). This is a separate, stronger action than setting a record
+inactive/discontinued. _Avoid_: conflating archive with inactive/discontinued.
+
+See `docs/adr/0005-record-status-distinct-from-archive.md`.
+
 ## Important Product Rule
 
 Products are classified by whether the station tracks their stock quantity.

@@ -3,7 +3,7 @@ export const CUSTOMERS_TABLE = 'customers'
 
 /** Columns selected for the customer read path, matching `customerRowSchema`. */
 export const CUSTOMER_COLUMNS =
-  'id, name, is_business, contact_number, facebook_url, latitude, longitude, street_address, barangay, municipality, province, full_address, org_id, created_by, created_at, updated_at, deleted_at'
+  'id, name, is_business, contact_number, facebook_url, latitude, longitude, street_address, barangay, municipality, province, full_address, is_active, org_id, created_by, created_at, updated_at, deleted_at'
 
 /** User-facing message shown when the customer list fails to load. */
 export const CUSTOMERS_LOAD_ERROR = 'Unable to load customers. Please try again.'
@@ -14,6 +14,10 @@ export const CUSTOMER_SAVE_ERROR = 'Unable to save customer. Please try again.'
 /** User-facing message shown when archiving a customer fails. */
 export const CUSTOMER_ARCHIVE_ERROR =
   'Unable to archive customer. Please try again.'
+
+/** User-facing message shown when toggling a customer's status fails. */
+export const CUSTOMER_STATUS_ERROR =
+  'Unable to update customer status. Please try again.'
 
 /**
  * Clerk JWT template whose claims (`organization`, `sub`) back the Supabase

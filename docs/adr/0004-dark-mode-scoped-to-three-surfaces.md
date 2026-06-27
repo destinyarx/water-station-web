@@ -1,8 +1,13 @@
 # ADR 0004 — Dark mode scoped to landing page, sidebar/header, and expenses module only
 
-- **Status:** Accepted
+- **Status:** Accepted (scope extended by feature 007 — see note below)
 - **Date:** 2026-06-26
 - **Feature:** `docs/specs/006-create-new-design-system-and-redesign-landing-page-expenses-ui`
+
+> **Amendment (feature 007, 2026-06-27):** The same design system + dark mode was
+> extended to the **customers** and **products** modules. The mechanism is
+> unchanged (`html.dark` + `--app-*` tokens reused verbatim); only the set of
+> redesigned surfaces grew. Deliveries and maintenance remain out of scope.
 
 ## Context
 

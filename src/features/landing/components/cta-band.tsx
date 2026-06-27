@@ -32,7 +32,7 @@ const PRICING = [
   },
   {
     name: 'Station',
-    price: '₱799',
+    price: '₱ ???',
     priceSub: '/mo',
     sub: 'Counter + deliveries',
     cta: 'Start free trial',
@@ -42,7 +42,7 @@ const PRICING = [
   },
   {
     name: 'Multi-branch',
-    price: '₱1,899',
+    price: '₱ ?,???',
     priceSub: '/mo',
     sub: 'For growing operations',
     cta: 'Talk to us',
@@ -74,8 +74,8 @@ export function CtaBand() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" style={{ maxWidth: '1100px', margin: '0 auto', padding: '80px 32px' }}>
-        <div style={{ textAlign: 'center', maxWidth: '560px', margin: '0 auto 48px' }}>
+      <section id="pricing" style={{ maxWidth: '1300px', margin: '0 auto', padding: '80px 32px' }}>
+        <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 48px' }}>
           <h2 style={{ fontSize: '38px', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 12px', color: 'var(--lp-text)' }}>Simple pricing, clear as water</h2>
           <p style={{ fontSize: '17px', color: 'var(--lp-text-muted)', margin: 0, lineHeight: 1.6 }}>Start free. Upgrade when your station grows.</p>
         </div>
@@ -130,7 +130,7 @@ export function CtaBand() {
       </section>
 
       {/* Final CTA */}
-      <section style={{ maxWidth: '1100px', margin: '0 auto 80px', padding: '0 32px' }}>
+      <section style={{ maxWidth: '1300px', margin: '0 auto 80px', padding: '0 32px' }}>
         <div style={{ position: 'relative', background: 'linear-gradient(135deg,#38bdf8,#0a6cc4)', borderRadius: '28px', padding: '58px 48px', textAlign: 'center', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', background: 'radial-gradient(60% 100% at 50% 100%, rgba(255,255,255,0.25), transparent)' }} />
           <h2 style={{ fontSize: '40px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', margin: '0 0 14px' }}>Ready to clear up your station?</h2>

@@ -10,6 +10,7 @@ const product: Product = {
   isStockTracked: true,
   stock: 120,
   description: null,
+  isActive: true,
   orgId: 7,
   createdBy: 'user_staff',
   createdAt: '2026-06-13T00:00:00.000Z',
