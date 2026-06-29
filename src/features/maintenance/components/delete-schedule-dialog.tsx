@@ -27,8 +27,9 @@ export function DeleteScheduleDialog({ task, open, onOpenChange }: DeleteSchedul
     <ConfirmDialog
       open={open}
       onOpenChange={handleOpenChange}
+      variant="destructive"
       title="Delete this task?"
-      body={
+      description={
         <>
           &quot;{task.title}&quot; and its schedule will be removed from your maintenance list.
         </>

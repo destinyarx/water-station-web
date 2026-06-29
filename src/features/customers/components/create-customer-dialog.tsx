@@ -2,6 +2,7 @@
 
 import { useCreateCustomer } from '../hooks/use-create-customer'
 import type { CustomerFormValues } from '../customers.types'
+import { useMutationDialog } from '../hooks/use-mutation-dialog'
 import { CustomerFormDialog } from './customer-form-dialog'
 
 interface CreateCustomerDialogProps {
@@ -12,25 +13,20 @@ interface CreateCustomerDialogProps {
 /** Create form modal for a new customer. Controlled by the page. */
 export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialogProps) {
   const mutation = useCreateCustomer()
-
-  function handleOpenChange(next: boolean) {
-    onOpenChange(next)
-    if (!next) mutation.reset()
-  }
-
-  function handleSubmit(values: CustomerFormValues) {
-    mutation.mutate(values, { onSuccess: () => handleOpenChange(false) })
-  }
+  const dialog = useMutationDialog<CustomerFormValues>(mutation, {
+    open,
+    onOpenChange,
+  })
 
   return (
     <CustomerFormDialog
-      open={open}
-      onOpenChange={handleOpenChange}
+      open={dialog.open}
+      onOpenChange={dialog.onOpenChange}
       title="Add customer"
       description="Record a new customer for your station."
-      onSubmit={handleSubmit}
-      isPending={mutation.isPending}
-      errorMessage={mutation.isError ? mutation.error.message : undefined}
+      onSubmit={dialog.submit}
+      isPending={dialog.isPending}
+      errorMessage={dialog.errorMessage}
       submitLabel="Save customer"
       pendingLabel="Saving..."
     />

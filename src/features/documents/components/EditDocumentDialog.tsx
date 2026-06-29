@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AppModal } from '@/components/app/app-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -49,26 +49,21 @@ export function EditDocumentDialog({ doc, onClose }: EditDocumentDialogProps) {
   }
 
   return (
-    <Dialog open={doc !== null} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div
-              className="flex-none w-11 h-11 rounded-[13px] flex items-center justify-center"
-              style={{ background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', boxShadow: '0 8px 20px rgba(14,108,196,0.28)' }}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
-              </svg>
-            </div>
-            <div>
-              <DialogTitle className="text-[18px] font-bold text-[var(--app-text)]">Edit document</DialogTitle>
-              <p className="text-[13px] text-[var(--app-text-soft)] mt-0.5 truncate max-w-[280px]">{doc?.title}</p>
-            </div>
-          </div>
-        </DialogHeader>
-
+    <AppModal
+      open={doc !== null}
+      onOpenChange={(next) => {
+        if (!next) onClose()
+      }}
+      title="Edit document"
+      description={doc?.title}
+      size="md"
+      icon={
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
+        </svg>
+      }
+    >
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-2">
           {/* Document info */}
           <div className="bg-[var(--app-surface-2)] border border-[var(--app-border)] rounded-[14px] p-[18px] flex flex-col gap-[14px]">
@@ -237,7 +232,6 @@ export function EditDocumentDialog({ doc, onClose }: EditDocumentDialogProps) {
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </AppModal>
   )
 }

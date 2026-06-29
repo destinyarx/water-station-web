@@ -1,5 +1,7 @@
 'use client'
 
+import { ConfirmDialog } from '@/components/app/confirm-dialog'
+
 import type { Document } from '../documents.types'
 import { useSoftDeleteDocument } from '../hooks/use-soft-delete-document'
 
@@ -13,61 +15,34 @@ export function DeleteDocumentDialog({ doc, onClose }: DeleteDocumentDialogProps
 
   if (!doc) return null
 
-  function handleClose() {
+  function handleClose(): void {
     reset()
     onClose()
   }
 
-  function handleDelete() {
+  function handleDelete(): void {
     if (!doc) return
     mutate(doc.id, { onSuccess: handleClose })
   }
 
   return (
-    <div
-      onClick={handleClose}
-      style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'var(--app-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
-    >
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: '420px', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '20px', boxShadow: '0 40px 90px rgba(7,40,70,0.4)', padding: '28px', textAlign: 'center', animation: 'floatUp .24s ease' }}
-      >
-        <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(220,38,38,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', color: '#dc2626' }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
-            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-            <path d="M10 11v6M14 11v6" />
-          </svg>
-        </div>
-        <div style={{ fontSize: '19px', fontWeight: 700, color: 'var(--app-text)', marginBottom: '8px' }}>Archive this document?</div>
-        <p style={{ fontSize: '14px', color: 'var(--app-text-muted)', lineHeight: 1.6, margin: '0 0 22px' }}>
+    <ConfirmDialog
+      open={doc !== null}
+      onOpenChange={(next) => {
+        if (!next) handleClose()
+      }}
+      variant="destructive"
+      title="Archive this document?"
+      description={
+        <>
           &ldquo;{doc.title}&rdquo; will be removed from your records.
-        </p>
-        {isError && (
-          <p role="alert" style={{ fontSize: '13px', color: '#dc2626', marginBottom: '16px' }}>
-            {error instanceof Error ? error.message : 'Unable to delete document.'}
-          </p>
-        )}
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={handleClose}
-            style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={handleDelete}
-            style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#dc2626', color: '#fff', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 10px 22px rgba(220,38,38,0.28)' }}
-          >
-            {isPending ? 'Archiving…' : 'Yes, archive'}
-          </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      confirmLabel="Yes, archive"
+      pendingLabel="Archiving..."
+      onConfirm={handleDelete}
+      isPending={isPending}
+      errorMessage={isError ? error.message : undefined}
+    />
   )
 }

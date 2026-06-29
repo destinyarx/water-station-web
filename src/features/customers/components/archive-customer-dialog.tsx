@@ -2,6 +2,7 @@
 
 import { useArchiveCustomer } from '../hooks/use-archive-customer'
 import type { Customer } from '../customers.types'
+import { useMutationDialog } from '../hooks/use-mutation-dialog'
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
 
 interface ArchiveCustomerDialogProps {
@@ -17,22 +18,15 @@ export function ArchiveCustomerDialog({
   onOpenChange,
 }: ArchiveCustomerDialogProps) {
   const mutation = useArchiveCustomer()
-
-  function handleOpenChange(next: boolean) {
-    onOpenChange(next)
-    if (!next) mutation.reset()
-  }
-
-  function handleConfirm() {
-    mutation.mutate(customer.id, { onSuccess: () => handleOpenChange(false) })
-  }
+  const dialog = useMutationDialog(mutation, { open, onOpenChange })
 
   return (
     <ConfirmDialog
-      open={open}
-      onOpenChange={handleOpenChange}
+      open={dialog.open}
+      onOpenChange={dialog.onOpenChange}
+      variant="destructive"
       title="Archive customer"
-      body={
+      description={
         <>
           Archive <strong style={{ color: 'var(--app-text)' }}>{customer.name}</strong>? They will
           be hidden from the active list but kept for your records.
@@ -40,9 +34,9 @@ export function ArchiveCustomerDialog({
       }
       confirmLabel="Archive customer"
       pendingLabel="Archiving..."
-      onConfirm={handleConfirm}
-      isPending={mutation.isPending}
-      errorMessage={mutation.isError ? mutation.error.message : undefined}
+      onConfirm={() => dialog.submit(customer.id)}
+      isPending={dialog.isPending}
+      errorMessage={dialog.errorMessage}
     />
   )
 }

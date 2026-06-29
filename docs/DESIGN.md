@@ -165,9 +165,9 @@ Use **shadcn/ui** for existing non-redesigned modules. The redesigned surfaces (
 
 ## Dialogs
 
-Custom overlay dialogs (expenses, customers, products) use `position:fixed; inset:0; z-index:80` with `var(--app-overlay)` background + `backdrop-filter:blur(4px)`. Enter animation: `floatUp .26s ease`. The dialog card uses `borderRadius:20px` with `var(--app-surface)` background and a gradient brand badge in the header. Form dialogs anchor to the top (`alignItems:flex-start`, `padding:40px`); the form remounts on open via a `key` to reset state.
+Custom overlay form dialogs use the shared `src/components/app/app-modal.tsx` shell: `position:fixed; inset:0; z-index:80` with `var(--app-overlay)` background + `backdrop-filter:blur(4px)`. Enter animation: `floatUp .26s ease`. The dialog card uses `borderRadius:20px` with `var(--app-surface)` background and a gradient brand badge in the header. Form dialogs anchor to the top (`alignItems:flex-start`, `padding:36px 18px`); individual feature forms still own their validation, submit buttons, and mutation behavior.
 
-**Confirm dialog** — destructive confirmations (customer archive, product delete) use the shared `src/components/app/confirm-dialog.tsx`: centered (`alignItems:center`), `maxWidth:430px`, a red rounded icon tile, title + body, and Cancel / destructive buttons. App-themed so it follows dark mode.
+**Confirm dialog** — confirmations use the shared `src/components/app/confirm-dialog.tsx`: centered (`alignItems:center`), `maxWidth:430px` by default, rounded icon tile, title + description, and Cancel / confirm buttons. It defaults to the primary blue gradient action used by create/form submit buttons. Archive/delete flows explicitly use `variant="destructive"` for the red icon tile and destructive button. App-themed so it follows dark mode.
 
 ---
 

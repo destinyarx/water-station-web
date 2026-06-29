@@ -37,8 +37,9 @@ export function DeleteProductDialog({
     <ConfirmDialog
       open={open}
       onOpenChange={handleOpenChange}
+      variant="destructive"
       title={<>Delete &ldquo;{product.productName}&rdquo;?</>}
-      body="This product will be removed from your catalog. It is kept for your records and can no longer be sold or delivered."
+      description="This product will be removed from your catalog. It is kept for your records and can no longer be sold or delivered."
       confirmLabel="Yes, delete"
       pendingLabel="Deleting..."
       onConfirm={handleConfirm}

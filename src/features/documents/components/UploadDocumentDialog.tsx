@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AppModal } from '@/components/app/app-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -59,27 +59,22 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div
-              className="flex-none w-11 h-11 rounded-[13px] flex items-center justify-center"
-              style={{ background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', boxShadow: '0 8px 20px rgba(14,108,196,0.28)' }}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
-                <path d="M14 2v6h6" />
-                <path d="M12 18v-6M9 15l3-3 3 3" />
-              </svg>
-            </div>
-            <div>
-              <DialogTitle className="text-[18px] font-bold text-[var(--app-text)]">Upload document</DialogTitle>
-              <p className="text-[13px] text-[var(--app-text-soft)] mt-0.5">Max 2 MB · JPG, PNG, PDF, DOCX, XLSX</p>
-            </div>
-          </div>
-        </DialogHeader>
-
+    <AppModal
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose()
+      }}
+      title="Upload document"
+      description="Max 2 MB · JPG, PNG, PDF, DOCX, XLSX"
+      size="md"
+      icon={
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+          <path d="M14 2v6h6" />
+          <path d="M12 18v-6M9 15l3-3 3 3" />
+        </svg>
+      }
+    >
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-2">
           {/* Drop zone — UI placeholder only */}
           <div className="border-2 border-dashed border-[var(--app-border-strong)] rounded-[14px] p-7 text-center bg-[var(--app-surface-2)]">
@@ -276,7 +271,6 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </AppModal>
   )
 }

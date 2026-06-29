@@ -3,6 +3,7 @@
 import { useUpdateCustomer } from '../hooks/use-update-customer'
 import { toFormValues } from '../customers.mapper'
 import type { Customer, CustomerFormValues } from '../customers.types'
+import { useMutationDialog } from '../hooks/use-mutation-dialog'
 import { CustomerFormDialog } from './customer-form-dialog'
 
 interface EditCustomerDialogProps {
@@ -18,31 +19,22 @@ export function EditCustomerDialog({
   onOpenChange,
 }: EditCustomerDialogProps) {
   const mutation = useUpdateCustomer()
-
-  function handleOpenChange(next: boolean) {
-    onOpenChange(next)
-    if (!next) {
-      mutation.reset()
-    }
-  }
+  const dialog = useMutationDialog(mutation, { open, onOpenChange })
 
   function handleSubmit(values: CustomerFormValues) {
-    mutation.mutate(
-      { id: customer.id, values },
-      { onSuccess: () => handleOpenChange(false) }
-    )
+    dialog.submit({ id: customer.id, values })
   }
 
   return (
     <CustomerFormDialog
-      open={open}
-      onOpenChange={handleOpenChange}
+      open={dialog.open}
+      onOpenChange={dialog.onOpenChange}
       title="Edit customer"
       description="Update this customer's contact and address details."
       defaultValues={toFormValues(customer)}
       onSubmit={handleSubmit}
-      isPending={mutation.isPending}
-      errorMessage={mutation.isError ? mutation.error.message : undefined}
+      isPending={dialog.isPending}
+      errorMessage={dialog.errorMessage}
       submitLabel="Save changes"
       pendingLabel="Saving..."
     />
