@@ -8,7 +8,7 @@ import {
   getSchedules,
   type SchedulePage,
 } from '../services/delivery-schedule-list.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useSchedules(
   page: number,

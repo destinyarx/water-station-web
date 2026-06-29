@@ -8,7 +8,7 @@ import {
 
 import { archiveCustomer } from '../services/customers.service'
 import { customerKeys } from '../customers.keys'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 /**
  * Archives (soft-deletes) a customer and refreshes the active list on success

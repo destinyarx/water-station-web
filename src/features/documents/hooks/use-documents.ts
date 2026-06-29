@@ -5,7 +5,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { documentKeys } from '../documents.keys'
 import type { Document } from '../documents.types'
 import { getActiveDocuments } from '../services/documents.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useDocuments(): UseQueryResult<Document[], Error> {
   const client = useClerkSupabase()

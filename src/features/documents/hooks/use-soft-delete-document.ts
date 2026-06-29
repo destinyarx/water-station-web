@@ -4,7 +4,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/r
 
 import { documentKeys } from '../documents.keys'
 import { softDeleteDocument } from '../services/documents.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useSoftDeleteDocument(): UseMutationResult<void, Error, number> {
   const client = useClerkSupabase()

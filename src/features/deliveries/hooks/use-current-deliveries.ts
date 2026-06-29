@@ -8,7 +8,7 @@ import {
   getCurrentDeliveries,
   type CurrentQueuePage,
 } from '../services/delivery-queue.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useCurrentDeliveries(
   page: number,

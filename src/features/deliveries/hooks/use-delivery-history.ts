@@ -8,7 +8,7 @@ import {
   getDeliveryHistory,
   type DeliveryHistoryPage,
 } from '../services/delivery-history.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useDeliveryHistory(
   page: number,

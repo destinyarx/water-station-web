@@ -19,12 +19,6 @@ export const CUSTOMER_ARCHIVE_ERROR =
 export const CUSTOMER_STATUS_ERROR =
   'Unable to update customer status. Please try again.'
 
-/**
- * Clerk JWT template whose claims (`organization`, `sub`) back the Supabase
- * customer RLS policies. Must match the template configured in Clerk.
- */
-export const CLERK_SUPABASE_TEMPLATE = 'water-station'
-
 /** Empty default values for the create/edit customer form. */
 export const CUSTOMER_FORM_DEFAULTS = {
   name: '',

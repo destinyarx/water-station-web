@@ -7,7 +7,7 @@ import { getMaintenanceBoard } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
 import { buildTaskViews, todayIso } from '../maintenance.view'
 import type { MaintenanceTaskView, OrgUser } from '../maintenance.types'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useOrgUsers } from './use-org-users'
 
 const EMPTY_USERS: OrgUser[] = []

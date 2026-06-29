@@ -9,7 +9,7 @@ import {
 import { expenseKeys } from '../expenses.keys'
 import type { Expense, ExpenseFormValues } from '../expenses.types'
 import { updateExpense } from '../services/expenses.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 interface UpdateExpenseVariables {
   id: number

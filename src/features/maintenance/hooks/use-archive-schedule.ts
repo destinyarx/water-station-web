@@ -4,7 +4,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/r
 
 import { archiveSchedule } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 /** Soft-deletes a schedule (owner-only) and refreshes the board. */
 export function useArchiveSchedule(): UseMutationResult<void, Error, number> {

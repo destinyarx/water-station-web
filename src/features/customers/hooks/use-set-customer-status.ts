@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { setCustomerStatus } from '../services/customers.service'
 import { customerKeys } from '../customers.keys'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 interface SetCustomerStatusInput {
   id: number

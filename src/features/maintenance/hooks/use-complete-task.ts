@@ -5,7 +5,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/r
 import { completeTask } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
 import type { MaintenanceTaskView } from '../maintenance.types'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useMaintenanceOwner } from './use-maintenance-owner'
 
 /** Completes (or re-opens a one-time) occurrence; rolls recurring ones forward. */

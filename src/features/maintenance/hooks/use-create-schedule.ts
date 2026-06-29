@@ -5,7 +5,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/r
 import { createSchedule } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
 import type { CreateMaintenanceValues, MaintenanceScheduleRow } from '../maintenance.types'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useMaintenanceOwner } from './use-maintenance-owner'
 
 /** Creates a schedule + its occurrences and refreshes the board on success. */

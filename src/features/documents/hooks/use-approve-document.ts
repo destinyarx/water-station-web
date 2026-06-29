@@ -5,7 +5,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/r
 import { documentKeys } from '../documents.keys'
 import type { Document } from '../documents.types'
 import { setDocumentApproval } from '../services/documents.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useApproveDocument(): UseMutationResult<
   Document,

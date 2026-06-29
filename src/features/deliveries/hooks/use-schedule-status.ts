@@ -8,7 +8,7 @@ import {
   pauseSchedule,
   resumeSchedule,
 } from '../services/delivery-schedule-admin.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useDeliveryOwner } from './use-delivery-owner'
 
 interface ScheduleStatusVars {

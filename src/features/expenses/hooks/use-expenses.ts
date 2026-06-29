@@ -5,7 +5,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { expenseKeys } from '../expenses.keys'
 import type { Expense } from '../expenses.types'
 import { getActiveExpenses } from '../services/expenses.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useExpenses(): UseQueryResult<Expense[], Error> {
   const client = useClerkSupabase()

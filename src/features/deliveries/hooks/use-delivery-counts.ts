@@ -8,7 +8,7 @@ import {
   getDeliveryQueueCounts,
   type DeliveryQueueCounts,
 } from '../services/delivery-counts.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useDeliveryCounts(): UseQueryResult<DeliveryQueueCounts, Error> {
   const client = useClerkSupabase()

@@ -5,7 +5,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { getActiveCustomers } from '../services/customers.service'
 import { customerKeys } from '../customers.keys'
 import type { Customer } from '../customers.types'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 /**
  * Loads the active customer list for the signed-in user's tenant. The Supabase

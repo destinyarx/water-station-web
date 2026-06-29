@@ -8,7 +8,7 @@ import {
 
 import { expenseKeys } from '../expenses.keys'
 import { softDeleteExpense } from '../services/expenses.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useSoftDeleteExpense(): UseMutationResult<void, Error, number> {
   const client = useClerkSupabase()

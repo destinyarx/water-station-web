@@ -3,8 +3,6 @@ export const DOCUMENTS_TABLE = 'documents'
 export const DOCUMENT_COLUMNS =
   'id, org_id, created_by, title, description, category, document_type, document_date, amount, expiry_date, visibility, is_approved, original_name, created_at, updated_at, deleted_at, uploader:users!created_by(name)'
 
-export const CLERK_SUPABASE_TEMPLATE = 'water-station'
-
 export const DOCUMENTS_LOAD_ERROR = 'Unable to load documents. Please try again.'
 export const DOCUMENT_SAVE_ERROR = 'Unable to save document. Please try again.'
 export const DOCUMENT_DELETE_ERROR = 'Unable to delete document. Please try again.'

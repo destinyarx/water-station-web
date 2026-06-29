@@ -8,7 +8,7 @@ import type {
   DeliveryScheduleRow,
 } from '../deliveries.types'
 import { createWeeklySchedule } from '../services/delivery-schedule.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useDeliveryOwner } from './use-delivery-owner'
 
 export function useCreateSchedule() {

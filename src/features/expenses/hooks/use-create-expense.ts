@@ -9,7 +9,7 @@ import {
 import { expenseKeys } from '../expenses.keys'
 import type { Expense, ExpenseFormValues } from '../expenses.types'
 import { createExpense } from '../services/expenses.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useExpenseOwner } from './use-expense-owner'
 
 export function useCreateExpense(): UseMutationResult<

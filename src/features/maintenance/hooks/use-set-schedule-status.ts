@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { setScheduleStatus } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 interface SetScheduleStatusInput {
   scheduleId: number

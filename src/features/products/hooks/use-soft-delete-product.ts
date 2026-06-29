@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { productKeys } from '../products.keys'
 import { softDeleteProduct } from '../services/products.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useSoftDeleteProduct() {
   const client = useClerkSupabase()

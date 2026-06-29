@@ -8,7 +8,7 @@ import { deliveryKeys } from '../deliveries.keys'
 import { toStatusTransitionItems } from '../deliveries.mapper'
 import type { Delivery, DeliveryStatus } from '../deliveries.types'
 import { updateDeliveryStatus } from '../services/delivery-status.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useDeliveryOwner } from './use-delivery-owner'
 import { useProducts } from '@/features/products/hooks/use-products'
 

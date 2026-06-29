@@ -16,12 +16,6 @@ export const EXPENSE_SAVE_ERROR = 'Unable to save expense. Please try again.'
 export const EXPENSE_DELETE_ERROR =
   'Unable to delete expense. Please try again.'
 
-/**
- * Clerk JWT template whose claims (`organization`, `sub`) back the Supabase
- * expense RLS policies. Must match the template configured in Clerk.
- */
-export const CLERK_SUPABASE_TEMPLATE = 'water-station'
-
 export const expenseCategoryValues = [
   'utilities',
   'water_production_supplies',

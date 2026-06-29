@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { deliveryKeys } from '../deliveries.keys'
 import type { Delivery, DeliveryFormValues } from '../deliveries.types'
 import { createOneTimeDelivery } from '../services/deliveries.service'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useDeliveryOwner } from './use-delivery-owner'
 
 export function useCreateDelivery() {

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/r
 import { updateSchedule } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
 import type { EditMaintenanceValues } from '../maintenance.types'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export interface UpdateScheduleInput {
   scheduleId: number

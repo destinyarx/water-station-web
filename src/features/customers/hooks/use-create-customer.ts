@@ -9,7 +9,7 @@ import {
 import { createCustomer } from '../services/customers.service'
 import { customerKeys } from '../customers.keys'
 import type { Customer, CustomerFormValues } from '../customers.types'
-import { useClerkSupabase } from './use-clerk-supabase'
+import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useCustomerOwner } from './use-customer-owner'
 
 /**
