@@ -23,7 +23,7 @@ export function ProblemSection() {
       {/* How it works */}
       <section id="workflow" style={{ background: 'var(--lp-section-soft)', padding: '70px 0' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 32px' }}>
-          <div style={{ textAlign: 'center', maxWidth: '560px', margin: '0 auto 48px' }}>
+          <div style={{ textAlign: 'center', maxWidth: '760px', margin: '0 auto 48px' }}>
             <h2 style={{ fontSize: '38px', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 12px', color: 'var(--lp-text)' }}>From counter to customer, one flow</h2>
             <p style={{ fontSize: '17px', color: 'var(--lp-text-muted)', margin: 0, lineHeight: 1.6 }}>A workday at the station, handled step by step.</p>
           </div>

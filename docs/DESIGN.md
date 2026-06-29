@@ -60,7 +60,12 @@ AquaFlow uses a two-surface token system: `--lp-*` for the public landing page a
 | `--app-chip-red-text` | `#b91c1c` | `#f87171` |
 | `--app-chip-gray-bg` | `rgba(100,116,139,0.12)` | `rgba(100,116,139,0.18)` |
 | `--app-chip-gray-text` | `#475569` | `#94a3b8` |
+| `--app-chip-violet-bg` | `rgba(139,92,246,0.12)` | `rgba(139,92,246,0.18)` |
+| `--app-chip-violet-text` | `#6d28d9` | `#c4b5fd` |
 | `--app-overlay-bg` | `rgba(8,21,33,0.55)` | `rgba(4,12,20,0.7)` |
+| `--app-surface-3` | `#f7fbff` | `#0d1f2c` |
+| `--app-row-hover` | `#f5fafe` | `rgba(56,189,248,0.05)` |
+| `--app-shadow-card` | `0 6px 22px rgba(20,100,180,0.06)` | `0 6px 22px rgba(0,0,0,0.28)` |
 
 #### Product-card gradients (feature 007)
 
@@ -95,7 +100,7 @@ All animations are defined as `@keyframes` in `globals.css` and referenced by na
 
 **Implementation:** `html.dark` class toggled by JavaScript, persisted to `localStorage` key `aqua-theme`.
 
-**Scope:** Landing page, app sidebar + header, expenses, **customers, and products** modules. Customers and products were added in feature 007 (extends ADR 0004's original three-surface scope). Remaining modules (deliveries, maintenance) are still unaffected.
+**Scope:** Landing page, app sidebar + header, expenses, **customers, products, and documents** modules. Customers and products were added in feature 007, documents in feature 009 (extends ADR 0004's original three-surface scope). Remaining modules (deliveries, maintenance) are still unaffected.
 
 **State management:** Module-level pub/sub singletons in `src/stores/theme-store.ts` and `src/stores/sidebar-store.ts`. React components subscribe via `useSyncExternalStore` in `src/stores/use-theme.ts` and `src/stores/use-sidebar.ts`.
 
@@ -192,6 +197,40 @@ Active/Inactive (customers) and Active/Discontinued (products) are backed by `is
 ### Pagination
 
 Client-side: the filtered+sorted array is sliced (`PER_PAGE` = 6 customers / 8 products) with a `Showing X–Y of N` footer and prev / numbered / next controls.
+
+## Module Patterns (feature 009 — Documents)
+
+The **Documents** page uses the plain-React + `--app-*` shell, widest of all modules at `maxWidth:1200px; padding:32px 24px`. Eyebrow-less; title "Documents" with a subtitle and a gradient "Upload document" button (top-right).
+
+### Stat cards
+
+Four progress-bar chips (`repeat(auto-fit,minmax(220px,1fr))`), same shape as the products stat card: label + icon row, 36px extrabold number, 3px progress bar, helper line. Accent colors: brand (total), amber (private), amber (expiring), green (shared).
+
+### Data table
+
+CSS-grid with 6 columns (`2fr 2.2fr 1.5fr 120px 96px 52px`) inside a `border-radius:18px` surface card. Head row uses `--app-surface-2`. Body rows use `--app-row-hover` on hover. Columns: Title, Description, Category / Type, Date, Status, Actions.
+
+- **Title cell** — a square 34×34 file-type badge (background + color keyed to extension: PDF → red, JPG/PNG → green, DOCX → blue, fallback → brand chip), title text truncated at 160px, an amber lock icon for `only_me` documents, and the uploader name in faint text below.
+- **Category / Type cell** — category label in brand uppercase 11px + a gray chip for the document type below.
+- **Status badge** — four states, priority order: Expired (red chip), Expiring (amber chip, within 30 days), Approved (green chip), Uploaded (brand chip). Derived from `expiry_date` vs today and `is_approved`.
+- **File type badge colors** — PDF `rgba(220,38,38,0.1)` / `#dc2626`; JPG/PNG `rgba(34,197,94,0.1)` / `#15803d`; XLSX `rgba(34,197,94,0.12)` / `#166534`; DOCX `rgba(59,130,246,0.1)` / `#1d4ed8`; fallback `--app-chip-bg` / `--app-brand`.
+
+### Upload / Edit dialog (shadcn Dialog)
+
+`maxWidth:lg`, scrollable. Gradient brand icon tile in header (same 44×44 rounded-[13px] pattern). Sections in order:
+
+1. Drop zone (dashed border, placeholder — no upload logic yet)
+2. "Document info" card (`--app-surface-2`) — Title (required), Description (textarea)
+3. 2-col grid — Category (required select, 10 options) + Document Type (dependent select, disabled until category chosen)
+4. 2-col grid — Document date (date input) + Amount ₱ (number with ₱ prefix)
+5. Expiry date (full-width date input)
+6. "Visibility" card — two toggle buttons side by side: **All staff** / **Just me**, border highlights to brand on selection
+
+### Visibility filter (toolbar)
+
+Segmented control: `p-1` surface card with `border-radius:12px`, three pill buttons (`rounded-[9px]`). Active pill: `--app-brand` background + white text + shadow. Inactive: transparent + soft text.
+
+---
 
 ## Module Patterns (feature 008 — Maintenance)
 

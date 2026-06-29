@@ -45,8 +45,8 @@ were created by another staff member in the same station.
 
 ## Core Modules
 
-- Implemented or actively specified: Authentication, Customers, Products, Expenses
-- Planned modules: Orders, Deliveries, Payments, Inventory, Reports, Settings, Team/Staff Management
+- Implemented or actively specified: Authentication, Customers, Products, Expenses, Deliveries, Maintenance, Documents
+- Planned modules: Orders, Payments, Inventory, Reports, Settings, Team/Staff Management
 
 Agents must not treat planned modules as approved implementation scope unless a
 feature spec under `docs/specs` exists for the requested work.
@@ -167,6 +167,35 @@ _Avoid_: Inventory-tracked item
 **Non-stock-tracked product**:
 A refill, service, or fee product whose available quantity is not counted, such as water refill services, delivery fees, and cleaning fees.
 _Avoid_: Service item, untracked inventory item
+
+## Documents Domain (feature 009-build-documents-module)
+
+**Document** — a business file (permit, certificate, receipt, test result, or other record)
+uploaded by staff or owner for compliance and record-keeping. Identified by title, category,
+and optional document type. A document carries metadata (date, amount, expiry) but the file
+itself is stored separately. Visibility controls whether other staff can see it; owners always
+see all documents in the org.
+_Avoid_: confusing a Document with a delivery receipt or an expense record — those are
+separate domain objects.
+
+**Document category** — the top-level grouping of a document. Fixed set: Business Permits,
+Tax & BIR Documents, Water Quality Tests, Sanitary & Health, Sales & Customer Receipts,
+Expenses & Supplier, Equipment & Maintenance, Delivery & Vehicle, Employee Documents, Other.
+_Avoid_: free-typing a category outside this set.
+
+**Document type** — a sub-classification within a category (e.g. "Mayor's Permit" under
+"Business Permits"). Free text; validated at the form level, not enforced by the database.
+
+**Approved (document)** — an owner has reviewed and marked the document as verified
+(`is_approved = true`). Default is unreviewed (`false`). Not a workflow status; a single
+boolean flag.
+_Avoid_: treating approval as a multi-step lifecycle.
+
+**Visibility (document)** — `all` means every org member can view the document; `only_me`
+hides it from other staff (owners always see all documents regardless).
+_Avoid_: treating `only_me` as hiding from owners.
+
+---
 
 ## Authentication & Onboarding (feature 000-auth_workflow)
 
