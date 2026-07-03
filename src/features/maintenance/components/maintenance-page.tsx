@@ -10,6 +10,7 @@ import { CreateScheduleDialog } from './create-schedule-dialog'
 import { MaintenanceTaskCard } from './maintenance-task-card'
 
 type StatusFilter = 'all' | 'upcoming' | 'overdue' | 'completed'
+const PER_PAGE = 10
 
 const FILTERS: ReadonlyArray<{ key: StatusFilter; label: string }> = [
   { key: 'all', label: 'All' },
@@ -28,6 +29,7 @@ export function MaintenancePage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<StatusFilter>('all')
   const [showInactive, setShowInactive] = useState(false)
+  const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)
   const today = todayIso()
   const month = today.slice(0, 7)
@@ -58,6 +60,17 @@ export function MaintenancePage() {
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
   }, [views, search, filter, showInactive])
 
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
+  const safePage = Math.min(page, pageCount)
+  const pageItems = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE)
+  const pageStart = filtered.length === 0 ? 0 : (safePage - 1) * PER_PAGE + 1
+  const pageEnd = Math.min(safePage * PER_PAGE, filtered.length)
+
+  function chooseFilter(next: StatusFilter) {
+    setFilter(next)
+    setPage(1)
+  }
+
   return (
     <div style={{ maxWidth: '1800px', margin: '0 auto', padding: '26px 28px 56px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '24px' }}>
@@ -71,11 +84,11 @@ export function MaintenancePage() {
         <AddButton onClick={() => setCreating(true)} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '16px', marginBottom: '26px' }}>
-        <StatCard label="Due this week" value={metrics.dueWeek} accent="#38bdf8" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></svg>} />
-        <StatCard label="Overdue" value={metrics.overdue} accent={metrics.overdue > 0 ? '#ef4444' : 'var(--app-border)'} numColor={metrics.overdue > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text)'} iconBg={metrics.overdue > 0 ? 'var(--app-chip-red-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.overdue > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text-faint)'} icon={<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M10.3 4.3l-8 13.4A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
-        <StatCard label="Done this month" value={metrics.doneMonth} accent="#22c55e" iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>} />
-        <StatCard label="Recurring" value={metrics.recurring} accent="#8b5cf6" iconBg="rgba(139,92,246,0.13)" iconColor="#7c3aed" icon={<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" /></svg>} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '14px', marginBottom: '18px' }}>
+        <StatCard label="Due this week" value={metrics.dueWeek} accent="#38bdf8" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></svg>} />
+        <StatCard label="Overdue" value={metrics.overdue} accent={metrics.overdue > 0 ? '#ef4444' : 'var(--app-border)'} numColor={metrics.overdue > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text)'} iconBg={metrics.overdue > 0 ? 'var(--app-chip-red-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.overdue > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text-faint)'} icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M10.3 4.3l-8 13.4A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
+        <StatCard label="Done this month" value={metrics.doneMonth} accent="#22c55e" iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>} />
+        <StatCard label="Recurring" value={metrics.recurring} accent="#8b5cf6" iconBg="rgba(139,92,246,0.13)" iconColor="#7c3aed" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" /></svg>} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -85,7 +98,7 @@ export function MaintenancePage() {
           </span>
           <input
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => { setSearch(event.target.value); setPage(1) }}
             placeholder="Search tasks…"
             aria-label="Search maintenance tasks"
             style={{ width: '100%', padding: '10px 14px 10px 39px', border: '1px solid var(--app-border-strong)', borderRadius: '11px', background: 'var(--app-surface)', color: 'var(--app-text)', fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
@@ -96,14 +109,14 @@ export function MaintenancePage() {
             {FILTERS.map((item) => {
               const on = filter === item.key
               return (
-                <button key={item.key} type="button" onClick={() => setFilter(item.key)} style={{ padding: '8px 15px', border: 'none', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: on ? 700 : 600, background: on ? 'var(--app-surface-2)' : 'transparent', color: on ? 'var(--app-brand)' : 'var(--app-text-soft)', boxShadow: on ? '0 1px 4px rgba(14,108,196,0.16)' : 'none' }}>
+                <button key={item.key} type="button" onClick={() => chooseFilter(item.key)} style={{ padding: '8px 15px', border: 'none', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: on ? 700 : 600, background: on ? 'var(--app-surface-2)' : 'transparent', color: on ? 'var(--app-brand)' : 'var(--app-text-soft)', boxShadow: on ? '0 1px 4px rgba(14,108,196,0.16)' : 'none' }}>
                   {item.label}
                 </button>
               )
             })}
           </div>
           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--app-text-soft)', cursor: 'pointer', userSelect: 'none' }}>
-            <input type="checkbox" checked={showInactive} onChange={(event) => setShowInactive(event.target.checked)} style={{ width: '16px', height: '16px', accentColor: 'var(--app-brand)', cursor: 'pointer' }} />
+            <input type="checkbox" checked={showInactive} onChange={(event) => { setShowInactive(event.target.checked); setPage(1) }} style={{ width: '16px', height: '16px', accentColor: 'var(--app-brand)', cursor: 'pointer' }} />
             Show inactive
           </label>
         </div>
@@ -118,11 +131,19 @@ export function MaintenancePage() {
       ) : filtered.length === 0 ? (
         <NoResultsState />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {filtered.map((task) => (
-            <MaintenanceTaskCard key={task.id} task={task} />
-          ))}
-        </div>
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {pageItems.map((task) => (
+              <MaintenanceTaskCard key={task.id} task={task} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 4px 0', fontSize: '13px', color: 'var(--app-text-soft)', flexWrap: 'wrap', gap: '12px' }}>
+            <span>
+              Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{pageStart}–{pageEnd}</strong> of {filtered.length} tasks
+            </span>
+            {pageCount > 1 ? <Pager page={safePage} pageCount={pageCount} onPage={setPage} /> : null}
+          </div>
+        </>
       )}
 
       <CreateScheduleDialog open={creating} onOpenChange={setCreating} />
@@ -151,12 +172,34 @@ interface StatCardProps {
 
 function StatCard({ label, value, accent, iconBg, iconColor, icon, numColor }: StatCardProps) {
   return (
-    <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '18px', padding: '20px', boxShadow: 'var(--app-shadow-card)' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '16px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '3px', lineHeight: 1.3 }}>{label}</div>
-        <div style={{ flex: 'none', width: '36px', height: '36px', borderRadius: '10px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+    <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '16px', padding: '15px 16px', boxShadow: 'var(--app-shadow-card)' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
+        <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '2px', lineHeight: 1.3 }}>{label}</div>
+        <div style={{ flex: 'none', width: '28px', height: '28px', borderRadius: '9px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       </div>
-      <div style={{ fontSize: '36px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: numColor ?? 'var(--app-text)' }}>{value}</div>
+      <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: numColor ?? 'var(--app-text)' }}>{value}</div>
+    </div>
+  )
+}
+
+function Pager({ page, pageCount, onPage }: { page: number; pageCount: number; onPage: (page: number) => void }) {
+  const arrowBtn: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '9px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', cursor: 'pointer' }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={() => onPage(page - 1)} style={{ ...arrowBtn, color: page <= 1 ? 'var(--app-text-faint)' : 'var(--app-text-muted)' }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 6l-6 6 6 6" /></svg>
+      </button>
+      {Array.from({ length: pageCount }, (_, index) => index + 1).map((n) => {
+        const on = n === page
+        return (
+          <button key={n} type="button" onClick={() => onPage(n)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '32px', height: '32px', padding: '0 7px', borderRadius: '9px', border: `1px solid ${on ? 'var(--app-brand-soft)' : 'var(--app-border-strong)'}`, background: on ? 'var(--app-chip-bg)' : 'var(--app-surface)', color: on ? 'var(--app-brand)' : 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: on ? 700 : 500, cursor: 'pointer' }}>
+            {n}
+          </button>
+        )
+      })}
+      <button type="button" aria-label="Next page" disabled={page >= pageCount} onClick={() => onPage(page + 1)} style={{ ...arrowBtn, color: page >= pageCount ? 'var(--app-text-faint)' : 'var(--app-text-muted)' }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
     </div>
   )
 }

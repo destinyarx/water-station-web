@@ -16,6 +16,7 @@ export interface UpdateStatusVars {
   delivery: Delivery
   to: DeliveryStatus
   failureRemarks?: string
+  cancellationRemarks?: string
 }
 
 export function useUpdateDeliveryStatus() {
@@ -25,7 +26,7 @@ export function useUpdateDeliveryStatus() {
   const queryClient = useQueryClient()
 
   return useMutation<Delivery, Error, UpdateStatusVars>({
-    mutationFn: ({ delivery, to, failureRemarks }) => {
+    mutationFn: ({ delivery, to, failureRemarks, cancellationRemarks }) => {
       if (!owner) {
         throw new Error('Unable to resolve the current station user.')
       }
@@ -37,6 +38,7 @@ export function useUpdateDeliveryStatus() {
         items: toStatusTransitionItems(delivery.items, products ?? []),
         deliveredBy: owner.createdBy,
         failureRemarks,
+        cancellationRemarks,
       })
     },
     onSuccess: () => {

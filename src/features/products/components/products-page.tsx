@@ -11,7 +11,7 @@ import { ProductsGrid } from './products-table'
 
 type ProductFilter = 'all' | 'refillable' | 'stocked' | 'discontinued'
 const EMPTY_PRODUCTS: Product[] = []
-const PER_PAGE = 8
+const PER_PAGE = 10
 
 const FILTERS: ReadonlyArray<{ key: ProductFilter; label: string }> = [
   { key: 'all', label: 'All' },
@@ -95,11 +95,11 @@ export function ProductsPage() {
       ) : null}
 
       {/* stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '16px', marginBottom: '26px' }}>
-        <StatCard label="Total products" value={metrics.total} helper="In your catalog" accent="#38bdf8" barWidth="100%" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3.5 4.5 5.5 7 5.5 9.8a5.5 5.5 0 1 1-11 0C6.5 10 8.5 7.5 12 3Z" /></svg>} />
-        <StatCard label="Active" value={metrics.active} helper="Available to staff today" accent="#22c55e" numColor="var(--app-text)" barWidth={pct(metrics.active, metrics.total)} iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>} />
-        <StatCard label="Low stock" value={metrics.low} helper={`Under ${LOW_STOCK_THRESHOLD} units remaining`} accent={metrics.low > 0 ? '#f59e0b' : 'var(--app-border)'} numColor={metrics.low > 0 ? 'var(--app-chip-amber-text)' : 'var(--app-text)'} barWidth={metrics.low > 0 ? pct(metrics.low, metrics.stockTracked) : '0%'} iconBg={metrics.low > 0 ? 'var(--app-chip-amber-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.low > 0 ? 'var(--app-chip-amber-text)' : 'var(--app-text-faint)'} icon={<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M10.3 4.3l-8 13.4A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
-        <StatCard label="Out of stock" value={metrics.out} helper="Stocked products at zero" accent={metrics.out > 0 ? '#ef4444' : 'var(--app-border)'} numColor={metrics.out > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text)'} barWidth={metrics.out > 0 ? pct(metrics.out, metrics.stockTracked) : '0%'} iconBg={metrics.out > 0 ? 'var(--app-chip-red-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.out > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text-faint)'} icon={<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /></svg>} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '14px', marginBottom: '18px' }}>
+        <StatCard label="Total products" value={metrics.total} helper="In your catalog" accent="#38bdf8" barWidth="100%" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3.5 4.5 5.5 7 5.5 9.8a5.5 5.5 0 1 1-11 0C6.5 10 8.5 7.5 12 3Z" /></svg>} />
+        <StatCard label="Active" value={metrics.active} helper="Available to staff today" accent="#22c55e" numColor="var(--app-text)" barWidth={pct(metrics.active, metrics.total)} iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>} />
+        <StatCard label="Low stock" value={metrics.low} helper={`Under ${LOW_STOCK_THRESHOLD} units remaining`} accent={metrics.low > 0 ? '#f59e0b' : 'var(--app-border)'} numColor={metrics.low > 0 ? 'var(--app-chip-amber-text)' : 'var(--app-text)'} barWidth={metrics.low > 0 ? pct(metrics.low, metrics.stockTracked) : '0%'} iconBg={metrics.low > 0 ? 'var(--app-chip-amber-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.low > 0 ? 'var(--app-chip-amber-text)' : 'var(--app-text-faint)'} icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M10.3 4.3l-8 13.4A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
+        <StatCard label="Out of stock" value={metrics.out} helper="Stocked products at zero" accent={metrics.out > 0 ? '#ef4444' : 'var(--app-border)'} numColor={metrics.out > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text)'} barWidth={metrics.out > 0 ? pct(metrics.out, metrics.stockTracked) : '0%'} iconBg={metrics.out > 0 ? 'var(--app-chip-red-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.out > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text-faint)'} icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /></svg>} />
       </div>
 
       {/* toolbar */}
@@ -176,16 +176,16 @@ interface StatCardProps {
 
 function StatCard({ label, value, helper, accent, barWidth, iconBg, iconColor, icon, numColor }: StatCardProps) {
   return (
-    <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '18px', padding: '20px', boxShadow: 'var(--app-shadow-card)' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '16px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '3px', lineHeight: 1.3 }}>{label}</div>
-        <div style={{ flex: 'none', width: '36px', height: '36px', borderRadius: '10px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+    <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '16px', padding: '15px 16px', boxShadow: 'var(--app-shadow-card)' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
+        <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '2px', lineHeight: 1.3 }}>{label}</div>
+        <div style={{ flex: 'none', width: '28px', height: '28px', borderRadius: '9px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       </div>
-      <div style={{ fontSize: '36px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: numColor ?? 'var(--app-text)', marginBottom: '14px' }}>{value}</div>
-      <div style={{ height: '3px', background: 'var(--app-border)', borderRadius: '99px', marginBottom: '11px', overflow: 'hidden' }}>
+      <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: numColor ?? 'var(--app-text)', marginBottom: '9px' }}>{value}</div>
+      <div style={{ height: '3px', background: 'var(--app-border)', borderRadius: '99px', marginBottom: '8px', overflow: 'hidden' }}>
         <div style={{ height: '100%', width: barWidth, background: accent, borderRadius: '99px' }} />
       </div>
-      <div style={{ fontSize: '12.5px', color: 'var(--app-text-soft)' }}>{helper}</div>
+      <div style={{ fontSize: '12px', color: 'var(--app-text-soft)' }}>{helper}</div>
     </div>
   )
 }

@@ -1,5 +1,4 @@
-import { createBrowserClient } from '@supabase/ssr'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 /** Async getter that resolves the caller's Clerk session token, or null. */
 export type ClerkTokenGetter = () => Promise<string | null>
@@ -20,7 +19,7 @@ export function createClerkSupabaseClient(
     throw new Error('Missing Supabase environment configuration.')
   }
 
-  return createBrowserClient(supabaseUrl, supabaseKey, {
+  return createClient(supabaseUrl, supabaseKey, {
     accessToken: async () => {
       // Next.js can pre-render client components on the server. Clerk's
       // getToken() is browser-only, so skip it until a browser runtime exists.

@@ -46,26 +46,26 @@ describe('resolveStatusTransition', () => {
     expect(result.stockDeltas).toEqual([])
   })
 
-  // Every legal edge of the ADR-0003 map: stock direction + derived fields.
+  // Every legal edge of the forward delivery lifecycle: stock direction + derived fields.
   // delta is per the single tracked item (qty 3); restore = +3, deduct = -3.
   type Expected = Pick<
     LegalTransition,
-    'completedAt' | 'failureRemarks' | 'stampDeliveredBy' | 'editableAfter'
+    | 'completedAt'
+    | 'failureRemarks'
+    | 'cancellationRemarks'
+    | 'stampDeliveredBy'
+    | 'editableAfter'
   > & { delta: number }
 
   const cases: Array<[DeliveryStatus, DeliveryStatus, Expected]> = [
-    ['pending', 'for_delivery', { delta: -3, completedAt: 'clear', failureRemarks: 'clear', stampDeliveredBy: true, editableAfter: false }],
-    ['pending', 'failed', { delta: 0, completedAt: 'clear', failureRemarks: 'require', stampDeliveredBy: false, editableAfter: false }],
-    ['for_delivery', 'completed', { delta: 0, completedAt: 'set', failureRemarks: 'clear', stampDeliveredBy: false, editableAfter: false }],
-    ['for_delivery', 'failed', { delta: 3, completedAt: 'clear', failureRemarks: 'require', stampDeliveredBy: false, editableAfter: false }],
-    ['for_delivery', 'pending', { delta: 3, completedAt: 'clear', failureRemarks: 'clear', stampDeliveredBy: false, editableAfter: true }],
-    ['completed', 'pending', { delta: 3, completedAt: 'clear', failureRemarks: 'clear', stampDeliveredBy: false, editableAfter: true }],
-    ['completed', 'for_delivery', { delta: 0, completedAt: 'clear', failureRemarks: 'clear', stampDeliveredBy: true, editableAfter: false }],
-    ['failed', 'pending', { delta: 0, completedAt: 'clear', failureRemarks: 'clear', stampDeliveredBy: false, editableAfter: true }],
-    ['failed', 'for_delivery', { delta: -3, completedAt: 'clear', failureRemarks: 'clear', stampDeliveredBy: true, editableAfter: false }],
+    ['pending', 'for_delivery', { delta: -3, completedAt: 'clear', failureRemarks: 'clear', cancellationRemarks: 'clear', stampDeliveredBy: true, editableAfter: false }],
+    ['pending', 'cancelled', { delta: 0, completedAt: 'clear', failureRemarks: 'clear', cancellationRemarks: 'require', stampDeliveredBy: false, editableAfter: false }],
+    ['for_delivery', 'completed', { delta: 0, completedAt: 'set', failureRemarks: 'clear', cancellationRemarks: 'clear', stampDeliveredBy: false, editableAfter: false }],
+    ['for_delivery', 'failed', { delta: 3, completedAt: 'clear', failureRemarks: 'require', cancellationRemarks: 'clear', stampDeliveredBy: false, editableAfter: false }],
+    ['for_delivery', 'cancelled', { delta: 3, completedAt: 'clear', failureRemarks: 'clear', cancellationRemarks: 'require', stampDeliveredBy: false, editableAfter: false }],
   ]
 
-  it.each(cases)('%s -> %s applies the ADR-0003 effects', (from, to, expected) => {
+  it.each(cases)('%s -> %s applies the lifecycle effects', (from, to, expected) => {
     const result = resolveStatusTransition(from, to, tracked)
     if (!result.legal) throw new Error(`expected ${from} -> ${to} legal`)
 
@@ -74,6 +74,7 @@ describe('resolveStatusTransition', () => {
     expect(result.stockDeltas).toEqual(expectedDeltas)
     expect(result.completedAt).toBe(expected.completedAt)
     expect(result.failureRemarks).toBe(expected.failureRemarks)
+    expect(result.cancellationRemarks).toBe(expected.cancellationRemarks)
     expect(result.stampDeliveredBy).toBe(expected.stampDeliveredBy)
     expect(result.editableAfter).toBe(expected.editableAfter)
   })
@@ -81,12 +82,15 @@ describe('resolveStatusTransition', () => {
 
 describe('legalNextStatuses', () => {
   it('lists the reachable statuses for the current status', () => {
-    expect(legalNextStatuses('pending')).toEqual(['for_delivery', 'failed'])
+    expect(legalNextStatuses('pending')).toEqual(['for_delivery', 'cancelled'])
     expect(legalNextStatuses('for_delivery')).toEqual([
       'completed',
       'failed',
-      'pending',
+      'cancelled',
     ])
+    expect(legalNextStatuses('completed')).toEqual([])
+    expect(legalNextStatuses('failed')).toEqual([])
+    expect(legalNextStatuses('cancelled')).toEqual([])
   })
 
   it('only offers reachable statuses (every entry resolves legal)', () => {

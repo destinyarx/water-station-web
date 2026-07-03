@@ -26,6 +26,7 @@ const values: DeliveryScheduleFormValues = {
   endDate: null,
   items: [{ productId: 10, productName: 'Bottle', quantity: 3, unitPrice: 30 }],
   notes: 'Standing order.',
+  assignedTo: '',
 }
 
 const scheduleRow = {
@@ -44,6 +45,7 @@ const scheduleRow = {
   end_date: null,
   status: 'active' as const,
   notes: 'Standing order.',
+  assigned_to: null,
   org_id: 321,
   created_by: 'user_123',
   created_at: '2026-05-01T00:00:00.000Z',

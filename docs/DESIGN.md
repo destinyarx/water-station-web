@@ -171,16 +171,50 @@ Custom overlay form dialogs use the shared `src/components/app/app-modal.tsx` sh
 
 ---
 
+## Stat Cards
+
+Every module's header stat-card row shares one shell and sizing scale, with two variants depending on whether the metric is a plain count or a completion/ratio metric. Reference implementations: `src/features/expenses/components/expenses-page.tsx` (`StatCard`) and `src/features/deliveries/components/deliveries-page.tsx` (`StatCard` + the featured gradient card) for the **plain** variant; `src/features/documents/components/DocumentsPage.tsx` (`StatChip`) for the **completion-bar** variant. New modules should build on this section instead of inventing their own stat-card shape.
+
+### Shared shell
+
+- Grid: `display:grid; gridTemplateColumns: repeat(auto-fit,minmax(210–220px,1fr)); gap:14px; marginBottom:18px`.
+- Card: `background: var(--app-surface); border:1px solid var(--app-border); borderLeft: 3px solid <accentColor>; borderRadius:16px; padding:15px 16px; boxShadow: var(--app-shadow-card)`.
+- Header row (label + icon): `display:flex; alignItems:flex-start; justifyContent:space-between; marginBottom:10px`.
+  - Label: `fontSize:10.5px; fontWeight:700; letterSpacing:0.08em; textTransform:uppercase; color: var(--app-text-faint)`.
+  - Icon chip: `28×28px; borderRadius:9px`, background/color from the `--app-chip-*` pair; icon SVG `15×15`.
+- Value: `fontSize:25px; fontWeight:800; letterSpacing:-0.03em; lineHeight:1; color: var(--app-text)`. Drop to `18px` (a `valueSmall` flag) only for long/short-text values like a category label — never for numeric counts.
+- Helper/sub line: `fontSize:12px; color: var(--app-text-soft); marginTop:7px`. Truncate with `whiteSpace:nowrap; overflow:hidden; textOverflow:ellipsis` if it can overflow a narrow card.
+- **Featured/hero card** (one gradient card per row — e.g. expenses "Spent this month", deliveries "Scheduled today"): same shell dimensions, `background: linear-gradient(150deg,#0b73c8,#075098)`, white / `#bfe2ff` text, an optional low-opacity decorative wave `<svg>` in the bottom-right corner. The wave is decorative only — it must not add to the card's height budget above.
+- Emphasis variants with extra decoration (e.g. customers' glow + wave background) may run the value/icon a touch larger (up to `26px` value / `34px` icon) to keep the decoration legible, but must not exceed the pre-revamp sizes below and should land at roughly the same overall card height as the plain variant.
+
+Do **not** use the pre-revamp sizes still visible in old commits (`18–20px` padding, `34–42px` icon chips, `32–36px` values, `22–26px` grid gaps) — those cards were too tall and ate into the table/list below the fold. The `15px`/`16px`/`25px`/`28px` scale above is current and applies to every module, redesigned or new.
+
+### When to add a completion bar
+
+If a stat represents **progress toward a whole** — a percentage, an `n / total` ratio, quota/usage, anything a user would read as "how much of this is done" — render it with the loading-bar variant from the Documents module (`StatChip`), not a bare number. If a stat is just a count with no natural denominator (e.g. "Total customers", "Overdue tasks"), use the plain shell with no bar.
+
+Bar variant additions to the shared shell, inserted between the value and the helper line:
+
+- `height:3px; background: var(--app-border); borderRadius:99px; overflow:hidden; marginBottom:8px`, containing an inner fill `div` at `height:100%; width:<percentage>; background:<accentColor>; borderRadius:99px`.
+- The helper line still sits at the bottom and must spell out the ratio in words (e.g. `"3 of 5 filters replaced"`, `"80% approved"`) — the bar echoes that text visually, it doesn't replace it.
+- Compute the fill width as a clamped percentage string: `Math.min(100, Math.round((part / Math.max(whole, 1)) * 100)) + '%'`. Cards with no meaningful denominator yet should fall back to `0%` with a gray/faded accent rather than dividing by zero (see products' `Low stock` / `Out of stock` cards for the pattern).
+
+### Choosing accent colors
+
+Pick from the existing chip token pairs (`--app-chip-*-bg` / `--app-chip-*-text`) or the raw hex already used alongside them (`#38bdf8` brand, `#22c55e` green, `#f59e0b` amber, `#ef4444` red, `#8b5cf6` violet) — don't invent a new accent color per module. Neutral/zero states fall back to `var(--app-border)` / `var(--app-chip-gray-bg)` / `var(--app-text-faint)`.
+
+---
+
 ## Module Patterns (feature 007)
 
 These patterns back the redesigned **Customers** and **Products** pages. Both pages are plain React + inline styles consuming `--app-*` tokens (no shadcn), wrapped in `maxWidth:1160px; padding:26px 28px 56px`.
 
 ### Stat cards
 
-Two variants, both with a 3px left accent border and `var(--app-shadow-card)`:
+Follows the shared shell in [Stat Cards](#stat-cards). Two variants, both with a 3px left accent border and `var(--app-shadow-card)`:
 
-- **Glow + wave** (customers): a radial `glow` circle (top-right) and a bottom `<svg>` wave, big number, helper line.
-- **Progress bar** (products): label + icon row, big number, a 3px progress bar (`barWidth` %), helper line. Inactive metrics (zero low/out) fall back to gray tokens.
+- **Glow + wave** (customers): the emphasis variant — a radial `glow` circle (top-right, `86px`) and a bottom `<svg>` wave, value at `26px`, icon chip `34×34`, helper line.
+- **Progress bar** (products): the completion-bar variant — label + icon row, `25px` value, a 3px progress bar (`barWidth` %), helper line. Inactive metrics (zero low/out) fall back to gray tokens and `0%` width.
 
 ### Product cards
 
@@ -204,7 +238,7 @@ The **Documents** page uses the plain-React + `--app-*` shell, widest of all mod
 
 ### Stat cards
 
-Four progress-bar chips (`repeat(auto-fit,minmax(220px,1fr))`), same shape as the products stat card: label + icon row, 36px extrabold number, 3px progress bar, helper line. Accent colors: brand (total), amber (private), amber (expiring), green (shared).
+Four progress-bar chips (`repeat(auto-fit,minmax(220px,1fr))`), the canonical completion-bar variant from [Stat Cards](#stat-cards): label + icon row, `25px` extrabold number, 3px progress bar, helper line. Accent colors: brand (total), amber (private), amber (expiring), green (shared).
 
 ### Data table
 
@@ -238,7 +272,7 @@ The **Maintenance** page reuses the same plain-React + `--app-*` shell, narrowed
 
 ### Stat cards
 
-Four progress-less variants of the products stat card (label + icon row, big number, 3px left accent): **Due this week** (brand), **Overdue** (red, falls back to gray at zero), **Done this month** (green), **Recurring** (violet `#8b5cf6`). Counts ignore inactive schedules except "Done this month".
+Four plain variants (no bar — these are counts with no denominator) of the canonical shell from [Stat Cards](#stat-cards): label + icon row, `25px` number, 3px left accent, no helper line: **Due this week** (brand), **Overdue** (red, falls back to gray at zero), **Done this month** (green), **Recurring** (violet `#8b5cf6`). Counts ignore inactive schedules except "Done this month".
 
 ### Task rows
 

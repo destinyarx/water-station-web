@@ -15,4 +15,5 @@ export const deliveryKeys = {
   historyPage: (page: number) => [...deliveryKeys.history(), page] as const,
   schedules: () => [...deliveryKeys.all, 'schedules'] as const,
   schedulesPage: (page: number) => [...deliveryKeys.schedules(), page] as const,
+  orgUsers: () => [...deliveryKeys.all, 'org-users'] as const,
 }

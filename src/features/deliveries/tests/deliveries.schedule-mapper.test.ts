@@ -26,6 +26,7 @@ function baseValues(
       { productId: 11, productName: 'Delivery Fee', quantity: 1, unitPrice: 25 },
     ],
     notes: 'Standing order.',
+    assignedTo: '',
     ...overrides,
   }
 }
@@ -47,6 +48,7 @@ describe('toWeeklyScheduleInsertRow', () => {
       end_date: null,
       status: 'active',
       notes: 'Standing order.',
+      assigned_to: null,
       org_id: 321,
       created_by: 'user_123',
     })

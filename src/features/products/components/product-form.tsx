@@ -60,8 +60,11 @@ export function ProductForm({
 
   const isStockTracked = watch('isStockTracked')
   const submit = handleSubmit((values) => onSubmit(values))
-  const numberSetValueAs = (value: string): number | undefined =>
-    value.trim() === '' ? undefined : Number(value)
+  const numberSetValueAs = (value: unknown): number | undefined => {
+    if (typeof value === 'number') return Number.isNaN(value) ? undefined : value
+    if (typeof value !== 'string') return undefined
+    return value.trim() === '' ? undefined : Number(value)
+  }
 
   return (
     <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} noValidate>
@@ -101,8 +104,8 @@ export function ProductForm({
                 style={{ marginTop: '2px', width: '18px', height: '18px', accentColor: '#0a6cc4', cursor: 'pointer', flex: 'none' }}
               />
               <div>
-                <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)', lineHeight: 1.3 }}>Refillable service</div>
-                <div style={{ fontSize: '12px', color: 'var(--app-text-soft)', marginTop: '3px', lineHeight: 1.4 }}>No stock count needed — unlimited refill.</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)', lineHeight: 1 }}>Refillable service</div>
+                <div style={{ fontSize: '10px', color: 'var(--app-text-soft)', marginTop: '3px', lineHeight: 1 }}>No stock count needed — unlimited refill.</div>
               </div>
             </label>
           </div>

@@ -13,6 +13,7 @@ import {
 import { legalNextStatuses } from '../deliveries.transitions'
 import type { Delivery, DeliveryStatus } from '../deliveries.types'
 import { useUpdateDeliveryStatus } from '../hooks/use-update-delivery-status'
+import { CancelDeliveryDialog } from './cancel-delivery-dialog'
 import { FailDeliveryDialog } from './fail-delivery-dialog'
 
 const STATUS_ACTION_LABEL: Record<DeliveryStatus, string> = {
@@ -20,6 +21,7 @@ const STATUS_ACTION_LABEL: Record<DeliveryStatus, string> = {
   for_delivery: 'Mark for delivery',
   completed: 'Mark completed',
   failed: 'Mark failed',
+  cancelled: 'Cancel delivery',
 }
 
 interface DeliveryStatusMenuProps {
@@ -37,14 +39,19 @@ export function DeliveryStatusMenu({
 }: DeliveryStatusMenuProps) {
   const mutation = useUpdateDeliveryStatus()
   const [failOpen, setFailOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
   const nextStatuses = legalNextStatuses(delivery.status)
 
-  function changeTo(to: DeliveryStatus, failureRemarks?: string) {
+  function changeTo(
+    to: DeliveryStatus,
+    remarks?: { failureRemarks?: string; cancellationRemarks?: string },
+  ) {
     mutation.mutate(
-      { delivery, to, failureRemarks },
+      { delivery, to, ...remarks },
       {
         onSuccess: () => {
           setFailOpen(false)
+          setCancelOpen(false)
           onChanged?.(`Delivery marked ${to.replace('_', ' ')}.`)
         },
         onError: (error) => onError?.(error.message),
@@ -62,7 +69,7 @@ export function DeliveryStatusMenu({
             variant="ghost"
             size="icon"
             disabled={mutation.isPending}
-            className="size-9 rounded-xl text-[#2a4b6a] hover:bg-[#eef7ff]"
+            className="size-9 rounded-xl text-[var(--app-text-muted)] hover:bg-[var(--app-row-hover)]"
             aria-label="Change delivery status"
           >
             <MoreHorizontal className="size-5" />
@@ -81,6 +88,8 @@ export function DeliveryStatusMenu({
                 event.preventDefault()
                 if (status === 'failed') {
                   setFailOpen(true)
+                } else if (status === 'cancelled') {
+                  setCancelOpen(true)
                 } else {
                   changeTo(status)
                 }
@@ -97,7 +106,16 @@ export function DeliveryStatusMenu({
         onOpenChange={setFailOpen}
         isPending={mutation.isPending}
         errorMessage={mutation.isError ? mutation.error.message : undefined}
-        onConfirm={(remarks) => changeTo('failed', remarks)}
+        onConfirm={(remarks) => changeTo('failed', { failureRemarks: remarks })}
+      />
+      <CancelDeliveryDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        isPending={mutation.isPending}
+        errorMessage={mutation.isError ? mutation.error.message : undefined}
+        onConfirm={(remarks) =>
+          changeTo('cancelled', { cancellationRemarks: remarks })
+        }
       />
     </>
   )

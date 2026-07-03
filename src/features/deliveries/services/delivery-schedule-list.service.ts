@@ -15,7 +15,8 @@ export interface SchedulePage {
 }
 
 /**
- * Server-paginated list of recurring schedules (weekly/monthly), newest first.
+ * Server-paginated list of delivery schedules shown in the schedule dialog,
+ * newest first.
  * Org-scoped under RLS; soft-deleted rows excluded. Uses the `pageSize + 1`
  * probe (no count query) to derive `hasNext`.
  */
@@ -28,7 +29,7 @@ export async function getSchedules(
   const { data, error } = await client
     .from(DELIVERY_SCHEDULES_TABLE)
     .select(DELIVERY_SCHEDULE_COLUMNS)
-    .in('recurrence_type', ['weekly', 'monthly'])
+    .in('recurrence_type', ['weekly', 'monthly', 'custom_dates'])
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize)

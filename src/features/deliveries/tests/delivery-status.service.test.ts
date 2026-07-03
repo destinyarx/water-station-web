@@ -10,7 +10,9 @@ const baseDeliveryRow = {
   delivery_date: '2026-06-16',
   status: 'pending',
   failure_remarks: null,
+  cancellation_remarks: null,
   notes: null,
+  assigned_to: null,
   delivered_by: null,
   completed_at: null,
   org_id: 321,
@@ -179,13 +181,45 @@ describe('updateDeliveryStatus', () => {
     await expect(
       updateDeliveryStatus(client, {
         deliveryId: 77,
-        from: 'pending',
+        from: 'for_delivery',
         to: 'failed',
         items: trackedItems,
         deliveredBy: 'user_abc',
         failureRemarks: '   ',
       }),
     ).rejects.toThrow(/reason/i)
+  })
+
+  it('requires cancellation remarks when cancelling', async () => {
+    const { client } = createClient({ products: { 10: { stock: 5 } } })
+
+    await expect(
+      updateDeliveryStatus(client, {
+        deliveryId: 77,
+        from: 'pending',
+        to: 'cancelled',
+        items: trackedItems,
+        deliveredBy: 'user_abc',
+        cancellationRemarks: '   ',
+      }),
+    ).rejects.toThrow(/cancelling/i)
+  })
+
+  it('restores tracked stock when cancelling a dispatched delivery', async () => {
+    const { client, products } = createClient({ products: { 10: { stock: 2 } } })
+
+    const delivery = await updateDeliveryStatus(client, {
+      deliveryId: 77,
+      from: 'for_delivery',
+      to: 'cancelled',
+      items: trackedItems,
+      deliveredBy: 'user_abc',
+      cancellationRemarks: 'Customer cancelled.',
+    })
+
+    expect(products[10].stock).toBe(5)
+    expect(delivery.status).toBe('cancelled')
+    expect(delivery.cancellationRemarks).toBe('Customer cancelled.')
   })
 
   it('rejects an illegal transition', async () => {
