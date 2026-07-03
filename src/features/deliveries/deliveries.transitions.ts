@@ -23,6 +23,8 @@ export interface LegalTransition {
   completedAt: 'set' | 'clear'
   /** `require` needs non-empty remarks, `clear` nulls them. */
   failureRemarks: 'require' | 'clear'
+  /** `require` needs non-empty remarks, `clear` nulls them. */
+  cancellationRemarks: 'require' | 'clear'
   /** Stamp `delivered_by` with the acting user (entering `for_delivery`). */
   stampDeliveredBy: boolean
   /** Whether the occurrence is editable once it lands on the new status. */
@@ -32,14 +34,15 @@ export interface LegalTransition {
 export type ResolvedTransition = LegalTransition | { legal: false }
 
 /**
- * Legal next statuses per current status (ADR 0003 transition map). Forward and
- * revert edges live in one adjacency set; revert needs no special-casing.
+ * Legal next statuses per current status. Core flow is pending -> for_delivery
+ * -> completed/failed, with cancelled as a terminal side exit.
  */
 const LEGAL_NEXT: Record<DeliveryStatus, readonly DeliveryStatus[]> = {
-  pending: ['for_delivery', 'failed'],
-  for_delivery: ['completed', 'failed', 'pending'],
-  completed: ['pending', 'for_delivery'],
-  failed: ['pending', 'for_delivery'],
+  pending: ['for_delivery', 'cancelled'],
+  for_delivery: ['completed', 'failed', 'cancelled'],
+  completed: [],
+  failed: [],
+  cancelled: [],
 }
 
 /** Statuses reachable from `from` (forward and revert edges). */
@@ -88,7 +91,8 @@ export function resolveStatusTransition(
     stockDeltas,
     completedAt: to === 'completed' ? 'set' : 'clear',
     failureRemarks: to === 'failed' ? 'require' : 'clear',
+    cancellationRemarks: to === 'cancelled' ? 'require' : 'clear',
     stampDeliveredBy: to === 'for_delivery',
-    editableAfter: to === 'pending',
+    editableAfter: false,
   }
 }

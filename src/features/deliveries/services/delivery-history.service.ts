@@ -22,7 +22,7 @@ export interface DeliveryHistoryPage {
 }
 
 /**
- * Reads one page of finished deliveries (`completed` + `failed`), most-recent
+ * Reads one page of terminal deliveries, most-recent
  * first. Same prev/next probing as the current queue. Org-scoped under RLS;
  * soft-deleted rows excluded.
  */
@@ -35,7 +35,7 @@ export async function getDeliveryHistory(
   const { data, error } = await client
     .from(DELIVERIES_TABLE)
     .select(DELIVERY_COLUMNS)
-    .in('status', ['completed', 'failed'])
+    .in('status', ['completed', 'failed', 'cancelled'])
     .is('deleted_at', null)
     .order('completed_at', { ascending: false, nullsFirst: false })
     .order('delivery_date', { ascending: false })

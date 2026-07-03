@@ -2,12 +2,8 @@
 
 import { useState } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { Minus, Plus, Trash2 } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import type { Product } from '@/features/products/products.types'
 import { pesoFormatter } from '../deliveries.constants'
 import { deliveryEditFormSchema } from '../deliveries.schema'
@@ -24,6 +20,42 @@ interface DeliveryEditFormProps {
   isPending: boolean
   errorMessage?: string
   onCancel: () => void
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '11px 13px',
+  border: '1px solid var(--app-border-strong)',
+  borderRadius: '11px',
+  background: 'var(--app-surface)',
+  color: 'var(--app-text)',
+  fontSize: '14px',
+  fontFamily: 'inherit',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
+const selectStyle: React.CSSProperties = {
+  appearance: 'none',
+  width: '100%',
+  padding: '11px 38px 11px 13px',
+  border: '1px solid var(--app-border-strong)',
+  borderRadius: '11px',
+  background: 'var(--app-surface)',
+  color: 'var(--app-text)',
+  fontSize: '14px',
+  fontFamily: 'inherit',
+  outline: 'none',
+  cursor: 'pointer',
+  boxSizing: 'border-box',
+}
+
+const sectionLabel: React.CSSProperties = {
+  fontSize: '11.5px',
+  fontWeight: 700,
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase',
+  marginBottom: '14px',
 }
 
 export function DeliveryEditForm({
@@ -86,175 +118,153 @@ export function DeliveryEditForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-5" noValidate>
-      <section className="rounded-2xl border border-[#dcecff] bg-white p-4">
-        <div className="max-w-sm space-y-2">
-          <Label
-            htmlFor="editDeliveryDate"
-            className="text-sm font-semibold text-[#001d34]"
-          >
-            Delivery date
-          </Label>
-          <Input
+    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }} noValidate>
+      <div style={{ background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '14px', padding: '18px' }}>
+        <div style={{ ...sectionLabel, color: 'var(--app-brand)' }}>Delivery date</div>
+        <div style={{ maxWidth: '260px' }}>
+          <input
             id="editDeliveryDate"
             type="date"
             disabled={isPending}
-            className="rounded-xl border-[#dcecff] bg-[#eef7ff]/70 text-[#001d34] focus-visible:border-[#00b4d8] focus-visible:ring-[#00b4d8]/20"
+            style={inputStyle}
             {...register('deliveryDate')}
           />
           {errors.deliveryDate ? (
-            <p className="text-sm text-red-600">{errors.deliveryDate.message}</p>
+            <p style={{ fontSize: '12.5px', color: '#dc2626', marginTop: '6px' }}>{errors.deliveryDate.message}</p>
           ) : null}
         </div>
-      </section>
+      </div>
 
-      <section className="rounded-2xl border border-[#dcecff] bg-[#eef7ff]/50 p-4">
-        <h3 className="font-heading text-lg font-semibold text-[#001d34]">
-          Products
-        </h3>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <select
-            value={selectedProductId}
-            onChange={(event) => setSelectedProductId(event.target.value)}
-            disabled={isPending}
-            className="h-10 min-w-0 flex-1 rounded-xl border border-[#dcecff] bg-white px-3 text-sm text-[#001d34] outline-none focus:border-[#00b4d8] focus:ring-4 focus:ring-[#00b4d8]/20"
-            aria-label="Product to add"
-          >
-            <option value="">Select product or refill service</option>
-            {products.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.productName} - {pesoFormatter.format(product.price)}
-              </option>
-            ))}
-          </select>
-          <Button
+      <div>
+        <div style={{ ...sectionLabel, color: 'var(--app-text-faint)' }}>Products</div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: '1 1 240px' }}>
+            <select
+              value={selectedProductId}
+              onChange={(event) => setSelectedProductId(event.target.value)}
+              disabled={isPending}
+              style={selectStyle}
+              aria-label="Product to add"
+            >
+              <option value="">Select product or refill service</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.productName} - {pesoFormatter.format(product.price)}
+                </option>
+              ))}
+            </select>
+            <span style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--app-text-soft)' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
+            </span>
+          </div>
+          <button
             type="button"
             onClick={addSelectedProduct}
             disabled={isPending || selectedProductId === ''}
-            className="rounded-xl bg-[#00b4d8] text-white hover:bg-[#009ec2]"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '11px 18px', borderRadius: '11px', border: 'none', background: selectedProductId === '' ? 'var(--app-text-faint)' : 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: selectedProductId === '' ? 'default' : 'pointer' }}
           >
-            <Plus className="size-4" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
             Add
-          </Button>
+          </button>
         </div>
         {errors.items ? (
-          <p className="mt-2 text-sm text-red-600">{errors.items.message}</p>
+          <p style={{ fontSize: '12.5px', color: '#dc2626', marginTop: '8px' }}>{errors.items.message}</p>
         ) : null}
 
-        <div className="mt-4 space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '14px' }}>
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="grid gap-3 rounded-2xl border border-[#dcecff] bg-white p-3 md:grid-cols-[minmax(0,1fr)_172px_148px_auto]"
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '11px', padding: '8px 10px 8px 12px' }}
             >
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-[#001d34]">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
                   {items[index]?.productName}
                 </p>
                 <input type="hidden" {...register(`items.${index}.productId`)} />
                 <input type="hidden" {...register(`items.${index}.productName`)} />
               </div>
-              <div className="flex h-10 overflow-hidden rounded-xl border border-[#dcecff] bg-[#eef7ff]/70">
-                <Button
+
+              <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', borderRadius: '9px', padding: '3px' }}>
+                <button
                   type="button"
-                  variant="ghost"
                   disabled={isPending || Number(items[index]?.quantity ?? 1) <= 1}
-                  onClick={() =>
-                    changeQuantity(index, Number(items[index]?.quantity ?? 1) - 1)
-                  }
-                  className="h-full w-10 rounded-none border-r border-[#dcecff] px-0 text-[#00677d] hover:bg-white/80"
+                  onClick={() => changeQuantity(index, Number(items[index]?.quantity ?? 1) - 1)}
                   aria-label="Decrease quantity"
+                  style={{ width: '26px', height: '26px', borderRadius: '7px', border: 'none', background: 'transparent', color: 'var(--app-text-muted)', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Minus className="size-4" />
-                </Button>
-                <Input
-                  type="number"
-                  min={1}
-                  step="any"
-                  inputMode="decimal"
-                  aria-label="Quantity"
-                  disabled={isPending}
-                  className="h-full min-w-0 rounded-none border-0 bg-transparent px-2 text-center text-[#001d34] shadow-none focus-visible:ring-0"
-                  {...register(`items.${index}.quantity`, {
-                    setValueAs: optionalNumberInput,
-                  })}
-                />
-                <Button
+                  −
+                </button>
+                <span style={{ minWidth: '24px', textAlign: 'center', fontSize: '13.5px', fontWeight: 700, color: 'var(--app-text)' }}>
+                  {Number(items[index]?.quantity ?? 1)}
+                  <input type="hidden" {...register(`items.${index}.quantity`, { setValueAs: (v) => optionalNumberInput(v) as number })} />
+                </span>
+                <button
                   type="button"
-                  variant="ghost"
                   disabled={isPending}
-                  onClick={() =>
-                    changeQuantity(index, Number(items[index]?.quantity ?? 0) + 1)
-                  }
-                  className="h-full w-10 rounded-none border-l border-[#dcecff] px-0 text-[#00677d] hover:bg-white/80"
+                  onClick={() => changeQuantity(index, Number(items[index]?.quantity ?? 0) + 1)}
                   aria-label="Increase quantity"
+                  style={{ width: '26px', height: '26px', borderRadius: '7px', border: 'none', background: 'transparent', color: 'var(--app-text-muted)', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Plus className="size-4" />
-                </Button>
+                  +
+                </button>
               </div>
-              <div className="flex h-10 items-center rounded-xl border border-[#dcecff] bg-[#eef7ff]/70 px-3 text-sm font-semibold tabular-nums text-[#001d34]">
+
+              <div style={{ flexShrink: 0, fontSize: '13px', fontWeight: 600, color: 'var(--app-text)', minWidth: '80px', textAlign: 'right' }}>
                 {pesoFormatter.format(Number(items[index]?.unitPrice ?? 0))}
-                <input
-                  type="hidden"
-                  {...register(`items.${index}.unitPrice`, {
-                    setValueAs: optionalNumberInput,
-                  })}
-                />
+                <input type="hidden" {...register(`items.${index}.unitPrice`, { setValueAs: (v) => optionalNumberInput(v) as number })} />
               </div>
-              <Button
+
+              <button
                 type="button"
-                variant="ghost"
                 disabled={isPending}
                 onClick={() => remove(index)}
-                className="rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700"
                 aria-label="Remove item"
+                style={{ flexShrink: 0, width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: 'transparent', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                <Trash2 className="size-4" />
-              </Button>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /></svg>
+              </button>
             </div>
           ))}
         </div>
-        <p className="mt-4 text-right text-sm font-bold text-[#001d34]">
+        <p style={{ textAlign: 'right', fontSize: '14px', fontWeight: 700, color: 'var(--app-text)', marginTop: '12px' }}>
           Total {pesoFormatter.format(total)}
         </p>
-      </section>
+      </div>
 
-      <section className="rounded-2xl border border-[#dcecff] bg-white p-4">
-        <h3 className="font-heading text-lg font-semibold text-[#001d34]">Notes</h3>
-        <Input
+      <div style={{ background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '14px', padding: '18px' }}>
+        <div style={{ ...sectionLabel, color: 'var(--app-text-faint)' }}>Notes</div>
+        <textarea
           disabled={isPending}
           placeholder="Optional delivery instructions"
-          className="mt-4 rounded-xl border-[#dcecff] bg-[#eef7ff]/70"
+          rows={2}
+          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }}
           {...register('notes')}
         />
-      </section>
+      </div>
 
       {errorMessage ? (
-        <p
-          role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-        >
+        <p role="alert" style={{ borderRadius: '11px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '10px 13px', fontSize: '13.5px', color: '#dc2626', margin: 0 }}>
           {errorMessage}
         </p>
       ) : null}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+        <button
           type="button"
-          variant="outline"
           disabled={isPending}
           onClick={onCancel}
-          className="rounded-xl border-[#bdefff] text-[#00677d] hover:bg-[#eef7ff]"
+          style={{ padding: '11px 20px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
         >
           Cancel
-        </Button>
-        <Button
+        </button>
+        <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-[#00b4d8] text-white shadow-[0_10px_24px_rgba(0,180,216,0.22)] hover:bg-[#009ec2]"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 24px', borderRadius: '11px', border: 'none', background: isPending ? 'var(--app-text-faint)' : 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: isPending ? 'default' : 'pointer', boxShadow: isPending ? 'none' : '0 10px 22px rgba(14,108,196,0.3)' }}
         >
           {isPending ? 'Saving...' : 'Save changes'}
-        </Button>
+        </button>
       </div>
     </form>
   )

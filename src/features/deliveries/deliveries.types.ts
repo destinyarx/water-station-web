@@ -7,19 +7,26 @@ import type {
   deliveryItemRowSchema,
   deliveryRecurrenceTypeSchema,
   deliveryRowSchema,
+  deliveryScheduleDateRowSchema,
   deliveryScheduleFormSchema,
+  deliveryScheduleModeSchema,
   deliveryScheduleRowSchema,
   deliveryScheduleStatusSchema,
   deliveryStatusSchema,
+  orgUserRowSchema,
+  unifiedDeliveryFormSchema,
 } from './deliveries.schema'
 
 export type DeliveryRecurrenceType = z.infer<typeof deliveryRecurrenceTypeSchema>
 export type DeliveryScheduleStatus = z.infer<typeof deliveryScheduleStatusSchema>
 export type DeliveryStatus = z.infer<typeof deliveryStatusSchema>
+export type DeliveryScheduleMode = z.infer<typeof deliveryScheduleModeSchema>
 
 export type DeliveryScheduleRow = z.infer<typeof deliveryScheduleRowSchema>
 export type DeliveryRow = z.infer<typeof deliveryRowSchema>
 export type DeliveryItemRow = z.infer<typeof deliveryItemRowSchema>
+export type DeliveryScheduleDateRow = z.infer<typeof deliveryScheduleDateRowSchema>
+export type OrgUserRow = z.infer<typeof orgUserRowSchema>
 
 export type DeliveryFormInput = z.input<typeof deliveryFormSchema>
 export type DeliveryFormValues = z.output<typeof deliveryFormSchema>
@@ -30,6 +37,13 @@ export type DeliveryEditFormValues = z.output<typeof deliveryEditFormSchema>
 
 export type DeliveryScheduleFormInput = z.input<typeof deliveryScheduleFormSchema>
 export type DeliveryScheduleFormValues = z.output<typeof deliveryScheduleFormSchema>
+export type UnifiedDeliveryFormInput = z.input<typeof unifiedDeliveryFormSchema>
+export type UnifiedDeliveryFormValues = z.output<typeof unifiedDeliveryFormSchema>
+
+export interface OrgUser {
+  clerkId: string
+  name: string
+}
 
 export interface DeliveryOwner {
   orgId: number
@@ -41,9 +55,9 @@ export interface DeliveryScheduleInsert {
   guest_name: string | null
   guest_contact: string | null
   guest_address: string | null
-  recurrence_type: 'one_time'
-  delivery_date: string
-  start_date: null
+  recurrence_type: 'one_time' | 'custom_dates'
+  delivery_date: string | null
+  start_date: string | null
   weekdays: null
   interval_weeks: null
   day_of_month: null
@@ -51,6 +65,7 @@ export interface DeliveryScheduleInsert {
   end_date: null
   status: 'active'
   notes: string | null
+  assigned_to: string | null
   org_id: number
   created_by: string
 }
@@ -70,8 +85,15 @@ export interface DeliveryWeeklyScheduleInsert {
   end_date: string | null
   status: 'active'
   notes: string | null
+  assigned_to: string | null
   org_id: number
   created_by: string
+}
+
+export interface DeliveryScheduleDateInsert {
+  schedule_id: number
+  delivery_date: string
+  org_id: number
 }
 
 export interface DeliveryScheduleItemInsert {
@@ -87,6 +109,7 @@ export interface DeliveryInsert {
   delivery_date: string
   status: 'pending'
   notes: string | null
+  assigned_to: string | null
   org_id: number
   created_by: string
 }
@@ -113,13 +136,24 @@ export interface DeliveryItem {
   updatedAt: string | null
 }
 
+export interface DeliveryScheduleInfo {
+  customerId: number | null
+  guestName: string | null
+  guestAddress: string | null
+  recurrenceType: DeliveryRecurrenceType
+  weekdays: number[] | null
+  intervalWeeks: number | null
+}
+
 export interface Delivery {
   id: number
   scheduleId: number
   deliveryDate: string
   status: DeliveryStatus
   failureRemarks: string | null
+  cancellationRemarks: string | null
   notes: string | null
+  assignedTo: string | null
   deliveredBy: string | null
   completedAt: string | null
   orgId: number
@@ -129,4 +163,5 @@ export interface Delivery {
   deletedAt: string | null
   items: DeliveryItem[]
   total: number
+  scheduleInfo?: DeliveryScheduleInfo
 }

@@ -27,6 +27,7 @@ export const deliveryRecurrenceTypeSchema = z.enum([
   'one_time',
   'weekly',
   'monthly',
+  'custom_dates',
 ])
 
 export const deliveryScheduleStatusSchema = z.enum([
@@ -40,6 +41,12 @@ export const deliveryStatusSchema = z.enum([
   'for_delivery',
   'completed',
   'failed',
+  'cancelled',
+])
+
+export const deliveryScheduleModeSchema = z.enum([
+  'recurring_route',
+  'custom_dates',
 ])
 
 export const deliveryScheduleRowSchema = z.object({
@@ -58,6 +65,7 @@ export const deliveryScheduleRowSchema = z.object({
   end_date: z.string().nullable(),
   status: deliveryScheduleStatusSchema,
   notes: z.string().max(500).nullable(),
+  assigned_to: z.string().max(255).nullable().default(null),
   org_id: z.number().int(),
   created_by: z.string().max(255),
   created_at: z.string(),
@@ -71,7 +79,9 @@ export const deliveryRowSchema = z.object({
   delivery_date: z.string(),
   status: deliveryStatusSchema,
   failure_remarks: z.string().max(500).nullable(),
+  cancellation_remarks: z.string().max(500).nullable().default(null),
   notes: z.string().max(500).nullable(),
+  assigned_to: z.string().max(255).nullable().default(null),
   delivered_by: z.string().max(255).nullable(),
   completed_at: z.string().nullable(),
   org_id: z.number().int(),
@@ -96,6 +106,19 @@ export const deliveryItemRowSchema = z.object({
   org_id: z.number().int(),
   created_at: z.string(),
   updated_at: z.string().nullable(),
+})
+
+export const deliveryScheduleDateRowSchema = z.object({
+  id: z.number().int(),
+  schedule_id: z.number().int(),
+  delivery_date: z.string(),
+  org_id: z.number().int(),
+  created_at: z.string(),
+})
+
+export const orgUserRowSchema = z.object({
+  clerk_id: z.string().max(255),
+  name: z.string().nullable(),
 })
 
 export const deliveryFormItemSchema = z.object({
@@ -152,6 +175,7 @@ export const deliveryScheduleFormSchema = z
       .array(deliveryFormItemSchema)
       .min(1, 'Add at least one product or refill service.'),
     notes: trimmedOptionalString(500),
+    assignedTo: z.string().max(255).default(''),
   })
   .superRefine((values, ctx) => {
     if (values.targetType === 'customer') {
@@ -205,6 +229,7 @@ export const deliveryFormSchema = z
       .array(deliveryFormItemSchema)
       .min(1, 'Add at least one product or refill service.'),
     notes: trimmedOptionalString(500),
+    assignedTo: z.string().max(255).default(''),
   })
   .superRefine((values, ctx) => {
     if (values.targetType === 'customer') {
@@ -240,6 +265,100 @@ export const deliveryFormSchema = z
           path: ['customerId'],
           message: 'Customer must be empty for guest deliveries.',
         })
+      }
+    }
+  })
+
+export const unifiedDeliveryFormSchema = z
+  .object({
+    targetType: z.enum(['customer', 'guest']),
+    customerId: z.preprocess(optionalNumber, z.number().int().positive().optional()),
+    guestName: trimmedOptionalString(100),
+    guestContact: trimmedOptionalString(15),
+    guestAddress: trimmedOptionalString(255),
+    scheduleMode: deliveryScheduleModeSchema,
+    weekdays: z.array(z.number().int().min(1).max(7)).default([]),
+    intervalWeeks: z.preprocess(optionalNumber, z.number().int().min(1).max(2)).default(1),
+    startDate: z.string().default(''),
+    endDate: z
+      .string()
+      .transform((value) => value.trim())
+      .transform((value) => (value === '' ? null : value))
+      .nullable(),
+    customDates: z.array(z.string()).default([]),
+    assignedTo: z.string().max(255).default(''),
+    items: z
+      .array(deliveryFormItemSchema)
+      .min(1, 'Add at least one product or refill service.'),
+    notes: trimmedOptionalString(500),
+  })
+  .superRefine((values, ctx) => {
+    if (values.targetType === 'customer') {
+      if (values.customerId == null) {
+        ctx.addIssue({ code: 'custom', path: ['customerId'], message: 'Select a customer.' })
+      }
+      if (values.guestName.trim() !== '') {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['guestName'],
+          message: 'Guest name must be empty for customer deliveries.',
+        })
+      }
+    }
+
+    if (values.targetType === 'guest') {
+      if (values.guestName.trim() === '') {
+        ctx.addIssue({ code: 'custom', path: ['guestName'], message: 'Guest name is required.' })
+      }
+      if (values.customerId != null) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['customerId'],
+          message: 'Customer must be empty for guest deliveries.',
+        })
+      }
+    }
+
+    if (values.scheduleMode === 'recurring_route') {
+      if (values.weekdays.length === 0) {
+        ctx.addIssue({ code: 'custom', path: ['weekdays'], message: 'Pick at least one weekday.' })
+      }
+      if (!values.startDate) {
+        ctx.addIssue({ code: 'custom', path: ['startDate'], message: 'Start date is required.' })
+      } else if (!isDateOnOrAfterToday(values.startDate)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['startDate'],
+          message: 'Start date cannot be in the past.',
+        })
+      }
+      if (values.endDate != null && values.endDate < values.startDate) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['endDate'],
+          message: 'End date cannot be before the start date.',
+        })
+      }
+    }
+
+    if (values.scheduleMode === 'custom_dates') {
+      const uniqueDates = new Set(values.customDates)
+      if (uniqueDates.size === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['customDates'],
+          message: 'Pick at least one delivery date.',
+        })
+      }
+      for (const date of uniqueDates) {
+        if (!isDateOnOrAfterToday(date)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['customDates'],
+            message: 'Delivery dates cannot be in the past.',
+          })
+          break
+        }
       }
     }
   })

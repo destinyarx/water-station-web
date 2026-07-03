@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: 'class', corePlugins: { preflight: false } };</script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--page-bg); }
+  body { font-family: 'Poppins', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+  :root {
+    color-scheme: light;
+    --page-bg:#eef6fd; --surface:#ffffff; --surface-2:#f4f9fe; --surface-3:#f7fbff;
+    --text:#0c2a3e; --text-muted:#42647d; --text-soft:#6286a0; --text-faint:#9bb3c4;
+    --brand:#0a6cc4; --brand-text:#0a6cc4; --brand-soft:#3fa3e6;
+    --border:rgba(70,150,220,0.16); --border-strong:rgba(70,150,220,0.22);
+    --chip-bg:#e6f4ff; --chip-green-bg:#dcf5e8; --chip-green-text:#157a52;
+    --chip-amber-bg:#fff7e0; --chip-amber-text:#92620a;
+    --chip-red-bg:#fee2e2; --chip-red-text:#b91c1c;
+    --chip-violet-bg:#efe7fe; --chip-violet-text:#6d28d9;
+    --chip-gray-bg:#eef2f6; --chip-gray-text:#6b8198;
+    --row-hover:#f5fafe;
+    --sidebar-bg:#ffffff; --sidebar-2:#eef6fd; --sidebar-active-bg:#e6f4ff; --sidebar-active-text:#0a6cc4; --sidebar-text:#5d809a; --sidebar-border:rgba(70,150,220,0.14);
+    --overlay:rgba(14,42,62,0.42);
+    --shadow-card:0 6px 22px rgba(20,100,180,0.06);
+    --cal-selected:#0a6cc4;
+  }
+  html.dark {
+    color-scheme: dark;
+    --page-bg:#071420; --surface:#0f2433; --surface-2:#13293a; --surface-3:#0d1f2c;
+    --text:#eaf4fb; --text-muted:#9db6c8; --text-soft:#7e9cb0; --text-faint:#5f7c90;
+    --brand:#5cb8f6; --brand-text:#5cb8f6; --brand-soft:#38bdf8;
+    --border:rgba(125,211,252,0.14); --border-strong:rgba(125,211,252,0.20);
+    --chip-bg:rgba(56,189,248,0.16); --chip-green-bg:rgba(34,197,94,0.16); --chip-green-text:#4ade80;
+    --chip-amber-bg:rgba(251,191,36,0.16); --chip-amber-text:#fbbf24;
+    --chip-red-bg:rgba(239,68,68,0.16); --chip-red-text:#f87171;
+    --chip-violet-bg:rgba(139,92,246,0.18); --chip-violet-text:#c4b5fd;
+    --chip-gray-bg:rgba(148,180,200,0.14); --chip-gray-text:#9db6c8;
+    --row-hover:rgba(56,189,248,0.05);
+    --sidebar-bg:#0b1f2e; --sidebar-2:#13293a; --sidebar-active-bg:rgba(56,189,248,0.16); --sidebar-active-text:#7cc9fb; --sidebar-text:#8aa6bb; --sidebar-border:rgba(125,211,252,0.12);
+    --overlay:rgba(2,10,18,0.62);
+    --shadow-card:0 6px 22px rgba(0,0,0,0.28);
+    --cal-selected:#2a85d8;
+  }
+  @keyframes floatUp { from { transform: translateY(8px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  @keyframes popIn  { from { transform: translateY(-4px) scale(.98); opacity:0; } to { transform: translateY(0) scale(1); opacity:1; } }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; overflow:hidden; background:var(--page-bg); color:var(--text);">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside style="flex:none; width:{{ sidebarWidth }}; background:var(--sidebar-bg); border-right:1px solid var(--sidebar-border); display:flex; flex-direction:column; overflow:hidden;">
+    <div style="display:flex; align-items:center; gap:11px; justify-content:{{ logoJustify }}; padding:20px 18px 16px;">
+      <div style="flex:none; width:38px; height:38px; border-radius:12px; background:linear-gradient(150deg,#5cc6f7,#0a6cc4); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 14px rgba(14,108,196,0.28);">
+        <svg width="21" height="21" viewBox="0 0 24 24"><path d="M12 2.5c4 5 6.5 8 6.5 11.5a6.5 6.5 0 1 1-13 0C5.5 10.5 8 7.5 12 2.5Z" fill="#fff"/></svg>
+      </div>
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+        <span style="font-weight:700; font-size:19px; color:var(--text); letter-spacing:-0.01em; white-space:nowrap;">AquaFlow</span>
+      </sc-if>
+    </div>
+    <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:8px 20px 8px; font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-faint); white-space:nowrap;">Workspace</div>
+    </sc-if>
+    <nav style="display:flex; flex-direction:column; gap:3px; padding:4px 12px;">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="6">
+        <button onClick="{{ item.go }}" type="button" title="{{ item.label }}" style="display:flex; align-items:center; gap:13px; justify-content:{{ item.justify }}; padding:11px 13px; border:none; border-radius:11px; cursor:pointer; width:100%; text-align:left; background:{{ item.bg }}; color:{{ item.color }}; font-family:inherit; font-size:14.5px; font-weight:{{ item.weight }};" style-hover="background:var(--sidebar-2);">
+          <span style="flex:none; width:22px; height:22px; display:flex; align-items:center; justify-content:center;">
+            <sc-if value="{{ item.isDashboard }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg></sc-if>
+            <sc-if value="{{ item.isCustomers }}" hint-placeholder-val="{{ false }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3.1 2.5-5 5.5-5s5.5 1.9 5.5 5"/><path d="M16.2 5.3a3 3 0 0 1 0 5.6M17.8 19c0-2.2-.7-3.7-1.9-4.7"/></svg></sc-if>
+            <sc-if value="{{ item.isProducts }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3 3.5 7.3v9.4L12 21l8.5-4.3V7.3L12 3Z"/><path d="M3.6 7.4 12 11.7l8.4-4.3M12 11.7V21"/></svg></sc-if>
+            <sc-if value="{{ item.isDeliveries }}" hint-placeholder-val="{{ true }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6.5h10v9H3z"/><path d="M13 9.5h3.6l3.4 3.3v2.7H13z"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/></svg></sc-if>
+            <sc-if value="{{ item.isMaintenance }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M14.7 6.3a3.7 3.7 0 0 0-4.9 4.6L4 16.7 7.3 20l5.8-5.8a3.7 3.7 0 0 0 4.6-4.9l-2.4 2.4-2-2 2.4-2.4Z"/></svg></sc-if>
+            <sc-if value="{{ item.isExpenses }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><circle cx="16.5" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg></sc-if>
+          </span>
+          <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span style="white-space:nowrap;">{{ item.label }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+    <div style="flex:1;"></div>
+    <div style="padding:12px;">
+      <div style="display:flex; align-items:center; gap:11px; justify-content:{{ logoJustify }}; padding:9px 10px; border-radius:12px; background:var(--surface-2); border:1px solid var(--sidebar-border);">
+        <div style="flex:none; width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,#7dd3fc,#0a6cc4); display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700;">JS</div>
+        <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+          <div style="min-width:0;">
+            <div style="font-size:13px; font-weight:600; color:var(--text); white-space:nowrap;">Juan Santos</div>
+            <div style="font-size:11px; color:var(--text-soft); white-space:nowrap;">Station owner</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+    <header style="flex:none; height:62px; display:flex; align-items:center; justify-content:space-between; padding:0 22px; background:var(--surface); border-bottom:1px solid var(--border);">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <button onClick="{{ toggleSidebar }}" type="button" aria-label="Toggle sidebar" class="flex items-center justify-center w-9 h-9 rounded-xl border border-sky-200/70 bg-white/60 text-sky-700 hover:bg-sky-50 dark:border-sky-400/20 dark:bg-white/5 dark:text-sky-300 dark:hover:bg-white/10 cursor-pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M9 4.5v15"/></svg>
+        </button>
+        <div style="display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--text-soft);">
+          <span style="font-weight:500;">AquaFlow</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="opacity:0.5;"><path d="M9 6l6 6-6 6"/></svg>
+          <span style="font-weight:600; color:var(--text);">{{ activeTitle }}</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button onClick="{{ toggleTheme }}" type="button" aria-label="Toggle dark mode" class="flex items-center justify-center w-9 h-9 rounded-xl border border-sky-200/70 bg-white/60 text-sky-700 hover:bg-sky-50 dark:border-sky-400/20 dark:bg-white/5 dark:text-sky-300 dark:hover:bg-white/10 cursor-pointer">
+          <sc-if value="{{ isDark }}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.6 1.6M17.4 17.4L19 19M19 5l-1.6 1.6M6.6 17.4L5 19"/></svg></sc-if>
+          <sc-if value="{{ notDark }}" hint-placeholder-val="{{ true }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" fill="currentColor"/></svg></sc-if>
+        </button>
+        <div style="width:1px; height:24px; background:var(--border);"></div>
+        <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#7dd3fc,#0a6cc4); display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700;">JS</div>
+      </div>
+    </header>
+
+    <main style="flex:1; overflow-y:auto;">
+
+      <!-- ===== DELIVERIES PAGE ===== -->
+      <sc-if value="{{ isDeliveries }}" hint-placeholder-val="{{ true }}">
+        <div style="max-width:1200px; margin:0 auto; padding:26px 28px 56px;">
+
+          <!-- header -->
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:24px;">
+            <div>
+              <div style="font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--brand-text); margin-bottom:9px;">Routes &amp; scheduling</div>
+              <h1 style="font-size:29px; font-weight:800; letter-spacing:-0.025em; margin:0 0 7px; color:var(--text);">Deliveries</h1>
+              <p style="font-size:14.5px; line-height:1.55; color:var(--text-muted); margin:0; max-width:560px;">Plan refill drop-offs and bulk orders — set a weekly route or pick exact dates, attach the jugs, and track every delivery from pending to done.</p>
+            </div>
+            <button onClick="{{ openCreate }}" type="button" style="flex:none; white-space:nowrap; display:inline-flex; align-items:center; gap:9px; background:linear-gradient(150deg,#3fb0f0,#0a6cc4); color:#fff; border:none; font-family:inherit; font-size:14.5px; font-weight:600; padding:12px 21px; border-radius:12px; cursor:pointer; box-shadow:0 10px 22px rgba(14,108,196,0.28);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Schedule delivery
+            </button>
+          </div>
+
+          <!-- stat cards -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin-bottom:24px;">
+            <!-- today (feature) -->
+            <div style="position:relative; overflow:hidden; background:linear-gradient(150deg,#0b73c8,#075098); border-radius:18px; padding:18px 20px; box-shadow:0 14px 30px rgba(14,108,196,0.26);">
+              <div style="position:absolute; right:-16px; bottom:-22px; line-height:0; opacity:0.22;"><svg width="150" height="80" viewBox="0 0 150 80" preserveAspectRatio="none"><path d="M0 44 C30 26 55 56 85 42 C115 28 135 50 150 40 L150 80 L0 80 Z" fill="#fff"/></svg></div>
+              <div style="position:relative;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:13px;">
+                  <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#bfe2ff;">Scheduled today</div>
+                  <div style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; color:#fff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 6.5h10v9H3z"/><path d="M13 9.5h3.6l3.4 3.3v2.7H13z"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/></svg></div>
+                </div>
+                <div style="font-size:32px; font-weight:800; letter-spacing:-0.03em; color:#fff; line-height:1;">{{ stat.today }}</div>
+                <div style="font-size:12.5px; color:#bfe2ff; margin-top:9px;">{{ stat.todayJugs }} jugs out for delivery</div>
+              </div>
+            </div>
+            <div style="background:var(--surface); border:1px solid var(--border); border-left:3px solid #38bdf8; border-radius:18px; padding:18px 20px; box-shadow:var(--shadow-card);">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:13px;">
+                <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint);">In progress</div>
+                <div style="width:34px; height:34px; border-radius:10px; background:var(--chip-bg); color:var(--brand-text); display:flex; align-items:center; justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v3h3"/></svg></div>
+              </div>
+              <div style="font-size:32px; font-weight:800; letter-spacing:-0.03em; color:var(--text); line-height:1;">{{ stat.inProgress }}</div>
+              <div style="font-size:12.5px; color:var(--text-soft); margin-top:9px;">On the road right now</div>
+            </div>
+            <div style="background:var(--surface); border:1px solid var(--border); border-left:3px solid #f59e0b; border-radius:18px; padding:18px 20px; box-shadow:var(--shadow-card);">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:13px;">
+                <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint);">This week</div>
+                <div style="width:34px; height:34px; border-radius:10px; background:var(--chip-amber-bg); color:var(--chip-amber-text); display:flex; align-items:center; justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></div>
+              </div>
+              <div style="font-size:32px; font-weight:800; letter-spacing:-0.03em; color:var(--text); line-height:1;">{{ stat.week }}</div>
+              <div style="font-size:12.5px; color:var(--text-soft); margin-top:9px;">Drop-offs in the next 7 days</div>
+            </div>
+            <div style="background:var(--surface); border:1px solid var(--border); border-left:3px solid #8b5cf6; border-radius:18px; padding:18px 20px; box-shadow:var(--shadow-card);">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:13px;">
+                <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint);">Recurring</div>
+                <div style="width:34px; height:34px; border-radius:10px; background:var(--chip-violet-bg); color:var(--chip-violet-text); display:flex; align-items:center; justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg></div>
+              </div>
+              <div style="font-size:32px; font-weight:800; letter-spacing:-0.03em; color:var(--text); line-height:1;">{{ stat.recurring }}</div>
+              <div style="font-size:12.5px; color:var(--text-soft); margin-top:9px;">From weekly route plans</div>
+            </div>
+          </div>
+
+          <!-- table card -->
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:20px; overflow:hidden; box-shadow:var(--shadow-card);">
+            <!-- toolbar -->
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 18px; border-bottom:1px solid var(--border); flex-wrap:wrap;">
+              <div style="position:relative; flex:1; min-width:210px; max-width:340px;">
+                <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--text-faint); pointer-events:none;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-3.6-3.6"/></svg></span>
+                <input value="{{ search }}" onInput="{{ setSearch }}" placeholder="Search customer or address…" style="width:100%; padding:10px 14px 10px 39px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface-2); color:var(--text); font-size:14px; font-family:inherit; outline:none;" style-focus="border-color:var(--brand-soft); background:var(--surface); box-shadow:0 0 0 3px rgba(56,189,248,0.14);" />
+              </div>
+              <div style="display:inline-flex; padding:4px; gap:3px; background:var(--surface-2); border:1px solid var(--border); border-radius:12px; flex-wrap:wrap;">
+                <sc-for list="{{ statusFilters }}" as="f" hint-placeholder-count="4">
+                  <button onClick="{{ f.go }}" type="button" style="padding:8px 13px; border:none; border-radius:9px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:{{ f.weight }}; background:{{ f.bg }}; color:{{ f.color }}; box-shadow:{{ f.shadow }};">{{ f.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- table -->
+            <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; min-width:920px;">
+                  <thead>
+                    <tr style="background:var(--surface-3);">
+                      <th style="text-align:left; font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-faint); padding:12px 22px;">Customer</th>
+                      <th style="text-align:left; font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-faint); padding:12px 16px;">Schedule</th>
+                      <th style="text-align:left; font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-faint); padding:12px 16px;">Items</th>
+                      <th style="text-align:left; font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-faint); padding:12px 16px;">Assigned</th>
+                      <th style="text-align:left; font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-faint); padding:12px 16px;">Status</th>
+                      <th style="width:56px; padding:12px 22px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ rows }}" as="row" hint-placeholder-count="8">
+                      <tr style="border-top:1px solid var(--border);" style-hover="background:var(--row-hover);">
+                        <td style="padding:13px 22px;">
+                          <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="position:relative; flex:none; width:38px; height:38px; border-radius:11px; background:{{ row.avatarBg }}; display:flex; align-items:center; justify-content:center; color:{{ row.avatarColor }}; font-size:13px; font-weight:700;">{{ row.initials }}</div>
+                            <div style="min-width:0;">
+                              <div style="display:flex; align-items:center; gap:7px;">
+                                <span style="font-size:14px; font-weight:600; color:var(--text);">{{ row.customerName }}</span>
+                                <sc-if value="{{ row.isGuest }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px; font-weight:700; color:var(--chip-gray-text); background:var(--chip-gray-bg); padding:2px 7px; border-radius:999px;">GUEST</span></sc-if>
+                              </div>
+                              <div style="font-size:12px; color:var(--text-soft); margin-top:1px; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ row.address }}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style="padding:13px 16px;">
+                          <div style="display:flex; align-items:center; gap:7px;">
+                            <span style="font-size:13.5px; font-weight:600; color:var(--text);">{{ row.dateLabel }}</span>
+                            <sc-if value="{{ row.isRecurring }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; color:var(--chip-violet-text); background:var(--chip-violet-bg); padding:2px 7px; border-radius:999px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>{{ row.recurrenceShort }}</span></sc-if>
+                          </div>
+                          <div style="font-size:12px; color:var(--text-faint); margin-top:2px;">{{ row.timeAgo }}</div>
+                        </td>
+                        <td style="padding:13px 16px;">
+                          <span style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--text-muted);">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" style="opacity:0.75;"><path d="M9 2.5h6v2l-1 1.3h-4L9 4.5v-2Z"/><path d="M8 5.8h8a1 1 0 0 1 1 1V20a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20V6.8a1 1 0 0 1 1-1Z"/></svg>
+                            {{ row.itemsLabel }}
+                          </span>
+                        </td>
+                        <td style="padding:13px 16px;">
+                          <div style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted);">
+                            <span style="width:24px; height:24px; border-radius:50%; background:linear-gradient(135deg,#7dd3fc,#0a6cc4); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:9.5px; font-weight:700;">{{ row.assigneeInitials }}</span>
+                            {{ row.assignee }}
+                          </div>
+                        </td>
+                        <td style="padding:13px 16px;">
+                          <button onClick="{{ row.openStatusMenu }}" type="button" style="display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:6px 11px; border-radius:999px; border:1px solid {{ row.statusBorder }}; background:{{ row.statusBg }}; color:{{ row.statusColor }}; cursor:pointer;">
+                            <span style="width:7px; height:7px; border-radius:50%; background:currentColor;"></span>{{ row.statusLabel }}
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="opacity:0.7;"><path d="M6 9l6 6 6-6"/></svg>
+                          </button>
+                        </td>
+                        <td style="padding:13px 22px;">
+                          <div style="display:flex; justify-content:flex-end;">
+                            <button onClick="{{ row.openMenu }}" type="button" aria-label="Actions" style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px; border:1px solid {{ row.menuBtnBorder }}; background:{{ row.menuBtnBg }}; color:{{ row.menuBtnColor }}; cursor:pointer;" style-hover="background:var(--chip-bg); color:var(--brand-text);">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 22px; border-top:1px solid var(--border); font-size:13px; color:var(--text-soft);">
+                <span>Showing <strong style="color:var(--text); font-weight:600;">{{ count }}</strong> of {{ totalCount }} deliveries</span>
+              </div>
+            </sc-if>
+
+            <!-- no results -->
+            <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:56px 24px; text-align:center;">
+                <div style="width:64px; height:64px; border-radius:18px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; color:var(--text-faint);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-3.6-3.6"/></svg></div>
+                <div style="font-size:17px; font-weight:700; color:var(--text); margin-bottom:6px;">No matching deliveries</div>
+                <p style="font-size:14px; color:var(--text-muted); margin:0 0 18px;">Try a different search or status filter.</p>
+                <button onClick="{{ clearSearch }}" type="button" style="display:inline-flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border-strong); color:var(--brand-text); font-family:inherit; font-size:13.5px; font-weight:600; padding:10px 18px; border-radius:11px; cursor:pointer;">Clear filters</button>
+              </div>
+            </sc-if>
+
+            <!-- empty -->
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:62px 24px; text-align:center;">
+                <div style="width:72px; height:72px; border-radius:22px; background:var(--chip-bg); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; color:var(--brand-text);"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 6.5h10v9H3z"/><path d="M13 9.5h3.6l3.4 3.3v2.7H13z"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/></svg></div>
+                <div style="font-size:19px; font-weight:700; color:var(--text); margin-bottom:8px;">No deliveries scheduled</div>
+                <p style="font-size:14px; color:var(--text-muted); margin:0 0 20px; max-width:380px; margin-left:auto; margin-right:auto;">Schedule your first drop-off — set a recurring weekly route or pick exact dates on the calendar.</p>
+                <button onClick="{{ openCreate }}" type="button" style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(150deg,#3fb0f0,#0a6cc4); color:#fff; border:none; font-family:inherit; font-size:14px; font-weight:600; padding:12px 22px; border-radius:12px; cursor:pointer; box-shadow:0 10px 24px rgba(14,108,196,0.3);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Schedule delivery</button>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- blank placeholder -->
+      <sc-if value="{{ isOther }}" hint-placeholder-val="{{ false }}">
+        <div style="min-height:100%; display:flex; align-items:center; justify-content:center; padding:60px 24px;">
+          <div style="text-align:center; max-width:430px; animation:floatUp .4s ease;">
+            <div style="width:88px; height:88px; border-radius:26px; background:var(--chip-bg); display:flex; align-items:center; justify-content:center; margin:0 auto 22px; color:var(--brand-text);"><svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c4 5 6.5 8 6.5 11.5a6.5 6.5 0 1 1-13 0C5.5 10.5 8 7.5 12 2.5Z"/></svg></div>
+            <h2 style="font-size:27px; font-weight:800; color:var(--text); letter-spacing:-0.02em; margin:0 0 10px;">{{ activeTitle }}</h2>
+            <p style="font-size:15px; color:var(--text-muted); line-height:1.6; margin:0 0 20px;">This module is part of your AquaFlow workspace and is coming soon.</p>
+            <div style="display:inline-flex; align-items:center; gap:8px; background:var(--chip-bg); color:var(--brand-text); font-size:13px; font-weight:600; padding:8px 16px; border-radius:999px;"><span style="width:7px; height:7px; border-radius:50%; background:currentColor;"></span>Coming soon</div>
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </div>
+
+  <!-- ===== STATUS MENU ===== -->
+  <sc-if value="{{ statusMenuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeStatusMenu }}" style="position:fixed; inset:0; z-index:60;"></div>
+    <div style="position:fixed; top:{{ statusMenuTop }}px; left:{{ statusMenuLeft }}px; z-index:61; width:186px; background:var(--surface); border:1px solid var(--border-strong); border-radius:13px; box-shadow:0 18px 44px rgba(7,40,70,0.22); padding:6px; animation:popIn .14s ease;">
+      <div style="font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-faint); padding:6px 9px 7px;">Set status</div>
+      <sc-for list="{{ statusOptions }}" as="opt" hint-placeholder-count="5">
+        <button onClick="{{ opt.go }}" type="button" style="display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; border:none; background:{{ opt.activeBg }}; border-radius:9px; cursor:pointer; font-family:inherit; font-size:13.5px; font-weight:{{ opt.weight }}; color:var(--text); text-align:left;" style-hover="background:var(--surface-2);">
+          <span style="width:9px; height:9px; border-radius:50%; background:{{ opt.dot }};"></span>{{ opt.label }}
+          <sc-if value="{{ opt.isCurrent }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto; color:var(--brand-text);"><path d="M5 12.5l4.2 4.2L19 7"/></svg></sc-if>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- ===== ROW ACTION MENU ===== -->
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeMenu }}" style="position:fixed; inset:0; z-index:60;"></div>
+    <div style="position:fixed; top:{{ menuTop }}px; left:{{ menuLeft }}px; z-index:61; width:184px; background:var(--surface); border:1px solid var(--border-strong); border-radius:13px; box-shadow:0 18px 44px rgba(7,40,70,0.22); padding:6px; animation:popIn .14s ease;">
+      <button onClick="{{ menuEdit }}" type="button" style="display:flex; align-items:center; gap:11px; width:100%; padding:10px 11px; border:none; background:transparent; border-radius:9px; cursor:pointer; font-family:inherit; font-size:13.5px; font-weight:500; color:var(--text); text-align:left;" style-hover="background:var(--surface-2);">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="color:var(--brand-text);"><path d="M14.5 5.5l4 4M4 20l1-4.2L16 4.8a1.6 1.6 0 0 1 2.2 0l1 1a1.6 1.6 0 0 1 0 2.2L8.2 19 4 20Z"/></svg>
+        Edit delivery
+      </button>
+      <div style="height:1px; background:var(--border); margin:5px 4px;"></div>
+      <button onClick="{{ menuDelete }}" type="button" style="display:flex; align-items:center; gap:11px; width:100%; padding:10px 11px; border:none; background:transparent; border-radius:9px; cursor:pointer; font-family:inherit; font-size:13.5px; font-weight:500; color:#dc2626; text-align:left;" style-hover="background:rgba(220,38,38,0.09);">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Delete delivery
+      </button>
+    </div>
+  </sc-if>
+
+  <!-- ===== FORM DIALOG ===== -->
+  <sc-if value="{{ showForm }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDialog }}" style="position:fixed; inset:0; z-index:80; background:var(--overlay); backdrop-filter:blur(4px); display:flex; align-items:flex-start; justify-content:center; padding:34px 18px; overflow-y:auto;">
+      <div onClick="{{ stop }}" style="width:100%; max-width:660px; background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 40px 90px rgba(7,40,70,0.4); overflow:hidden; animation:floatUp .26s ease;">
+        <!-- header -->
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:22px 26px 18px; border-bottom:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:13px;">
+            <div style="flex:none; width:44px; height:44px; border-radius:13px; background:linear-gradient(150deg,#3fb0f0,#0a6cc4); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(14,108,196,0.28);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6.5h10v9H3z"/><path d="M13 9.5h3.6l3.4 3.3v2.7H13z"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/></svg></div>
+            <div>
+              <div style="font-size:18px; font-weight:700; color:var(--text);">{{ formTitle }}</div>
+              <div style="font-size:13.5px; color:var(--text-soft); margin-top:2px;">{{ formDesc }}</div>
+            </div>
+          </div>
+          <button onClick="{{ closeDialog }}" type="button" style="flex:none; width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text-soft); cursor:pointer; display:flex; align-items:center; justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+
+        <!-- body -->
+        <div style="padding:22px 26px; display:flex; flex-direction:column; gap:20px; max-height:64vh; overflow-y:auto;">
+
+          <!-- CUSTOMER -->
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <label style="font-size:13px; font-weight:600; color:var(--text);">Customer <span style="color:#dc2626;">*</span></label>
+              <div style="display:inline-flex; padding:3px; gap:3px; background:var(--surface-2); border:1px solid var(--border); border-radius:9px;">
+                <button onClick="{{ setCustomerRecord }}" type="button" style="padding:5px 12px; border:none; border-radius:7px; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600; background:{{ recordTabBg }}; color:{{ recordTabColor }}; box-shadow:{{ recordTabShadow }};">From records</button>
+                <button onClick="{{ setCustomerGuest }}" type="button" style="padding:5px 12px; border:none; border-radius:7px; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600; background:{{ guestTabBg }}; color:{{ guestTabColor }}; box-shadow:{{ guestTabShadow }};">Guest</button>
+              </div>
+            </div>
+            <sc-if value="{{ isRecordMode }}" hint-placeholder-val="{{ true }}">
+              <div style="position:relative;">
+                <select value="{{ form.customerId }}" onChange="{{ setCustomerId }}" style="appearance:none; width:100%; padding:12px 38px 12px 13px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface-2); color:{{ custSelectColor }}; font-size:14px; font-family:inherit; outline:none; cursor:pointer;" style-focus="border-color:var(--brand-soft); background:var(--surface); box-shadow:0 0 0 3px rgba(56,189,248,0.15);">
+                  <option value="">Select a saved customer…</option>
+                  <sc-for list="{{ customerOptions }}" as="c" hint-placeholder-count="5">
+                    <option value="{{ c.value }}">{{ c.label }}</option>
+                  </sc-for>
+                </select>
+                <span style="position:absolute; right:14px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-soft);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isGuestMode }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:12px;">
+                <input value="{{ form.guestName }}" onInput="{{ setGuestName }}" placeholder="Guest name" style="width:100%; padding:12px 13px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface-2); color:var(--text); font-size:14px; font-family:inherit; outline:none;" style-focus="border-color:var(--brand-soft); background:var(--surface); box-shadow:0 0 0 3px rgba(56,189,248,0.15);" />
+                <input value="{{ form.guestPhone }}" onInput="{{ setGuestPhone }}" placeholder="Phone (optional)" style="width:100%; padding:12px 13px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface-2); color:var(--text); font-size:14px; font-family:inherit; outline:none;" style-focus="border-color:var(--brand-soft); background:var(--surface); box-shadow:0 0 0 3px rgba(56,189,248,0.15);" />
+              </div>
+              <input value="{{ form.guestAddress }}" onInput="{{ setGuestAddress }}" placeholder="Delivery address" style="width:100%; margin-top:12px; padding:12px 13px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface-2); color:var(--text); font-size:14px; font-family:inherit; outline:none;" style-focus="border-color:var(--brand-soft); background:var(--surface); box-shadow:0 0 0 3px rgba(56,189,248,0.15);" />
+            </sc-if>
+            <sc-if value="{{ errors.customer }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px; color:#dc2626; margin-top:6px;">{{ errors.customer }}</div></sc-if>
+          </div>
+
+          <!-- SCHEDULE TYPE -->
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; color:var(--text); margin-bottom:10px;">Schedule type <span style="color:#dc2626;">*</span></label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <button onClick="{{ setModeRecurring }}" type="button" style="display:flex; align-items:flex-start; gap:11px; text-align:left; padding:14px; border:1.5px solid {{ recurModeBorder }}; border-radius:13px; background:{{ recurModeBg }}; cursor:pointer;">
+                <div style="flex:none; width:34px; height:34px; border-radius:10px; background:{{ recurModeIconBg }}; color:{{ recurModeIconColor }}; display:flex; align-items:center; justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg></div>
+                <div><div style="font-size:13.5px; font-weight:700; color:var(--text);">Recurring route</div><div style="font-size:12px; color:var(--text-soft); margin-top:2px; line-height:1.4;">Repeat on set weekdays</div></div>
+              </button>
+              <button onClick="{{ setModeCustom }}" type="button" style="display:flex; align-items:flex-start; gap:11px; text-align:left; padding:14px; border:1.5px solid {{ customModeBorder }}; border-radius:13px; background:{{ customModeBg }}; cursor:pointer;">
+                <div style="flex:none; width:34px; height:34px; border-radius:10px; background:{{ customModeIconBg }}; color:{{ customModeIconColor }}; display:flex; align-items:center; justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/><path d="M8.5 14l2 2 4-4.5"/></svg></div>
+                <div><div style="font-size:13.5px; font-weight:700; color:var(--text);">Custom dates</div><div style="font-size:12px; color:var(--text-soft); margin-top:2px; line-height:1.4;">Pick exact days</div></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- RECURRING CONFIG -->
+          <sc-if value="{{ isRecurring }}" hint-placeholder-val="{{ true }}">
+            <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:14px; padding:18px;">
+              <div style="font-size:11.5px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--brand-text); margin-bottom:14px;">Weekly route</div>
+              <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text); margin-bottom:8px;">Delivery days</label>
+              <div style="display:flex; gap:7px; flex-wrap:wrap; margin-bottom:16px;">
+                <sc-for list="{{ weekdayChips }}" as="d" hint-placeholder-count="7">
+                  <button onClick="{{ d.go }}" type="button" style="width:42px; height:42px; border-radius:11px; border:1.5px solid {{ d.border }}; background:{{ d.bg }}; color:{{ d.color }}; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;">{{ d.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div>
+                  <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text); margin-bottom:7px;">Repeat every</label>
+                  <div style="display:flex; gap:7px;">
+                    <button onClick="{{ setIntervalWeekly }}" type="button" style="flex:1; padding:10px 6px; border:1.5px solid {{ weeklyBorder }}; border-radius:10px; background:{{ weeklyBg }}; color:{{ weeklyColor }}; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer;">Week</button>
+                    <button onClick="{{ setIntervalBiweekly }}" type="button" style="flex:1; padding:10px 6px; border:1.5px solid {{ biweeklyBorder }}; border-radius:10px; background:{{ biweeklyBg }}; color:{{ biweeklyColor }}; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer;">2 weeks</button>
+                  </div>
+                </div>
+                <div>
+                  <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text); margin-bottom:7px;">Starting from</label>
+                  <input type="date" value="{{ form.startDate }}" onInput="{{ setStartDate }}" style="width:100%; padding:10px 12px; border:1px solid var(--border-strong); border-radius:10px; background:var(--surface); color:var(--text); font-size:13.5px; font-family:inherit; outline:none;" style-focus="border-color:var(--brand-soft); box-shadow:0 0 0 3px rgba(56,189,248,0.15);" />
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; margin-top:14px; padding:10px 13px; background:var(--chip-bg); border-radius:10px; font-size:12.5px; font-weight:600; color:var(--brand-text);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 1.5"/></svg>
+                {{ recurringSummary }}
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- CUSTOM CALENDAR -->
+          <sc-if value="{{ isCustom }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:14px; padding:18px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                <div style="font-size:11.5px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--brand-text);">Pick delivery dates</div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <button onClick="{{ calPrev }}" type="button" aria-label="Previous month" style="width:30px; height:30px; border-radius:8px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-soft); cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:var(--surface-3);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+                  <span style="font-size:13.5px; font-weight:700; color:var(--text); min-width:128px; text-align:center;">{{ calMonthLabel }}</span>
+                  <button onClick="{{ calNext }}" type="button" aria-label="Next month" style="width:30px; height:30px; border-radius:8px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-soft); cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:var(--surface-3);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px;">
+                <sc-for list="{{ weekdayHeaders }}" as="h" hint-placeholder-count="7">
+                  <div style="text-align:center; font-size:10.5px; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; color:var(--text-faint); padding:4px 0;">{{ h }}</div>
+                </sc-for>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px;">
+                <sc-for list="{{ calendarDays }}" as="cell" hint-placeholder-count="42">
+                  <button onClick="{{ cell.go }}" type="button" disabled="{{ cell.disabled }}" style="aspect-ratio:1; border:1.5px solid {{ cell.border }}; border-radius:9px; background:{{ cell.bg }}; color:{{ cell.color }}; font-family:inherit; font-size:12.5px; font-weight:{{ cell.weight }}; cursor:{{ cell.cursor }}; display:flex; align-items:center; justify-content:center; position:relative;">{{ cell.day }}<sc-if value="{{ cell.isToday }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; bottom:4px; width:4px; height:4px; border-radius:50%; background:{{ cell.todayDot }};"></span></sc-if></button>
+                </sc-for>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; margin-top:14px; padding:10px 13px; background:{{ customSummaryBg }}; border-radius:10px; font-size:12.5px; font-weight:600; color:{{ customSummaryColor }};">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
+                {{ customSummary }}
+              </div>
+            </div>
+            <sc-if value="{{ errors.dates }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px; color:#dc2626; margin-top:-12px;">{{ errors.dates }}</div></sc-if>
+          </sc-if>
+
+          <!-- DELIVERY ITEMS -->
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <label style="font-size:13px; font-weight:600; color:var(--text);">Delivery items</label>
+              <span style="font-size:12px; color:var(--text-faint);">{{ itemsCountLabel }}</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <sc-for list="{{ itemRows }}" as="it" hint-placeholder-count="2">
+                <div style="display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:11px; padding:8px 10px 8px 12px;">
+                  <div style="flex:none; width:32px; height:32px; border-radius:9px; background:var(--chip-bg); color:var(--brand-text); display:flex; align-items:center; justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M9 2.5h6v2l-1 1.3h-4L9 4.5v-2Z"/><path d="M8 5.8h8a1 1 0 0 1 1 1V20a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20V6.8a1 1 0 0 1 1-1Z"/></svg></div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:13.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ it.name }}</div>
+                    <div style="font-size:12px; color:var(--text-soft);">₱{{ it.price }} each</div>
+                  </div>
+                  <div style="flex:none; display:flex; align-items:center; gap:4px; background:var(--surface); border:1px solid var(--border-strong); border-radius:9px; padding:3px;">
+                    <button onClick="{{ it.dec }}" type="button" style="width:26px; height:26px; border-radius:7px; border:none; background:transparent; color:var(--text-muted); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;" style-hover="background:var(--surface-2);">−</button>
+                    <span style="min-width:24px; text-align:center; font-size:13.5px; font-weight:700; color:var(--text);">{{ it.qty }}</span>
+                    <button onClick="{{ it.inc }}" type="button" style="width:26px; height:26px; border-radius:7px; border:none; background:transparent; color:var(--text-muted); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;" style-hover="background:var(--surface-2);">+</button>
+                  </div>
+                  <button onClick="{{ it.remove }}" type="button" aria-label="Remove" style="flex:none; width:30px; height:30px; border-radius:8px; border:none; background:transparent; color:#dc2626; cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:rgba(220,38,38,0.1);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+                </div>
+              </sc-for>
+            </div>
+            <!-- add item -->
+            <div style="position:relative; margin-top:10px;">
+              <select value="{{ addItemValue }}" onChange="{{ addItem }}" style="appearance:none; width:100%; padding:11px 38px 11px 13px; border:1.5px dashed var(--border-strong); border-radius:11px; background:transparent; color:var(--brand-text); font-size:13.5px; font-weight:600; font-family:inherit; outline:none; cursor:pointer;" style-focus="border-color:var(--brand-soft);">
+                <option value="">+ Add a product to this delivery…</option>
+                <sc-for list="{{ addableProducts }}" as="p" hint-placeholder-count="4">
+                  <option value="{{ p.value }}">{{ p.label }}</option>
+                </sc-for>
+              </select>
+              <span style="position:absolute; right:14px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--brand-text);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </div>
+          </div>
+
+          <!-- ASSIGNED + NOTES -->
+          <div style="display:grid; grid-template-columns:1fr; gap:16px;">
+            <div>
+              <label style="display:block; font-size:13px; font-weight:600; color:var(--text); margin-bottom:7px;">Assigned to</label>
+              <div style="position:relative;">
+                <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--text-faint); pointer-events:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19.5c0-3.2 2.9-5 6.5-5s6.5 1.8 6.5 5"/></svg></span>
+                <input value="{{ form.assignee }}" onInput="{{ setAssignee }}" placeholder="Driver / staff name" style="width:100%; padding:12px 13px 12px 39px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface-2); color:var(--text); font-size:14px; font-family:inherit; outline:none;" style-focus="border-color:var(--brand-soft); background:var(--surface); box-shadow:0 0 0 3px rgba(56,189,248,0.15);" />
+              </div>
+            </div>
+            <div>
+              <label style="display:block; font-size:13px; font-weight:600; color:var(--text); margin-bottom:7px;">Notes</label>
+              <textarea value="{{ form.notes }}" onInput="{{ setNotes }}" placeholder="Gate code, landmarks, preferred time, payment reminders…" rows="2" style="width:100%; padding:11px 13px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface-2); color:var(--text); font-size:14px; font-family:inherit; outline:none; resize:vertical; line-height:1.5;" style-focus="border-color:var(--brand-soft); background:var(--surface); box-shadow:0 0 0 3px rgba(56,189,248,0.15);"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- footer -->
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:18px 26px; border-top:1px solid var(--border); background:var(--surface-3);">
+          <button onClick="{{ closeDialog }}" type="button" style="padding:11px 20px; border-radius:11px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-muted); font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;">Cancel</button>
+          <button onClick="{{ submitForm }}" type="button" style="display:inline-flex; align-items:center; gap:8px; padding:11px 24px; border-radius:11px; border:none; background:linear-gradient(150deg,#3fb0f0,#0a6cc4); color:#fff; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 10px 22px rgba(14,108,196,0.3);">{{ submitLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== DELETE CONFIRM ===== -->
+  <sc-if value="{{ showDelete }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDialog }}" style="position:fixed; inset:0; z-index:80; background:var(--overlay); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:24px;">
+      <div onClick="{{ stop }}" style="width:100%; max-width:420px; background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 40px 90px rgba(7,40,70,0.4); padding:28px; text-align:center; animation:floatUp .24s ease;">
+        <div style="width:56px; height:56px; border-radius:16px; background:rgba(220,38,38,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; color:#dc2626;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+        <div style="font-size:19px; font-weight:700; color:var(--text); margin-bottom:8px;">Delete this delivery?</div>
+        <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin:0 0 22px;">"{{ deleteName }}" will be removed from your schedule.</p>
+        <div style="display:flex; gap:12px;">
+          <button onClick="{{ closeDialog }}" type="button" style="flex:1; padding:12px; border-radius:12px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-muted); font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;">Cancel</button>
+          <button onClick="{{ confirmDelete }}" type="button" style="flex:1; padding:12px; border-radius:12px; border:none; background:#dc2626; color:#fff; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 10px 22px rgba(220,38,38,0.28);">Yes, delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    collapsed: false,
+    activeNav: 'deliveries',
+    isDark: false,
+    search: '',
+    statusFilter: 'all',
+    dialog: null,
+    editingId: null,
+    deletingId: null,
+    menuId: null, menuTop: 0, menuLeft: 0,
+    statusMenuId: null, statusMenuTop: 0, statusMenuLeft: 0,
+    calYear: new Date().getFullYear(),
+    calMonth: new Date().getMonth(),
+    errors: {},
+    form: this.blankForm(),
+    currentUser: 'Juan Santos',
+    customers: [
+      { id:1, name:'Maria Santos', address:'24 Mabini St., San Roque, Calamba' },
+      { id:2, name:'Sunrise Café', address:'88 Rizal Ave., Poblacion, Los Baños' },
+      { id:3, name:'Juan dela Cruz', address:'12 Sampaguita St., Bagong Silang, Calamba' },
+      { id:4, name:'Riverside Apartments', address:'5 Riverbank Rd., Halang, Calamba' },
+      { id:5, name:'Dela Cruz Sari-Sari Store', address:'33 Mangga St., Parian, Calamba' },
+      { id:6, name:'BlueWell Corporate Office', address:'2F Aqua Tower, Canlubang, Calamba' }
+    ],
+    products: [
+      { id:1, name:'5-Gallon Refill', price:25 },
+      { id:2, name:'3-Gallon Refill', price:18 },
+      { id:3, name:'Bottled Water 500ml', price:12 },
+      { id:4, name:'Bottled Water 1L', price:20 },
+      { id:5, name:'Alkaline Refill 5-Gal', price:45 },
+      { id:6, name:'Distilled Water Gallon', price:35 }
+    ],
+    deliveries: [
+      { id:1, customerId:2, guestName:'', guestPhone:'', guestAddress:'', date:'2026-06-25', items:[{productId:1,qty:8}], assignee:'Mang Tonyo', notes:'Deliver before lunch rush.', status:'in_progress', recurring:true, weekdays:[3], interval:'weekly' },
+      { id:2, customerId:4, guestName:'', guestPhone:'', guestAddress:'', date:'2026-06-25', items:[{productId:1,qty:3}], assignee:'Mang Tonyo', notes:'', status:'for_delivery', recurring:false, weekdays:[], interval:'weekly' },
+      { id:3, customerId:5, guestName:'', guestPhone:'', guestAddress:'', date:'2026-06-25', items:[{productId:1,qty:12},{productId:3,qty:2}], assignee:'Juan Santos', notes:'Overdue last week — confirm container return.', status:'pending', recurring:true, weekdays:[3,6], interval:'weekly' },
+      { id:4, customerId:1, guestName:'', guestPhone:'', guestAddress:'', date:'2026-06-26', items:[{productId:1,qty:2}], assignee:'Mang Tonyo', notes:'Gate code 1234.', status:'pending', recurring:false, weekdays:[], interval:'weekly' },
+      { id:5, customerId:null, guestName:'Walk-in — Ramon', guestPhone:'0917 222 1188', guestAddress:'Blk 7 Lot 4, Mayapa', date:'2026-06-27', items:[{productId:5,qty:4}], assignee:'Juan Santos', notes:'One-time guest order.', status:'pending', recurring:false, weekdays:[], interval:'weekly' },
+      { id:6, customerId:6, guestName:'', guestPhone:'', guestAddress:'', date:'2026-06-28', items:[{productId:1,qty:10},{productId:4,qty:6}], assignee:'Mang Tonyo', notes:'', status:'pending', recurring:true, weekdays:[1,4], interval:'weekly' },
+      { id:7, customerId:3, guestName:'', guestPhone:'', guestAddress:'', date:'2026-06-23', items:[{productId:2,qty:3}], assignee:'Mang Tonyo', notes:'', status:'failed', recurring:false, weekdays:[], interval:'weekly' },
+      { id:8, customerId:1, guestName:'', guestPhone:'', guestAddress:'', date:'2026-06-22', items:[{productId:1,qty:2}], assignee:'Mang Tonyo', notes:'Cancelled by customer.', status:'cancelled', recurring:false, weekdays:[], interval:'weekly' }
+    ]
+  };
+
+  blankForm() {
+    const today = new Date().toISOString().slice(0,10);
+    return { customerMode:'record', customerId:'', guestName:'', guestPhone:'', guestAddress:'',
+      scheduleMode:'recurring', weekdays:[new Date().getDay()], interval:'weekly', startDate:today,
+      customDates:[], items:[], assignee:this.state ? this.state.currentUser : 'Juan Santos', notes:'' };
+  }
+
+  statuses() {
+    return [
+      { value:'pending',     label:'Pending',      dot:'#94a3b8', bg:'var(--chip-gray-bg)',   text:'var(--chip-gray-text)',   border:'transparent' },
+      { value:'in_progress', label:'In progress',  dot:'#0ea5e9', bg:'var(--chip-bg)',        text:'var(--brand-text)',       border:'transparent' },
+      { value:'for_delivery',label:'For delivery', dot:'#8b5cf6', bg:'var(--chip-violet-bg)', text:'var(--chip-violet-text)', border:'transparent' },
+      { value:'failed',      label:'Failed',       dot:'#ef4444', bg:'var(--chip-red-bg)',    text:'var(--chip-red-text)',    border:'transparent' },
+      { value:'cancelled',   label:'Cancelled',    dot:'#9bb3c4', bg:'transparent',           text:'var(--text-faint)',       border:'var(--border-strong)' }
+    ];
+  }
+  statusMeta(v) { return this.statuses().find(s=>s.value===v) || this.statuses()[0]; }
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('aqua-theme'); } catch (e) {}
+    this.applyTheme(saved === 'dark');
+    this._closeAll = () => { if (this.state.menuId !== null || this.state.statusMenuId !== null) this.setState({ menuId:null, statusMenuId:null }); };
+    window.addEventListener('scroll', this._closeAll, true);
+    window.addEventListener('resize', this._closeAll);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this._closeAll, true);
+    window.removeEventListener('resize', this._closeAll);
+  }
+  applyTheme(isDark) {
+    const root = document.documentElement;
+    if (isDark) root.classList.add('dark'); else root.classList.remove('dark');
+    this.setState({ isDark });
+  }
+
+  todayISO() { return new Date().toISOString().slice(0,10); }
+  fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso+'T00:00:00'); if (isNaN(d)) return iso;
+    return d.toLocaleDateString('en-US',{ month:'short', day:'numeric' });
+  }
+  dayDiff(iso) {
+    const a = new Date(this.todayISO()+'T00:00:00');
+    const b = new Date(iso+'T00:00:00');
+    return Math.round((b-a)/86400000);
+  }
+  relLabel(iso) {
+    const d = this.dayDiff(iso);
+    if (d === 0) return 'Today';
+    if (d === 1) return 'Tomorrow';
+    if (d === -1) return 'Yesterday';
+    if (d < 0) return Math.abs(d)+' days ago';
+    return 'In '+d+' days';
+  }
+  custName(dv) {
+    if (dv.customerId) { const c = this.state.customers.find(c=>c.id===dv.customerId); return c ? c.name : 'Customer'; }
+    return dv.guestName || 'Guest';
+  }
+  custAddr(dv) {
+    if (dv.customerId) { const c = this.state.customers.find(c=>c.id===dv.customerId); return c ? c.address : ''; }
+    return dv.guestAddress || 'No address';
+  }
+  initialsOf(name) {
+    const p = (name||'').trim().split(/\s+/);
+    return ((p[0]||'')[0]||'') + ((p[1]||'')[0]||'');
+  }
+  itemsText(items) {
+    if (!items || !items.length) return 'No items';
+    const total = items.reduce((s,i)=>s+i.qty,0);
+    const names = items.map(i => { const p = this.state.products.find(p=>p.id===i.productId); return (p?p.name:'item'); });
+    if (items.length === 1) return items[0].qty + '× ' + names[0];
+    return total + ' items · ' + items.length + ' kinds';
+  }
+  weekdayName(i, short) {
+    const full = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const sh = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    return short ? sh[i] : full[i];
+  }
+  recShort(dv) {
+    if (!dv.recurring) return '';
+    const n = (dv.weekdays||[]).length;
+    const per = dv.interval === 'biweekly' ? '/2wks' : '/wk';
+    return n + '×' + per;
+  }
+
+  openCreate() {
+    const today = new Date();
+    this.setState({ dialog:'create', editingId:null, errors:{}, form:this.blankForm(), calYear:today.getFullYear(), calMonth:today.getMonth(), menuId:null, statusMenuId:null });
+  }
+  openEdit(id) {
+    const d = this.state.deliveries.find(x=>x.id===id);
+    if (!d) return;
+    const today = new Date();
+    this.setState({ dialog:'edit', editingId:id, errors:{}, menuId:null, statusMenuId:null,
+      calYear:today.getFullYear(), calMonth:today.getMonth(),
+      form:{
+        customerMode: d.customerId ? 'record' : 'guest',
+        customerId: d.customerId ? String(d.customerId) : '',
+        guestName:d.guestName||'', guestPhone:d.guestPhone||'', guestAddress:d.guestAddress||'',
+        scheduleMode: d.recurring ? 'recurring' : 'custom',
+        weekdays: d.recurring ? (d.weekdays||[]).slice() : [today.getDay()],
+        interval: d.interval || 'weekly',
+        startDate: d.recurring ? d.date : this.todayISO(),
+        customDates: d.recurring ? [] : [d.date],
+        items: (d.items||[]).map(i=>({...i})),
+        assignee: d.assignee || this.state.currentUser,
+        notes: d.notes || ''
+      } });
+  }
+  openDelete(id) { this.setState({ dialog:'delete', deletingId:id, menuId:null, statusMenuId:null }); }
+  closeDialog() { this.setState({ dialog:null }); }
+
+  openMenu(id, ev) {
+    const r = ev.currentTarget.getBoundingClientRect();
+    const w = 184; let left = r.right - w; if (left < 12) left = 12;
+    let top = r.bottom + 6; if (top + 110 > window.innerHeight) top = r.top - 110;
+    this.setState(st => ({ menuId: st.menuId===id?null:id, statusMenuId:null, menuTop:top, menuLeft:left }));
+  }
+  openStatusMenu(id, ev) {
+    const r = ev.currentTarget.getBoundingClientRect();
+    const w = 186; let left = r.left; if (left + w > window.innerWidth - 12) left = window.innerWidth - 12 - w;
+    let top = r.bottom + 6; if (top + 250 > window.innerHeight) top = r.top - 250;
+    this.setState(st => ({ statusMenuId: st.statusMenuId===id?null:id, menuId:null, statusMenuTop:top, statusMenuLeft:left }));
+  }
+  setStatus(id, status) {
+    this.setState(st => ({ deliveries: st.deliveries.map(d => d.id===id ? {...d, status} : d), statusMenuId:null }));
+  }
+  confirmDelete() { this.setState(st => ({ deliveries: st.deliveries.filter(d=>d.id!==st.deletingId), dialog:null })); }
+
+  // form mutations
+  setForm(patch) { this.setState(st => ({ form:{ ...st.form, ...patch }, errors:{} })); }
+  toggleWeekday(i) {
+    this.setState(st => {
+      const set = new Set(st.form.weekdays);
+      if (set.has(i)) set.delete(i); else set.add(i);
+      return { form:{ ...st.form, weekdays:[...set].sort((a,b)=>a-b) } };
+    });
+  }
+  toggleCustomDate(iso) {
+    this.setState(st => {
+      const set = new Set(st.form.customDates);
+      if (set.has(iso)) set.delete(iso); else set.add(iso);
+      return { form:{ ...st.form, customDates:[...set].sort() }, errors:{} };
+    });
+  }
+  addItem(productId) {
+    const pid = Number(productId);
+    this.setState(st => {
+      if (st.form.items.some(i=>i.productId===pid)) return {};
+      return { form:{ ...st.form, items:[...st.form.items, { productId:pid, qty:1 }] } };
+    });
+  }
+  changeQty(pid, delta) {
+    this.setState(st => ({ form:{ ...st.form, items: st.form.items.map(i => i.productId===pid ? {...i, qty:Math.max(1, i.qty+delta)} : i) } }));
+  }
+  removeItem(pid) { this.setState(st => ({ form:{ ...st.form, items: st.form.items.filter(i=>i.productId!==pid) } })); }
+
+  calShift(delta) {
+    this.setState(st => {
+      let m = st.calMonth + delta, y = st.calYear;
+      if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; }
+      return { calMonth:m, calYear:y };
+    });
+  }
+
+  submitForm() {
+    const f = this.state.form;
+    const e = {};
+    if (f.customerMode === 'record') { if (!f.customerId) e.customer = 'Select a saved customer.'; }
+    else { if (!f.guestName.trim()) e.customer = 'Enter the guest name.'; }
+    let dates = [];
+    if (f.scheduleMode === 'recurring') {
+      if (!f.weekdays.length) e.dates = 'Pick at least one delivery day.';
+      dates = [f.startDate];
+    } else {
+      if (!f.customDates.length) e.dates = 'Pick at least one date on the calendar.';
+      dates = f.customDates.slice();
+    }
+    if (Object.keys(e).length) { this.setState({ errors:e }); return; }
+
+    this.setState(st => {
+      const base = {
+        customerId: f.customerMode==='record' ? Number(f.customerId) : null,
+        guestName: f.customerMode==='guest' ? f.guestName.trim() : '',
+        guestPhone: f.customerMode==='guest' ? f.guestPhone.trim() : '',
+        guestAddress: f.customerMode==='guest' ? f.guestAddress.trim() : '',
+        items: f.items.map(i=>({...i})), assignee: f.assignee.trim() || st.currentUser, notes: f.notes.trim(),
+        recurring: f.scheduleMode==='recurring', weekdays: f.scheduleMode==='recurring' ? f.weekdays.slice() : [], interval: f.interval
+      };
+      let deliveries;
+      if (st.dialog === 'edit') {
+        deliveries = st.deliveries.map(d => d.id===st.editingId ? { ...d, ...base, date: dates[0] } : d);
+      } else {
+        let nid = st.deliveries.reduce((m,d)=>Math.max(m,d.id),0);
+        const created = dates.map(dt => ({ id:++nid, ...base, date:dt, status:'pending' }));
+        deliveries = [...created, ...st.deliveries];
+      }
+      return { deliveries, dialog:null, errors:{} };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const f = s.form;
+
+    // stats
+    const today = this.todayISO();
+    const todayList = s.deliveries.filter(d => d.date === today && d.status !== 'cancelled' && d.status !== 'failed');
+    const todayJugs = todayList.reduce((sum,d)=> sum + (d.items||[]).reduce((a,i)=>a+i.qty,0), 0);
+    const inProgress = s.deliveries.filter(d => d.status === 'in_progress').length;
+    const week = s.deliveries.filter(d => { const df = this.dayDiff(d.date); return df >= 0 && df <= 7 && d.status !== 'cancelled'; }).length;
+    const recurring = s.deliveries.filter(d => d.recurring).length;
+    const stat = { today:todayList.length, todayJugs, inProgress, week, recurring };
+
+    // filter
+    const q = s.search.trim().toLowerCase();
+    let list = s.deliveries.slice().sort((a,b)=> (a.date||'').localeCompare(b.date||''));
+    if (s.statusFilter !== 'all') list = list.filter(d => d.status === s.statusFilter);
+    if (q) list = list.filter(d => this.custName(d).toLowerCase().includes(q) || this.custAddr(d).toLowerCase().includes(q) || (d.assignee||'').toLowerCase().includes(q));
+
+    const rows = list.map(d => {
+      const sm = this.statusMeta(d.status);
+      const name = this.custName(d);
+      const menuOpenHere = s.menuId === d.id;
+      return {
+        id:d.id, customerName:name, address:this.custAddr(d),
+        isGuest: !d.customerId,
+        initials: (this.initialsOf(name) || 'C').toUpperCase(),
+        avatarBg: d.customerId ? 'var(--chip-bg)' : 'var(--chip-gray-bg)',
+        avatarColor: d.customerId ? 'var(--brand-text)' : 'var(--chip-gray-text)',
+        dateLabel: this.fmtDate(d.date),
+        timeAgo: this.relLabel(d.date),
+        isRecurring: d.recurring, recurrenceShort: this.recShort(d),
+        itemsLabel: this.itemsText(d.items),
+        assignee: d.assignee || 'Unassigned',
+        assigneeInitials: (this.initialsOf(d.assignee) || '–').toUpperCase(),
+        statusLabel: sm.label, statusBg: sm.bg, statusColor: sm.text, statusBorder: sm.border,
+        openStatusMenu: (ev) => this.openStatusMenu(d.id, ev),
+        menuBtnBg: menuOpenHere ? 'var(--chip-bg)' : 'var(--surface)',
+        menuBtnColor: menuOpenHere ? 'var(--brand-text)' : 'var(--text-soft)',
+        menuBtnBorder: menuOpenHere ? 'var(--brand-soft)' : 'var(--border-strong)',
+        openMenu: (ev) => this.openMenu(d.id, ev)
+      };
+    });
+
+    const statusFilterDefs = [['all','All'],['pending','Pending'],['in_progress','In progress'],['for_delivery','For delivery'],['failed','Failed'],['cancelled','Cancelled']];
+    const statusFilters = statusFilterDefs.map(([key,label]) => {
+      const on = s.statusFilter === key;
+      return { key, label, bg:on?'var(--surface)':'transparent', color:on?'var(--brand-text)':'var(--text-soft)', weight:on?'700':'600', shadow:on?'0 1px 4px rgba(14,108,196,0.16)':'none', go:()=>this.setState({statusFilter:key}) };
+    });
+
+    const order = [['dashboard','Dashboard'],['customers','Customers'],['products','Products'],['deliveries','Deliveries'],['maintenance','Maintenance'],['expenses','Expenses']];
+    const navItems = order.map(([key,label]) => {
+      const on = s.activeNav === key;
+      return { key, label, isDashboard:key==='dashboard', isCustomers:key==='customers', isProducts:key==='products', isDeliveries:key==='deliveries', isMaintenance:key==='maintenance', isExpenses:key==='expenses', bg:on?'var(--sidebar-active-bg)':'transparent', color:on?'var(--sidebar-active-text)':'var(--sidebar-text)', weight:on?'600':'500', justify:s.collapsed?'center':'flex-start', go:()=>this.setState({activeNav:key}) };
+    });
+    const activeMeta = order.find(o=>o[0]===s.activeNav);
+
+    // status menu options
+    const statusMenuDelivery = s.deliveries.find(d=>d.id===s.statusMenuId);
+    const statusOptions = this.statuses().map(st0 => ({
+      value:st0.value, label:st0.label, dot:st0.dot,
+      isCurrent: statusMenuDelivery && statusMenuDelivery.status === st0.value,
+      activeBg: statusMenuDelivery && statusMenuDelivery.status === st0.value ? 'var(--surface-2)' : 'transparent',
+      weight: statusMenuDelivery && statusMenuDelivery.status === st0.value ? '700' : '500',
+      go: () => this.setStatus(s.statusMenuId, st0.value)
+    }));
+
+    // ---- form derived ----
+    const isRecordMode = f.customerMode === 'record';
+    const customerOptions = s.customers.map(c => ({ value:String(c.id), label:c.name }));
+
+    const weekdayChips = [0,1,2,3,4,5,6].map(i => {
+      const on = f.weekdays.includes(i);
+      return { i, label:this.weekdayName(i,true).slice(0,1)+this.weekdayName(i,true).slice(1,2).toLowerCase(),
+        border:on?'var(--brand-soft)':'var(--border-strong)', bg:on?'var(--cal-selected)':'var(--surface)', color:on?'#fff':'var(--text-muted)',
+        go:()=>this.toggleWeekday(i) };
+    });
+    // nicer labels (Su Mo Tu...)
+    const sh2 = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    weekdayChips.forEach((c,idx)=>{ c.label = sh2[idx]; });
+
+    const nDays = f.weekdays.length;
+    const cntWord = ['no days','once','twice','3×','4×','5×','6×','daily'][Math.min(nDays,7)];
+    const dayNames = f.weekdays.map(i=>this.weekdayName(i,true)).join(', ');
+    const recurringSummary = nDays
+      ? (nDays===7 ? 'Every day' : cntWord + ' a ' + (f.interval==='biweekly'?'2-week cycle':'week') + (dayNames?' · '+dayNames:''))
+      : 'Choose which days to deliver';
+
+    // calendar
+    const first = new Date(s.calYear, s.calMonth, 1);
+    const startDow = first.getDay();
+    const daysInMonth = new Date(s.calYear, s.calMonth+1, 0).getDate();
+    const calendarDays = [];
+    for (let k=0; k<startDow; k++) calendarDays.push({ blank:true, day:'', disabled:true, go:()=>{}, border:'transparent', bg:'transparent', color:'transparent', weight:'400', cursor:'default', isToday:false, todayDot:'transparent' });
+    for (let dnum=1; dnum<=daysInMonth; dnum++) {
+      const iso = `${s.calYear}-${String(s.calMonth+1).padStart(2,'0')}-${String(dnum).padStart(2,'0')}`;
+      const isPast = this.dayDiff(iso) < 0;
+      const selected = f.customDates.includes(iso);
+      const isToday = iso === today;
+      calendarDays.push({
+        day:String(dnum), iso, disabled:isPast,
+        isToday, todayDot: selected ? '#fff' : 'var(--brand-text)',
+        border: selected ? 'var(--cal-selected)' : (isToday ? 'var(--brand-soft)' : 'var(--border)'),
+        bg: selected ? 'var(--cal-selected)' : (isPast ? 'transparent' : 'var(--surface)'),
+        color: selected ? '#fff' : (isPast ? 'var(--text-faint)' : 'var(--text)'),
+        weight: selected || isToday ? '700' : '500',
+        cursor: isPast ? 'not-allowed' : 'pointer',
+        go: isPast ? (()=>{}) : (()=>this.toggleCustomDate(iso))
+      });
+    }
+    const calMonthLabel = first.toLocaleDateString('en-US',{ month:'long', year:'numeric' });
+    const nCustom = f.customDates.length;
+    const customSummary = nCustom ? (nCustom + (nCustom===1?' date selected':' dates selected')) : 'Tap days to add delivery dates';
+
+    // items
+    const itemRows = f.items.map(it => {
+      const p = s.products.find(p=>p.id===it.productId) || { name:'Item', price:0 };
+      return { productId:it.productId, name:p.name, price:p.price, qty:it.qty,
+        inc:()=>this.changeQty(it.productId,1), dec:()=>this.changeQty(it.productId,-1), remove:()=>this.removeItem(it.productId) };
+    });
+    const addableProducts = s.products.filter(p => !f.items.some(i=>i.productId===p.id)).map(p => ({ value:String(p.id), label:p.name+' · ₱'+p.price }));
+    const totalUnits = f.items.reduce((a,i)=>a+i.qty,0);
+
+    const deleteD = s.deliveries.find(d=>d.id===s.deletingId);
+
+    return {
+      sidebarWidth: s.collapsed ? '78px' : '252px',
+      expanded: !s.collapsed,
+      logoJustify: s.collapsed ? 'center' : 'flex-start',
+      navItems,
+      toggleSidebar: () => this.setState(st => ({ collapsed: !st.collapsed, menuId:null, statusMenuId:null })),
+      isDark: s.isDark, notDark: !s.isDark,
+      toggleTheme: () => { const next = !this.state.isDark; try { localStorage.setItem('aqua-theme', next?'dark':'light'); } catch(e){} this.applyTheme(next); },
+      activeTitle: activeMeta ? activeMeta[1] : 'Deliveries',
+      isDeliveries: s.activeNav === 'deliveries',
+      isOther: s.activeNav !== 'deliveries',
+
+      stat,
+      rows, count: rows.length, totalCount: s.deliveries.length,
+      hasResults: rows.length > 0,
+      noResults: rows.length === 0 && s.deliveries.length > 0,
+      isEmpty: s.deliveries.length === 0,
+      search: s.search,
+      setSearch: (ev)=>this.setState({search:ev.target.value}),
+      clearSearch: ()=>this.setState({search:'', statusFilter:'all'}),
+      statusFilters,
+
+      statusMenuOpen: s.statusMenuId !== null,
+      statusMenuTop: s.statusMenuTop, statusMenuLeft: s.statusMenuLeft,
+      closeStatusMenu: ()=>this.setState({statusMenuId:null}),
+      statusOptions,
+
+      menuOpen: s.menuId !== null,
+      menuTop: s.menuTop, menuLeft: s.menuLeft,
+      closeMenu: ()=>this.setState({menuId:null}),
+      menuEdit: ()=>this.openEdit(s.menuId),
+      menuDelete: ()=>this.openDelete(s.menuId),
+
+      openCreate: ()=>this.openCreate(),
+      closeDialog: ()=>this.closeDialog(),
+      stop:(ev)=>ev.stopPropagation(),
+      showForm: s.dialog==='create' || s.dialog==='edit',
+      showDelete: s.dialog==='delete',
+      formTitle: s.dialog==='edit' ? 'Edit delivery' : 'Schedule delivery',
+      formDesc: s.dialog==='edit' ? 'Update this delivery schedule.' : 'Set up a one-off or recurring drop-off.',
+      submitLabel: s.dialog==='edit' ? 'Save changes' : 'Create schedule',
+      submitForm: ()=>this.submitForm(),
+      confirmDelete: ()=>this.confirmDelete(),
+      deleteName: deleteD ? this.custName(deleteD) : '',
+
+      form: f,
+      errors: s.errors,
+      // customer mode
+      isRecordMode, isGuestMode: !isRecordMode,
+      custSelectColor: f.customerId ? 'var(--text)' : 'var(--text-faint)',
+      customerOptions,
+      setCustomerRecord: ()=>this.setForm({ customerMode:'record' }),
+      setCustomerGuest: ()=>this.setForm({ customerMode:'guest' }),
+      recordTabBg: isRecordMode ? 'var(--surface)' : 'transparent',
+      recordTabColor: isRecordMode ? 'var(--brand-text)' : 'var(--text-soft)',
+      recordTabShadow: isRecordMode ? '0 1px 3px rgba(14,108,196,0.18)' : 'none',
+      guestTabBg: !isRecordMode ? 'var(--surface)' : 'transparent',
+      guestTabColor: !isRecordMode ? 'var(--brand-text)' : 'var(--text-soft)',
+      guestTabShadow: !isRecordMode ? '0 1px 3px rgba(14,108,196,0.18)' : 'none',
+      setCustomerId:(ev)=>{ const v=ev.target.value; this.setState(st=>({form:{...st.form,customerId:v}, errors:{}})); },
+      setGuestName:(ev)=>{ const v=ev.target.value; this.setState(st=>({form:{...st.form,guestName:v}, errors:{}})); },
+      setGuestPhone:(ev)=>{ const v=ev.target.value; this.setState(st=>({form:{...st.form,guestPhone:v}})); },
+      setGuestAddress:(ev)=>{ const v=ev.target.value; this.setState(st=>({form:{...st.form,guestAddress:v}})); },
+
+      // schedule mode
+      isRecurring: f.scheduleMode === 'recurring',
+      isCustom: f.scheduleMode === 'custom',
+      setModeRecurring: ()=>this.setForm({ scheduleMode:'recurring' }),
+      setModeCustom: ()=>this.setForm({ scheduleMode:'custom' }),
+      recurModeBorder: f.scheduleMode==='recurring' ? 'var(--brand-soft)' : 'var(--border)',
+      recurModeBg: f.scheduleMode==='recurring' ? 'var(--chip-bg)' : 'var(--surface-2)',
+      recurModeIconBg: f.scheduleMode==='recurring' ? 'var(--brand)' : 'var(--chip-bg)',
+      recurModeIconColor: f.scheduleMode==='recurring' ? '#fff' : 'var(--brand-text)',
+      customModeBorder: f.scheduleMode==='custom' ? 'var(--brand-soft)' : 'var(--border)',
+      customModeBg: f.scheduleMode==='custom' ? 'var(--chip-bg)' : 'var(--surface-2)',
+      customModeIconBg: f.scheduleMode==='custom' ? 'var(--brand)' : 'var(--chip-bg)',
+      customModeIconColor: f.scheduleMode==='custom' ? '#fff' : 'var(--brand-text)',
+
+      // recurring config
+      weekdayChips,
+      setIntervalWeekly: ()=>this.setForm({ interval:'weekly' }),
+      setIntervalBiweekly: ()=>this.setForm({ interval:'biweekly' }),
+      weeklyBorder: f.interval==='weekly' ? 'var(--brand-soft)' : 'var(--border-strong)',
+      weeklyBg: f.interval==='weekly' ? 'var(--chip-bg)' : 'var(--surface)',
+      weeklyColor: f.interval==='weekly' ? 'var(--brand-text)' : 'var(--text-muted)',
+      biweeklyBorder: f.interval==='biweekly' ? 'var(--brand-soft)' : 'var(--border-strong)',
+      biweeklyBg: f.interval==='biweekly' ? 'var(--chip-bg)' : 'var(--surface)',
+      biweeklyColor: f.interval==='biweekly' ? 'var(--brand-text)' : 'var(--text-muted)',
+      setStartDate:(ev)=>{ const v=ev.target.value; this.setState(st=>({form:{...st.form,startDate:v}})); },
+      recurringSummary,
+
+      // calendar
+      weekdayHeaders: ['Su','Mo','Tu','We','Th','Fr','Sa'],
+      calendarDays, calMonthLabel,
+      calPrev: ()=>this.calShift(-1),
+      calNext: ()=>this.calShift(1),
+      customSummary,
+      customSummaryBg: nCustom ? 'var(--chip-bg)' : 'var(--surface-3)',
+      customSummaryColor: nCustom ? 'var(--brand-text)' : 'var(--text-soft)',
+
+      // items
+      itemRows,
+      itemsCountLabel: f.items.length ? (f.items.length+' product'+(f.items.length>1?'s':'')+' · '+totalUnits+' units') : 'None added',
+      addableProducts,
+      addItemValue: '',
+      addItem:(ev)=>{ const v=ev.target.value; if(v) this.addItem(v); ev.target.value=''; },
+
+      setAssignee:(ev)=>{ const v=ev.target.value; this.setState(st=>({form:{...st.form,assignee:v}})); },
+      setNotes:(ev)=>{ const v=ev.target.value; this.setState(st=>({form:{...st.form,notes:v}})); }
+    };
+  }
+}
+</script>
+</body>
+</html>
