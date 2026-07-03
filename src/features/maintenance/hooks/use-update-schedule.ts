@@ -6,6 +6,7 @@ import { updateSchedule } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
 import type { EditMaintenanceValues } from '../maintenance.types'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 export interface UpdateScheduleInput {
   scheduleId: number
@@ -23,6 +24,10 @@ export function useUpdateSchedule(): UseMutationResult<void, Error, UpdateSchedu
       updateSchedule(client, scheduleId, taskId, values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.lists() })
+      toast.success('Task updated.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

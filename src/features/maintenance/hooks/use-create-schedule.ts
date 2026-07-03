@@ -7,6 +7,7 @@ import { maintenanceKeys } from '../maintenance.keys'
 import type { CreateMaintenanceValues, MaintenanceScheduleRow } from '../maintenance.types'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { useMaintenanceOwner } from './use-maintenance-owner'
+import { toast } from '@/stores/toast-store'
 
 /** Creates a schedule + its occurrences and refreshes the board on success. */
 export function useCreateSchedule(): UseMutationResult<
@@ -27,6 +28,10 @@ export function useCreateSchedule(): UseMutationResult<
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.lists() })
+      toast.success('Maintenance task scheduled.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

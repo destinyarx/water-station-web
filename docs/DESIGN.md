@@ -171,6 +171,33 @@ Custom overlay form dialogs use the shared `src/components/app/app-modal.tsx` sh
 
 ---
 
+## Toast Notifications (feature 007-toast)
+
+Global fire-and-forget notifications, separate from `ConfirmDialog` (which blocks on a decision) — toasts only report an outcome.
+
+**Store** — `src/stores/toast-store.ts` is a module-level pub/sub singleton (same pattern as `theme-store.ts`), so it can be called from anywhere: components, hooks, mutation `onSuccess`/`onError`, or plain async functions — not just inside React. Public API:
+
+```ts
+toast.success(message, opts?)
+toast.error(message, opts?)
+toast.warning(message, opts?)
+toast.info(message, opts?)
+```
+
+`opts` is `{ duration?: number; autoClose?: boolean }` — `duration` defaults to `4000`ms, `autoClose` defaults to `true` (pass `false` to require manual dismissal).
+
+**Renderer** — `src/components/app/toast.tsx` exports `<Toaster />`, mounted once in `src/app/providers.tsx` (sibling to `{children}`, inside `QueryClientProvider`) so it's available app-wide. It subscribes via `useSyncExternalStore`.
+
+**Position & stacking** — `position:fixed; top:20px; right:20px; zIndex:200`, a `flex-direction:column; gap:10px` stack, width `min(360px, calc(100vw - 40px))`.
+
+**Card style** — matches the confirm dialog's surface treatment: `var(--app-surface)` background, `1px solid var(--app-border)`, `borderRadius:14px`, elevated shadow (`0 18px 44px rgba(7,40,70,0.22)`). A 30×30 rounded-icon tile on the left keyed to type (`--app-chip-*-bg`/`-text`: green success, red error, amber warning, brand info — the same token pairs as chips elsewhere), the message text, and a small dismiss (×) button.
+
+**Animation** — `toastSlideIn` / `toastSlideOut` keyframes in `globals.css`: enters sliding down from `translateY(-16px)` fading in, exits sliding back up fading out (`.22s ease`). Hovering a toast pauses its auto-close timer.
+
+**Usage** — wired into the Maintenance module: `useCompleteTask`, `useCreateSchedule`, and `useUpdateSchedule` call `toast.success`/`toast.error` from their mutation `onSuccess`/`onError`, alongside the existing query invalidation. New modules should follow the same pattern — fire toasts from the mutation hook, not from the component calling it.
+
+---
+
 ## Stat Cards
 
 Every module's header stat-card row shares one shell and sizing scale, with two variants depending on whether the metric is a plain count or a completion/ratio metric. Reference implementations: `src/features/expenses/components/expenses-page.tsx` (`StatCard`) and `src/features/deliveries/components/deliveries-page.tsx` (`StatCard` + the featured gradient card) for the **plain** variant; `src/features/documents/components/DocumentsPage.tsx` (`StatChip`) for the **completion-bar** variant. New modules should build on this section instead of inventing their own stat-card shape.
