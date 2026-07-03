@@ -1,0 +1,153 @@
+
+> water-station-web@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.7 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.81.234.130:3000
+- Environments: .env
+✓ Ready in 1197ms
+Creating turbopack project {
+  dir: 'C:\\Users\\AlphaQuadrant\\Documents\\0 self project\\Agent Projects\\water-station-web',
+  testMode: true
+}
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+[Middleware Log] {
+  url: 'http://localhost:3000/',
+  pathname: '/',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET / 200 in 3.5s (next.js: 368ms, proxy.ts: 2.3s, application-code: 805ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/dashboard',
+  pathname: '/dashboard',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /dashboard 200 in 317ms (next.js: 151ms, proxy.ts: 55ms, application-code: 111ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/deliveries',
+  pathname: '/deliveries',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /deliveries 200 in 245ms (next.js: 158ms, proxy.ts: 44ms, application-code: 42ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/customers',
+  pathname: '/customers',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /customers 200 in 298ms (next.js: 184ms, proxy.ts: 20ms, application-code: 93ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/deliveries',
+  pathname: '/deliveries',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /deliveries 200 in 93ms (next.js: 12ms, proxy.ts: 29ms, application-code: 52ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/maintenances',
+  pathname: '/maintenances',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /maintenances 200 in 264ms (next.js: 169ms, proxy.ts: 39ms, application-code: 57ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/deliveries',
+  pathname: '/deliveries',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /deliveries 200 in 110ms (next.js: 15ms, proxy.ts: 30ms, application-code: 65ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/documents',
+  pathname: '/documents',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /documents 200 in 254ms (next.js: 151ms, proxy.ts: 23ms, application-code: 80ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/expenses',
+  pathname: '/expenses',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /expenses 200 in 247ms (next.js: 144ms, proxy.ts: 45ms, application-code: 58ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/documents',
+  pathname: '/documents',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /documents 200 in 101ms (next.js: 11ms, proxy.ts: 38ms, application-code: 51ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/maintenances',
+  pathname: '/maintenances',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /maintenances 200 in 108ms (next.js: 13ms, proxy.ts: 31ms, application-code: 65ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/expenses',
+  pathname: '/expenses',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /expenses 200 in 57ms (next.js: 8ms, proxy.ts: 18ms, application-code: 31ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/documents',
+  pathname: '/documents',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /documents 200 in 85ms (next.js: 17ms, proxy.ts: 30ms, application-code: 38ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/expenses',
+  pathname: '/expenses',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /expenses 200 in 96ms (next.js: 11ms, proxy.ts: 38ms, application-code: 48ms)
+[Middleware Log] {
+  url: 'http://localhost:3000/expenses',
+  pathname: '/expenses',
+  userId: 'present',
+  onPublicRoute: false,
+  onRegistrationRoute: false,
+  registered: true
+}
+ GET /expenses 200 in 91ms (next.js: 10ms, proxy.ts: 32ms, application-code: 50ms)

@@ -84,7 +84,7 @@ export function CustomersPage() {
       </div>
 
       {/* stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '16px', marginBottom: '22px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '14px', marginBottom: '18px' }}>
         <StatCard label="Total customers" value={customers.length} helper="Across all active refill accounts" accent="#0a6cc4" glow="rgba(56,189,248,0.16)" waveColor="rgba(56,189,248,0.16)" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={DropIcon} />
         <StatCard label="Business accounts" value={businessCount} helper="Offices, shops & commercial orders" accent="#38bdf8" glow="rgba(56,189,248,0.14)" waveColor="rgba(56,189,248,0.14)" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M6 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16" /><path d="M15 9h2a2 2 0 0 1 2 2v10" /><path d="M9 7h2M9 11h2M9 15h2" /><path d="M4 21h16" /></svg>} />
         <StatCard label="Households" value={householdCount} helper="Individual delivery customers" accent="#22c55e" glow="rgba(34,197,94,0.14)" waveColor="rgba(34,197,94,0.14)" iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M4 11.5 12 5l8 6.5" /><path d="M6 10.5V20h12v-9.5" /><path d="M10 20v-5h4v5" /></svg>} />
@@ -174,19 +174,19 @@ interface StatCardProps {
 
 function StatCard({ label, value, helper, accent, glow, waveColor, iconBg, iconColor, icon }: StatCardProps) {
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '18px', padding: '20px', boxShadow: 'var(--app-shadow-card)' }}>
-      <div style={{ position: 'absolute', right: '-24px', top: '-28px', width: '104px', height: '104px', borderRadius: '50%', background: `radial-gradient(circle, ${glow}, transparent 70%)`, pointerEvents: 'none' }} />
+    <div style={{ position: 'relative', overflow: 'hidden', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '16px', padding: '15px 16px', boxShadow: 'var(--app-shadow-card)' }}>
+      <div style={{ position: 'absolute', right: '-20px', top: '-22px', width: '86px', height: '86px', borderRadius: '50%', background: `radial-gradient(circle, ${glow}, transparent 70%)`, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: '-1px', lineHeight: 0, pointerEvents: 'none', opacity: 0.6 }}>
-        <svg viewBox="0 0 320 36" width="100%" height="26" preserveAspectRatio="none"><path d="M0 20 C50 6 92 30 160 20 C224 11 272 28 320 16 L320 36 L0 36 Z" fill={waveColor} /></svg>
+        <svg viewBox="0 0 320 36" width="100%" height="20" preserveAspectRatio="none"><path d="M0 20 C50 6 92 30 160 20 C224 11 272 28 320 16 L320 36 L0 36 Z" fill={waveColor} /></svg>
       </div>
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--app-text-faint)' }}>{label}</div>
-          <div style={{ fontSize: '34px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--app-text)', marginTop: '12px' }}>{value}</div>
+          <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--app-text-faint)' }}>{label}</div>
+          <div style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--app-text)', marginTop: '8px' }}>{value}</div>
         </div>
-        <div style={{ flex: 'none', width: '42px', height: '42px', borderRadius: '13px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+        <div style={{ flex: 'none', width: '34px', height: '34px', borderRadius: '11px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       </div>
-      <div style={{ position: 'relative', fontSize: '12.5px', color: 'var(--app-text-soft)', marginTop: '12px' }}>{helper}</div>
+      <div style={{ position: 'relative', fontSize: '12px', color: 'var(--app-text-soft)', marginTop: '8px' }}>{helper}</div>
     </div>
   )
 }

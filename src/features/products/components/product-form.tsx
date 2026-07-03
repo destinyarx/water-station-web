@@ -60,8 +60,11 @@ export function ProductForm({
 
   const isStockTracked = watch('isStockTracked')
   const submit = handleSubmit((values) => onSubmit(values))
-  const numberSetValueAs = (value: string): number | undefined =>
-    value.trim() === '' ? undefined : Number(value)
+  const numberSetValueAs = (value: unknown): number | undefined => {
+    if (typeof value === 'number') return Number.isNaN(value) ? undefined : value
+    if (typeof value !== 'string') return undefined
+    return value.trim() === '' ? undefined : Number(value)
+  }
 
   return (
     <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} noValidate>

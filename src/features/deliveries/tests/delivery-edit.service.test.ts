@@ -12,7 +12,9 @@ const editedRow = {
   delivery_date: '2026-06-20',
   status: 'pending',
   failure_remarks: null,
+  cancellation_remarks: null,
   notes: 'Updated note.',
+  assigned_to: null,
   delivered_by: null,
   completed_at: null,
   org_id: 321,
@@ -44,6 +46,7 @@ const values: DeliveryFormValues = {
   deliveryDate: '2026-06-20',
   items: [{ productId: 10, productName: 'Bottle', quantity: 2, unitPrice: 30 }],
   notes: 'Updated note.',
+  assignedTo: '',
 }
 
 function createClient() {
