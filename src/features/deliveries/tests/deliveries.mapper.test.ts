@@ -37,6 +37,7 @@ const values: DeliveryFormValues = {
     },
   ],
   notes: 'Call before leaving.',
+  assignedTo: '',
 }
 
 const owner = { orgId: 321, createdBy: 'user_123' }
@@ -58,6 +59,7 @@ describe('delivery mappers', () => {
       end_date: null,
       status: 'active',
       notes: 'Call before leaving.',
+      assigned_to: null,
       org_id: 321,
       created_by: 'user_123',
     })
@@ -69,6 +71,7 @@ describe('delivery mappers', () => {
       delivery_date: '2026-06-16',
       status: 'pending',
       notes: 'Call before leaving.',
+      assigned_to: null,
       org_id: 321,
       created_by: 'user_123',
     })
@@ -100,7 +103,9 @@ describe('delivery mappers', () => {
       delivery_date: '2026-06-16',
       status: 'pending',
       failure_remarks: null,
+      cancellation_remarks: null,
       notes: 'Call before leaving.',
+      assigned_to: null,
       delivered_by: null,
       completed_at: null,
       org_id: 321,

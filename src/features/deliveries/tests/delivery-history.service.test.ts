@@ -3,14 +3,16 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { getDeliveryHistory } from '../services/delivery-history.service'
 
-function historyRow(id: number, status: 'completed' | 'failed') {
+function historyRow(id: number, status: 'completed' | 'failed' | 'cancelled') {
   return {
     id,
     schedule_id: 99,
     delivery_date: '2026-06-20',
     status,
     failure_remarks: status === 'failed' ? 'No one home.' : null,
+    cancellation_remarks: status === 'cancelled' ? 'Customer cancelled.' : null,
     notes: null,
+    assigned_to: null,
     delivered_by: 'user_123',
     completed_at: status === 'completed' ? '2026-06-20T08:00:00.000Z' : null,
     org_id: 321,
@@ -37,7 +39,10 @@ function createClient(rowCount: number) {
       range: (from: number, to: number) => {
         range(from, to)
         const data = Array.from({ length: rowCount }, (_, i) =>
-          historyRow(i + 1, i % 2 === 0 ? 'completed' : 'failed'),
+          historyRow(
+            i + 1,
+            i % 3 === 0 ? 'completed' : i % 3 === 1 ? 'failed' : 'cancelled',
+          ),
         )
         return Promise.resolve({ data, error: null })
       },
@@ -57,12 +62,12 @@ function createClient(rowCount: number) {
 }
 
 describe('getDeliveryHistory', () => {
-  it('reads only completed and failed rows, paginated with a probe row', async () => {
+  it('reads terminal rows, paginated with a probe row', async () => {
     const { client, range, filters } = createClient(4)
 
     const page = await getDeliveryHistory(client, 0, 3)
 
-    expect(filters.statusIn).toEqual(['completed', 'failed'])
+    expect(filters.statusIn).toEqual(['completed', 'failed', 'cancelled'])
     expect(range).toHaveBeenCalledWith(0, 3)
     expect(page.hasNext).toBe(true)
     expect(page.deliveries).toHaveLength(3)

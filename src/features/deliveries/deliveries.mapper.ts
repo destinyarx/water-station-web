@@ -10,15 +10,23 @@ import type {
   DeliveryItemRow,
   DeliveryOwner,
   DeliveryRow,
+  DeliveryScheduleDateInsert,
   DeliveryScheduleFormValues,
   DeliveryScheduleInsert,
   DeliveryScheduleItemInsert,
   DeliveryWeeklyScheduleInsert,
+  OrgUser,
+  OrgUserRow,
+  UnifiedDeliveryFormValues,
 } from './deliveries.types'
 
 function emptyToNull(value: string | undefined): string | null {
   const trimmed = value?.trim()
   return trimmed ? trimmed : null
+}
+
+function selectedAssignee(value: string | undefined): string | null {
+  return emptyToNull(value)
 }
 
 export function toScheduleInsertRow(
@@ -42,6 +50,7 @@ export function toScheduleInsertRow(
     end_date: null,
     status: 'active',
     notes: emptyToNull(values.notes),
+    assigned_to: selectedAssignee(values.assignedTo),
     org_id: owner.orgId,
     created_by: owner.createdBy,
   }
@@ -68,9 +77,77 @@ export function toWeeklyScheduleInsertRow(
     end_date: values.endDate,
     status: 'active',
     notes: emptyToNull(values.notes),
+    assigned_to: selectedAssignee(values.assignedTo),
     org_id: owner.orgId,
     created_by: owner.createdBy,
   }
+}
+
+export function toUnifiedScheduleInsertRow(
+  values: UnifiedDeliveryFormValues,
+  owner: DeliveryOwner,
+): DeliveryScheduleInsert | DeliveryWeeklyScheduleInsert {
+  const isCustomerDelivery = values.targetType === 'customer'
+  const assignedTo = selectedAssignee(values.assignedTo)
+  const base = {
+    customer_id: isCustomerDelivery ? values.customerId ?? null : null,
+    guest_name: isCustomerDelivery ? null : emptyToNull(values.guestName),
+    guest_contact: isCustomerDelivery ? null : emptyToNull(values.guestContact),
+    guest_address: isCustomerDelivery ? null : emptyToNull(values.guestAddress),
+    status: 'active' as const,
+    notes: emptyToNull(values.notes),
+    assigned_to: assignedTo,
+    org_id: owner.orgId,
+    created_by: owner.createdBy,
+  }
+
+  if (values.scheduleMode === 'recurring_route') {
+    return {
+      ...base,
+      recurrence_type: 'weekly',
+      delivery_date: null,
+      start_date: values.startDate,
+      weekdays: values.weekdays,
+      interval_weeks: values.intervalWeeks,
+      day_of_month: null,
+      interval_months: null,
+      end_date: values.endDate,
+    }
+  }
+
+  return {
+    ...base,
+    recurrence_type: 'custom_dates',
+    delivery_date: null,
+    start_date: values.customDates.slice().sort()[0] ?? null,
+    weekdays: null,
+    interval_weeks: null,
+    day_of_month: null,
+    interval_months: null,
+    end_date: null,
+  }
+}
+
+export function toRecurringRouteScheduleInsertRow(
+  values: UnifiedDeliveryFormValues,
+  owner: DeliveryOwner,
+): DeliveryWeeklyScheduleInsert {
+  const row = toUnifiedScheduleInsertRow(values, owner)
+  if (row.recurrence_type !== 'weekly') {
+    throw new Error('Expected recurring route values.')
+  }
+  return row
+}
+
+export function toCustomDatesScheduleInsertRow(
+  values: UnifiedDeliveryFormValues,
+  owner: DeliveryOwner,
+): DeliveryScheduleInsert {
+  const row = toUnifiedScheduleInsertRow(values, owner)
+  if (row.recurrence_type !== 'custom_dates') {
+    throw new Error('Expected custom-date values.')
+  }
+  return row
 }
 
 export function toScheduleItemInsertRows(
@@ -89,6 +166,20 @@ export function toScheduleItemInsertRows(
   }))
 }
 
+export function toScheduleDateInsertRows(
+  scheduleId: number,
+  values: Pick<UnifiedDeliveryFormValues, 'customDates'>,
+  owner: DeliveryOwner,
+): DeliveryScheduleDateInsert[] {
+  return [...new Set(values.customDates)]
+    .sort()
+    .map((date) => ({
+      schedule_id: scheduleId,
+      delivery_date: date,
+      org_id: owner.orgId,
+    }))
+}
+
 export function toDeliveryInsertRow(
   scheduleId: number,
   values: DeliveryFormValues,
@@ -99,14 +190,34 @@ export function toDeliveryInsertRow(
     delivery_date: values.deliveryDate,
     status: 'pending',
     notes: emptyToNull(values.notes),
+    assigned_to: selectedAssignee(values.assignedTo),
     org_id: owner.orgId,
     created_by: owner.createdBy,
   }
 }
 
+export function toCustomDateDeliveryInsertRows(
+  scheduleId: number,
+  values: UnifiedDeliveryFormValues,
+  owner: DeliveryOwner,
+): DeliveryInsert[] {
+  const assignedTo = selectedAssignee(values.assignedTo)
+  return [...new Set(values.customDates)]
+    .sort()
+    .map((date) => ({
+      schedule_id: scheduleId,
+      delivery_date: date,
+      status: 'pending',
+      notes: emptyToNull(values.notes),
+      assigned_to: assignedTo,
+      org_id: owner.orgId,
+      created_by: owner.createdBy,
+    }))
+}
+
 export function toDeliveryItemInsertRows(
   deliveryId: number,
-  values: Pick<DeliveryFormValues, 'items'>,
+  values: Pick<DeliveryFormValues | UnifiedDeliveryFormValues, 'items'>,
   owner: DeliveryOwner,
 ): DeliveryItemInsert[] {
   return values.items.map((item) => ({
@@ -148,7 +259,9 @@ export function toDelivery(
     deliveryDate: row.delivery_date,
     status: row.status,
     failureRemarks: row.failure_remarks,
+    cancellationRemarks: row.cancellation_remarks,
     notes: row.notes,
+    assignedTo: row.assigned_to,
     deliveredBy: row.delivered_by,
     completedAt: row.completed_at,
     orgId: row.org_id,
@@ -159,6 +272,10 @@ export function toDelivery(
     items,
     total: items.reduce((sum, item) => sum + item.lineTotal, 0),
   }
+}
+
+export function toOrgUser(row: OrgUserRow): OrgUser {
+  return { clerkId: row.clerk_id, name: row.name ?? '' }
 }
 
 export function toStatusTransitionItems(

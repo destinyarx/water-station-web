@@ -41,21 +41,21 @@ export function ExpensesPage() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '14px', marginBottom: '18px' }}>
         {/* Spent this month */}
-        <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#0b73c8,#075098)', borderRadius: '18px', padding: '20px', boxShadow: '0 14px 30px rgba(14,108,196,0.26)' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#0b73c8,#075098)', borderRadius: '16px', padding: '15px 16px', boxShadow: '0 14px 30px rgba(14,108,196,0.26)' }}>
           <div style={{ position: 'absolute', right: '-20px', bottom: '-24px', lineHeight: 0, opacity: 0.22 }}>
             <svg width="150" height="90" viewBox="0 0 150 90" preserveAspectRatio="none"><path d="M0 50 C30 30 55 64 85 48 C115 32 135 56 150 44 L150 90 L0 90 Z" fill="#fff" /></svg>
           </div>
           <div style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#bfe2ff' }}>Spent this month</div>
-              <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5" /><path d="M3 10h18" /></svg>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#bfe2ff' }}>Spent this month</div>
+              <div style={{ width: '28px', height: '28px', borderRadius: '9px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5" /><path d="M3 10h18" /></svg>
               </div>
             </div>
-            <div style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1 }}>{pesoFormatter.format(summary.thisMonth)}</div>
-            <div style={{ fontSize: '12.5px', color: '#bfe2ff', marginTop: '10px' }}>{summary.thisMonthLabel} · {summary.thisMonthCount} entries</div>
+            <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1 }}>{pesoFormatter.format(summary.thisMonth)}</div>
+            <div style={{ fontSize: '12px', color: '#bfe2ff', marginTop: '7px' }}>{summary.thisMonthLabel} · {summary.thisMonthCount} entries</div>
           </div>
         </div>
 
@@ -65,7 +65,7 @@ export function ExpensesPage() {
           iconColor="var(--app-brand)"
           iconBg="var(--app-chip-bg)"
           accentColor="#38bdf8"
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M4 5h16M4 12h16M4 19h10" /></svg>}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M4 5h16M4 12h16M4 19h10" /></svg>}
           value={pesoFormatter.format(summary.totalExpenses)}
           sub={`${expenseList.length} expense entries`}
         />
@@ -76,7 +76,7 @@ export function ExpensesPage() {
           iconColor="#8b5cf6"
           iconBg="rgba(139,92,246,0.14)"
           accentColor="#8b5cf6"
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M12 3v9l6 3" /><circle cx="12" cy="12" r="9" /></svg>}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M12 3v9l6 3" /><circle cx="12" cy="12" r="9" /></svg>}
           value={summary.largestCategoryLabel}
           sub={`${pesoFormatter.format(summary.largestCategoryTotal)} spent so far`}
           valueSmall
@@ -88,7 +88,7 @@ export function ExpensesPage() {
           iconColor="var(--app-chip-amber-text)"
           iconBg="var(--app-chip-amber-bg)"
           accentColor="#f59e0b"
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M4 18V8m6 10V5m6 13v-8" /><path d="M3 21h18" /></svg>}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M4 18V8m6 10V5m6 13v-8" /><path d="M3 21h18" /></svg>}
           value={pesoFormatter.format(summary.largestExpense)}
           sub={summary.largestExpenseLabel}
         />
@@ -161,13 +161,13 @@ interface StatCardProps {
 
 function StatCard({ label, iconColor, iconBg, accentColor, icon, value, sub, valueSmall }: StatCardProps) {
   return (
-    <div style={{ background: 'var(--app-surface)', border: `1px solid var(--app-border)`, borderLeft: `3px solid ${accentColor}`, borderRadius: '18px', padding: '20px', boxShadow: 'var(--app-shadow-card)' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '3px' }}>{label}</div>
-        <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+    <div style={{ background: 'var(--app-surface)', border: `1px solid var(--app-border)`, borderLeft: `3px solid ${accentColor}`, borderRadius: '16px', padding: '15px 16px', boxShadow: 'var(--app-shadow-card)' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '2px' }}>{label}</div>
+        <div style={{ width: '28px', height: '28px', borderRadius: '9px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       </div>
-      <div style={{ fontSize: valueSmall ? '21px' : '32px', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--app-text)', lineHeight: 1.1 }}>{value}</div>
-      <div style={{ fontSize: '12.5px', color: 'var(--app-text-soft)', marginTop: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</div>
+      <div style={{ fontSize: valueSmall ? '18px' : '25px', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--app-text)', lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: '12px', color: 'var(--app-text-soft)', marginTop: '7px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</div>
     </div>
   )
 }

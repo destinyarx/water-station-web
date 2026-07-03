@@ -24,6 +24,8 @@ export const DELIVERY_STATUS_ERROR =
 export const ILLEGAL_TRANSITION_ERROR = 'That status change is not allowed.'
 export const FAILURE_REMARKS_REQUIRED_ERROR =
   'Add a reason for the failed delivery.'
+export const CANCELLATION_REMARKS_REQUIRED_ERROR =
+  'Add a reason for cancelling the delivery.'
 
 export interface StatusUpdateInput {
   deliveryId: number
@@ -33,6 +35,7 @@ export interface StatusUpdateInput {
   /** Clerk user id, stamped as `delivered_by` when entering `for_delivery`. */
   deliveredBy: string
   failureRemarks?: string | null
+  cancellationRemarks?: string | null
 }
 
 /**
@@ -63,6 +66,10 @@ export async function updateDeliveryStatus(
   if (transition.failureRemarks === 'require' && remarks === '') {
     throw new Error(FAILURE_REMARKS_REQUIRED_ERROR)
   }
+  const cancellationRemarks = input.cancellationRemarks?.trim() ?? ''
+  if (transition.cancellationRemarks === 'require' && cancellationRemarks === '') {
+    throw new Error(CANCELLATION_REMARKS_REQUIRED_ERROR)
+  }
 
   await applyStockDeltas(client, transition.stockDeltas, input.items)
 
@@ -70,6 +77,8 @@ export async function updateDeliveryStatus(
     status: input.to,
     completed_at: transition.completedAt === 'set' ? new Date().toISOString() : null,
     failure_remarks: transition.failureRemarks === 'require' ? remarks : null,
+    cancellation_remarks:
+      transition.cancellationRemarks === 'require' ? cancellationRemarks : null,
     updated_at: new Date().toISOString(),
   }
   if (transition.stampDeliveredBy) {

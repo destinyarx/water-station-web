@@ -3,12 +3,16 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   DELIVERIES_LOAD_ERROR,
   DELIVERIES_TABLE,
+  DELIVERY_SCHEDULES_TABLE,
 } from '../deliveries.constants'
 
 export interface DeliveryQueueCounts {
   activeToday: number
   pendingBacklog: number
   completedToday: number
+  forDelivery: number
+  thisWeek: number
+  activeWeeklySchedules: number
 }
 
 /** Shifts a `YYYY-MM-DD` date by whole days in UTC (no tz drift). */
@@ -32,11 +36,6 @@ async function countRows(
   return count ?? 0
 }
 
-/**
- * Three bounded `head: true` count queries for the queue cards. Each is
- * org-scoped under RLS and excludes soft-deleted rows. `today` is injectable so
- * the boundary is deterministic in tests.
- */
 export async function getDeliveryQueueCounts(
   client: SupabaseClient,
   today: string = todayIso(),
@@ -45,21 +44,37 @@ export async function getDeliveryQueueCounts(
   const base = () =>
     client.from(DELIVERIES_TABLE).select('id', countOptions).is('deleted_at', null)
 
-  const [activeToday, pendingBacklog, completedToday] = await Promise.all([
-    countRows(base().eq('status', 'pending').eq('delivery_date', today)),
-    countRows(
-      base()
-        .eq('status', 'pending')
-        .gte('delivery_date', addDays(today, -7))
-        .lte('delivery_date', addDays(today, -1)),
-    ),
-    countRows(
-      base()
-        .eq('status', 'completed')
-        .gte('completed_at', today)
-        .lt('completed_at', addDays(today, 1)),
-    ),
-  ])
+  const [activeToday, pendingBacklog, completedToday, forDelivery, thisWeek, activeWeeklySchedules] =
+    await Promise.all([
+      countRows(base().eq('status', 'pending').eq('delivery_date', today)),
+      countRows(
+        base()
+          .eq('status', 'pending')
+          .gte('delivery_date', addDays(today, -7))
+          .lte('delivery_date', addDays(today, -1)),
+      ),
+      countRows(
+        base()
+          .eq('status', 'completed')
+          .gte('completed_at', today)
+          .lt('completed_at', addDays(today, 1)),
+      ),
+      countRows(base().eq('status', 'for_delivery')),
+      countRows(
+        base()
+          .in('status', ['pending', 'for_delivery'])
+          .gte('delivery_date', today)
+          .lte('delivery_date', addDays(today, 6)),
+      ),
+      countRows(
+        client
+          .from(DELIVERY_SCHEDULES_TABLE)
+          .select('id', countOptions)
+          .eq('recurrence_type', 'weekly')
+          .eq('status', 'active')
+          .is('deleted_at', null),
+      ),
+    ])
 
-  return { activeToday, pendingBacklog, completedToday }
+  return { activeToday, pendingBacklog, completedToday, forDelivery, thisWeek, activeWeeklySchedules }
 }

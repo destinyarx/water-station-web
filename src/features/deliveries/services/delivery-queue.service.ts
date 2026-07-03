@@ -7,29 +7,37 @@ import {
   DELIVERIES_LOAD_ERROR,
   DELIVERY_ITEM_COLUMNS,
   DELIVERY_ITEMS_TABLE,
+  DELIVERY_SCHEDULES_TABLE,
 } from '../deliveries.constants'
 import { toDelivery } from '../deliveries.mapper'
 import { applyLimitPlusOne, DELIVERIES_PAGE_SIZE } from '../deliveries.pagination'
 import {
   currentDeliveryRowSchema,
   deliveryItemRowSchema,
+  deliveryRecurrenceTypeSchema,
 } from '../deliveries.schema'
-import type { Delivery, DeliveryItemRow } from '../deliveries.types'
+import type { Delivery, DeliveryItemRow, DeliveryScheduleInfo } from '../deliveries.types'
 
 const currentDeliveryRowsSchema = z.array(currentDeliveryRowSchema)
 const deliveryItemRowsSchema = z.array(deliveryItemRowSchema)
+
+const scheduleInfoRowSchema = z.object({
+  id: z.number().int(),
+  customer_id: z.number().int().nullable(),
+  guest_name: z.string().nullable(),
+  guest_address: z.string().nullable(),
+  recurrence_type: deliveryRecurrenceTypeSchema,
+  weekdays: z.array(z.number().int()).nullable(),
+  interval_weeks: z.number().int().nullable(),
+})
+
+const scheduleInfoRowsSchema = z.array(scheduleInfoRowSchema)
 
 export interface CurrentQueuePage {
   deliveries: Delivery[]
   hasNext: boolean
 }
 
-/**
- * Reads one page of the current delivery queue from `v_current_deliveries`
- * (model B: overdue, due-today, and each schedule's nearest upcoming run).
- * Prev/next pagination uses `pageSize + 1` probing — no count query. The view is
- * `security_invoker`, so RLS scopes rows to the caller's org.
- */
 export async function getCurrentDeliveries(
   client: SupabaseClient,
   page: number,
@@ -66,9 +74,36 @@ export async function getCurrentDeliveries(
   }
 
   const itemRows = deliveryItemRowsSchema.parse(itemData ?? [])
-  const deliveries = rows.map((row) =>
-    toDelivery({ ...row, deleted_at: null }, itemsForDelivery(row.id, itemRows)),
+
+  const scheduleIds = [...new Set(rows.map((row) => row.schedule_id))]
+  const { data: schedData, error: schedError } = await client
+    .from(DELIVERY_SCHEDULES_TABLE)
+    .select('id, customer_id, guest_name, guest_address, recurrence_type, weekdays, interval_weeks')
+    .in('id', scheduleIds)
+
+  if (schedError) {
+    throw new Error(DELIVERIES_LOAD_ERROR)
+  }
+
+  const scheduleRows = scheduleInfoRowsSchema.parse(schedData ?? [])
+  const scheduleMap = new Map<number, DeliveryScheduleInfo>(
+    scheduleRows.map((s) => [
+      s.id,
+      {
+        customerId: s.customer_id,
+        guestName: s.guest_name,
+        guestAddress: s.guest_address,
+        recurrenceType: s.recurrence_type,
+        weekdays: s.weekdays,
+        intervalWeeks: s.interval_weeks,
+      },
+    ]),
   )
+
+  const deliveries = rows.map((row) => ({
+    ...toDelivery({ ...row, deleted_at: null }, itemsForDelivery(row.id, itemRows)),
+    scheduleInfo: scheduleMap.get(row.schedule_id),
+  }))
 
   return { deliveries, hasNext }
 }

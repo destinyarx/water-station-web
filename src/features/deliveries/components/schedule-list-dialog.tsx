@@ -1,16 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { CalendarClock, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { AppModal } from '@/components/app/app-modal'
 import type { Customer } from '@/features/customers/customers.types'
 import { MATERIALIZE_HORIZON_DAYS } from '../deliveries.constants'
 import {
@@ -27,6 +19,13 @@ interface ScheduleListDialogProps {
   onOpenChange: (open: boolean) => void
   customers: Customer[]
 }
+
+const SCHEDULE_ICON = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round">
+    <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
+    <path d="M3 9h18M8 2.5v4M16 2.5v4" />
+  </svg>
+)
 
 export function ScheduleListDialog({
   open,
@@ -72,24 +71,18 @@ export function ScheduleListDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto border-[#dcecff] bg-white shadow-[0_24px_70px_rgba(0,48,73,0.16)] sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-heading text-2xl font-semibold text-[#001d34]">
-            <CalendarClock className="size-6 text-[#00b4d8]" aria-hidden="true" />
-            Recurring schedules
-          </DialogTitle>
-          <DialogDescription className="text-[#2a4b6a]">
-            Standing orders that generate deliveries automatically. Stop to pause
-            future runs; resume to continue.
-          </DialogDescription>
-        </DialogHeader>
-
+    <AppModal
+      open={open}
+      onOpenChange={handleOpenChange}
+      title="Recurring schedules"
+      description="Standing orders that generate deliveries automatically. Stop to pause future runs; resume to continue."
+      icon={SCHEDULE_ICON}
+      maxWidth="640px"
+      bodyPadding="20px 26px 0"
+    >
+      <div style={{ maxHeight: '58vh', overflowY: 'auto', paddingBottom: '16px' }}>
         {message ? (
-          <p
-            role="status"
-            className="rounded-xl border border-[#bdefff] bg-[#eef7ff] px-3 py-2 text-sm font-semibold text-[#00677d]"
-          >
+          <p role="status" style={{ borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-chip-bg)', color: 'var(--app-brand)', padding: '9px 12px', fontSize: '13.5px', fontWeight: 600, margin: '0 0 14px' }}>
             {message}
           </p>
         ) : null}
@@ -97,27 +90,24 @@ export function ScheduleListDialog({
         {query.isPending ? (
           <ScheduleSkeleton />
         ) : query.isError ? (
-          <p
-            role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-          >
+          <p role="alert" style={{ borderRadius: '11px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '10px 13px', fontSize: '13.5px', color: '#dc2626' }}>
             {query.error.message}
           </p>
         ) : schedules.length === 0 ? (
-          <p className="py-10 text-center text-sm text-[#2a4b6a]">
+          <p style={{ padding: '38px 0', textAlign: 'center', fontSize: '14px', color: 'var(--app-text-muted)' }}>
             No recurring schedules yet.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul style={{ display: 'flex', flexDirection: 'column', gap: '8px', listStyle: 'none', margin: 0, padding: 0 }}>
             {schedules.map((schedule) => (
               <li
                 key={schedule.id}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-[#dcecff] bg-white p-3"
+                style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', borderRadius: '14px', border: '1px solid var(--app-border)', background: 'var(--app-surface)', padding: '12px' }}
               >
-                <div className="min-w-0 space-y-1">
-                  <div className="flex items-center gap-2">
+                <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <ScheduleStatusBadge status={schedule.status} />
-                    <span className="truncate text-sm font-semibold text-[#001d34]">
+                    <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {scheduleRecipient(
                         schedule,
                         schedule.customer_id != null
@@ -126,10 +116,10 @@ export function ScheduleListDialog({
                       )}
                     </span>
                   </div>
-                  <p className="text-sm text-[#2a4b6a]">
+                  <p style={{ fontSize: '13px', color: 'var(--app-text-soft)', margin: 0 }}>
                     {recurrenceSummary(schedule)}
                   </p>
-                  <p className="text-sm text-[#2a4b6a]">
+                  <p style={{ fontSize: '13px', color: 'var(--app-text-soft)', margin: 0 }}>
                     Next:{' '}
                     {formatNext(
                       nextUpcomingDate(schedule, today, MATERIALIZE_HORIZON_DAYS),
@@ -137,60 +127,54 @@ export function ScheduleListDialog({
                     )}
                   </p>
                 </div>
-                <Button
+                <button
                   type="button"
-                  variant="outline"
                   disabled={mutation.isPending}
                   onClick={() => toggle(schedule)}
-                  className="h-9 rounded-xl border-[#bdefff] text-[#00677d] hover:bg-[#eef7ff]"
+                  style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '9px 16px', borderRadius: '10px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: mutation.isPending ? 'default' : 'pointer' }}
                 >
                   {schedule.status === 'active' ? (
                     <>
-                      <Pause className="size-4" />
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
                       Stop
                     </>
                   ) : (
                     <>
-                      <Play className="size-4" />
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7Z" /></svg>
                       Resume
                     </>
                   )}
-                </Button>
+                </button>
               </li>
             ))}
           </ul>
         )}
+      </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-[#dcecff] pt-3">
-          <p className="text-sm text-[#2a4b6a]">
-            Page {page + 1}
-            {query.isFetching ? ' · updating…' : ''}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setPage((current) => Math.max(0, current - 1))}
-              disabled={page === 0 || query.isFetching}
-              className="h-9 rounded-xl border-[#bdefff] text-[#00677d] hover:bg-[#eef7ff]"
-            >
-              <ChevronLeft className="size-4" />
-              Prev
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setPage((current) => current + 1)}
-              disabled={!hasNext || query.isFetching}
-              className="h-9 rounded-xl border-[#bdefff] text-[#00677d] hover:bg-[#eef7ff]"
-            >
-              Next
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 0', borderTop: '1px solid var(--app-border)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--app-text-soft)' }}>
+          Page {page + 1}
+          {query.isFetching ? ' · updating…' : ''}
+        </span>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <PagBtn onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={page === 0 || query.isFetching}>← Prev</PagBtn>
+          <PagBtn onClick={() => setPage((current) => current + 1)} disabled={!hasNext || query.isFetching}>Next →</PagBtn>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </AppModal>
+  )
+}
+
+function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--app-border-strong)', background: disabled ? 'var(--app-surface-2)' : 'var(--app-surface)', color: disabled ? 'var(--app-text-faint)' : 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: disabled ? 'default' : 'pointer' }}
+    >
+      {children}
+    </button>
   )
 }
 
@@ -199,17 +183,21 @@ function ScheduleStatusBadge({
 }: {
   status: DeliveryScheduleRow['status']
 }) {
-  const styles =
+  const bg =
     status === 'active'
-      ? 'bg-[#00f5d4]/15 text-[#005144]'
+      ? 'var(--app-chip-green-bg)'
       : status === 'paused'
-        ? 'bg-amber-100 text-amber-700'
-        : 'bg-slate-100 text-slate-600'
+        ? 'var(--app-chip-amber-bg)'
+        : 'var(--app-chip-gray-bg)'
+  const text =
+    status === 'active'
+      ? 'var(--app-chip-green-text)'
+      : status === 'paused'
+        ? 'var(--app-chip-amber-text)'
+        : 'var(--app-chip-gray-text)'
 
   return (
-    <span
-      className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold capitalize ${styles}`}
-    >
+    <span style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '8px', background: bg, color: text, padding: '4px 10px', fontSize: '11.5px', fontWeight: 700, textTransform: 'capitalize' }}>
       {status}
     </span>
   )
@@ -217,12 +205,9 @@ function ScheduleStatusBadge({
 
 function ScheduleSkeleton() {
   return (
-    <div className="space-y-2">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {Array.from({ length: 4 }, (_, index) => (
-        <div
-          key={index}
-          className="h-20 animate-pulse rounded-2xl bg-[#eef7ff]/70"
-        />
+        <div key={index} style={{ height: '80px', borderRadius: '14px', background: 'var(--app-surface-2)', animation: 'pulse 1.4s ease-in-out infinite' }} />
       ))}
     </div>
   )

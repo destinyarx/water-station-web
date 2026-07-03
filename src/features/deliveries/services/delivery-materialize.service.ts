@@ -92,6 +92,7 @@ export async function materializeWeeklySchedule(
       delivery_date: date,
       status: 'pending',
       notes: schedule.notes,
+      assigned_to: schedule.assigned_to,
       org_id: owner.orgId,
       created_by: owner.createdBy,
     }

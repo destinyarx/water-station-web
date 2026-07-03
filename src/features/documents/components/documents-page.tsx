@@ -84,30 +84,30 @@ interface StatChipProps {
 function StatChip({ label, value, helper, accentColor, icon }: StatChipProps) {
   return (
     <div
-      className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-[18px] p-5"
+      className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-[16px] px-4 py-[15px]"
       style={{ borderLeft: `3px solid ${accentColor}`, boxShadow: '0 6px 22px rgba(20,100,180,0.06)' }}
     >
-      <div className="flex items-start justify-between gap-2.5 mb-4">
-        <p className="text-[11px] font-bold tracking-[0.08em] uppercase text-[var(--app-text-faint)] pt-0.5 leading-tight">
+      <div className="flex items-start justify-between gap-2.5 mb-2.5">
+        <p className="text-[10.5px] font-bold tracking-[0.08em] uppercase text-[var(--app-text-faint)] pt-0.5 leading-tight">
           {label}
         </p>
         <div
-          className="flex-none w-9 h-9 rounded-[10px] flex items-center justify-center text-[var(--app-brand)]"
+          className="flex-none w-7 h-7 rounded-[9px] flex items-center justify-center text-[var(--app-brand)]"
           style={{ background: 'var(--app-chip-bg)' }}
         >
           {icon}
         </div>
       </div>
-      <p className="text-[36px] font-extrabold tracking-[-0.03em] leading-none text-[var(--app-text)] mb-3.5">
+      <p className="text-[25px] font-extrabold tracking-[-0.03em] leading-none text-[var(--app-text)] mb-[9px]">
         {value}
       </p>
-      <div className="h-[3px] bg-[var(--app-border)] rounded-full mb-2.5 overflow-hidden">
+      <div className="h-[3px] bg-[var(--app-border)] rounded-full mb-2 overflow-hidden">
         <div
           className="h-full rounded-full transition-all"
           style={{ width: value > 0 ? '60%' : '0%', background: accentColor }}
         />
       </div>
-      <p className="text-[12.5px] text-[var(--app-text-soft)]">{helper}</p>
+      <p className="text-[12px] text-[var(--app-text-soft)]">{helper}</p>
     </div>
   )
 }
@@ -196,7 +196,7 @@ export function DocumentsPage() {
         </div>
 
         {/* Stat cards */}
-        <div className="grid gap-4 mb-7" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+        <div className="grid gap-3.5 mb-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
           <StatChip
             label="Total Documents"
             value={stats.total}

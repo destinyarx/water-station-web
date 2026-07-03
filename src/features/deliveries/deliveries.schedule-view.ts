@@ -19,7 +19,9 @@ export function scheduleRecipient(
 
 /** Human-readable recurrence rule, e.g. `Weekly · Mon, Thu`. */
 export function recurrenceSummary(schedule: DeliveryScheduleRow): string {
-  if (schedule.recurrence_type !== 'weekly') return 'One-time'
+  if (schedule.recurrence_type === 'custom_dates') return 'Custom dates'
+  if (schedule.recurrence_type === 'one_time') return 'One-time'
+  if (schedule.recurrence_type !== 'weekly') return 'Monthly'
 
   const days = (schedule.weekdays ?? [])
     .map((day) => WEEKDAY_LABELS[day - 1])
@@ -37,6 +39,12 @@ export function nextUpcomingDate(
   today: string,
   horizonDays: number,
 ): string | null {
+  if (schedule.recurrence_type === 'custom_dates') {
+    return schedule.delivery_date != null && schedule.delivery_date >= today
+      ? schedule.delivery_date
+      : null
+  }
+
   const dates = dueDatesFor(
     toRecurrenceRule(schedule),
     today,

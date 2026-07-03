@@ -57,6 +57,7 @@ const values: DeliveryFormValues = {
     },
   ],
   notes: 'Call before leaving.',
+  assignedTo: '',
 }
 
 const owner = { orgId: 321, createdBy: 'user_123' }
@@ -103,6 +104,7 @@ function createInsertClient(options?: { failAt?: 'schedule' | 'delivery' | 'item
               end_date: null,
               status: 'active',
               notes: 'Call before leaving.',
+              assigned_to: null,
               org_id: 321,
               created_by: 'user_123',
               created_at: '2026-06-16T00:00:00.000Z',
