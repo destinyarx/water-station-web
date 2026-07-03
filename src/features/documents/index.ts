@@ -1,1 +1,1 @@
-export { DocumentsPage } from './components/DocumentsPage'
+export { DocumentsPage } from './components/documents-page'

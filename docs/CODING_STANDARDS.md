@@ -434,7 +434,11 @@ Always handle loading states for async data.
 
 ## TanStack Table Standards
 
-Use TanStack Table for complex tables that need:
+Use TanStack Table for every module's data table, not just complex ones. This keeps
+pagination, sorting, and row rendering consistent across the system instead of each
+feature reinventing its own table markup.
+
+TanStack Table is required when a table needs:
 
 - sorting
 - filtering
@@ -443,7 +447,10 @@ Use TanStack Table for complex tables that need:
 - row selection
 - custom column rendering
 
-For very simple tables, a regular HTML table is acceptable.
+Do not hand-roll a plain HTML/div table for a new module's list view — build it on
+TanStack Table (`useReactTable` + column defs) even if pagination isn't needed on day
+one, since it will almost always be needed later and retrofitting is more work than
+building it in from the start.
 
 Put large column definitions in a separate file.
 

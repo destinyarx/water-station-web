@@ -1,5 +1,9 @@
 'use client'
 
+import { useState } from 'react'
+
+import { ConfirmDialog } from '@/components/app/confirm-dialog'
+
 import type { MaintenanceTaskView, TaskDisplayStatus } from '../maintenance.types'
 import { useCompleteTask } from '../hooks/use-complete-task'
 import { MaintenanceRowActions } from './maintenance-row-actions'
@@ -16,14 +20,24 @@ const DUE_STYLE: Record<TaskDisplayStatus, { bg: string; text: string }> = {
   completed: { bg: 'var(--app-chip-green-bg)', text: 'var(--app-chip-green-text)' },
 }
 
-/** One occurrence row: complete toggle, title + meta, due pill, kebab menu. */
+const checkIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+)
+
+/** One occurrence row: complete button, title + meta, due pill, kebab menu. */
 export function MaintenanceTaskCard({ task }: { task: MaintenanceTaskView }) {
   const complete = useCompleteTask()
+  const [confirming, setConfirming] = useState(false)
   const done = task.displayStatus === 'completed'
   const dimmed = !task.isScheduleActive
   const priority = PRIORITY_STYLE[task.priority]
   const due = DUE_STYLE[task.displayStatus]
   const equipmentLabel = task.equipmentOther ?? task.equipment
+
+  function handleOpenChange(next: boolean) {
+    setConfirming(next)
+    if (!next) complete.reset()
+  }
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '16px 18px', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '15px', boxShadow: 'var(--app-shadow-card)', opacity: dimmed ? 0.6 : 1 }}>
@@ -31,14 +45,44 @@ export function MaintenanceTaskCard({ task }: { task: MaintenanceTaskView }) {
         type="button"
         aria-label={done ? 'Reopen task' : 'Complete task'}
         disabled={complete.isPending}
-        onClick={() => complete.mutate(task)}
-        title={complete.isError ? complete.error.message : undefined}
-        style={{ flex: 'none', width: '26px', height: '26px', borderRadius: '50%', border: `2px solid ${done ? 'var(--app-chip-green-text)' : 'var(--app-border-strong)'}`, background: done ? 'var(--app-chip-green-text)' : 'transparent', color: '#fff', cursor: complete.isPending ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        onClick={() => (done ? complete.mutate(task) : setConfirming(true))}
+        style={{
+          flex: 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '7px 14px',
+          borderRadius: '999px',
+          border: `1.5px solid ${done ? 'transparent' : 'var(--app-brand)'}`,
+          background: done ? 'var(--app-chip-green-text)' : 'transparent',
+          color: done ? '#fff' : 'var(--app-brand)',
+          fontFamily: 'inherit',
+          fontSize: '12.5px',
+          fontWeight: 700,
+          cursor: complete.isPending ? 'wait' : 'pointer',
+        }}
       >
-        {done ? (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
-        ) : null}
+        {checkIcon}
+        {done ? 'Completed' : 'Complete'}
       </button>
+
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={handleOpenChange}
+        title="Mark task as complete?"
+        description={<>&quot;{task.title}&quot; will be marked complete{task.isRecurring ? ' and its next occurrence will be scheduled' : ''}.</>}
+        confirmLabel="Yes, complete"
+        pendingLabel="Completing…"
+        isPending={complete.isPending}
+        errorMessage={complete.isError ? complete.error.message : undefined}
+        icon={
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>
+        }
+        iconColor="var(--app-chip-green-text)"
+        iconBackground="var(--app-chip-green-bg)"
+        confirmButtonStyle={{ background: 'var(--app-chip-green-text)', boxShadow: '0 10px 22px rgba(34,197,94,0.3)' }}
+        onConfirm={() => complete.mutate(task, { onSuccess: () => handleOpenChange(false) })}
+      />
 
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '5px', flexWrap: 'wrap' }}>

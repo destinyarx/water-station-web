@@ -242,7 +242,9 @@ Four progress-less variants of the products stat card (label + icon row, big num
 
 ### Task rows
 
-Flat list of cards (`gap:12px`), each: a round complete-toggle (green tick when done, wired to `useCompleteTask`), title (struck through when completed) with a violet **recurrence chip** (Daily / Once–Thrice a week) and an `Inactive` chip, a meta row (wrench+equipment, person+assignee, priority pill), a **due pill** colored by `displayStatus` (red overdue / brand upcoming / green completed), and the shared kebab (`MaintenanceRowActions`: edit / toggle schedule active / delete — delete owner-only). Inactive-schedule rows render at `opacity:0.6`.
+Flat list of cards (`gap:12px`), each: a pill-shaped **Complete** button (outlined brand pill with a check icon; not done → open state, wired to `useCompleteTask`), title (struck through when completed) with a violet **recurrence chip** (Daily / Once–Thrice a week) and an `Inactive` chip, a meta row (wrench+equipment, person+assignee, priority pill), a **due pill** colored by `displayStatus` (red overdue / brand upcoming / green completed), and the shared kebab (`MaintenanceRowActions`: edit / toggle schedule active / delete — delete owner-only). Inactive-schedule rows render at `opacity:0.6`.
+
+**Complete button** — outlined brand pill (`Complete`, check icon) while open; solid `--app-chip-green-text` pill (`Completed`, check icon) once done. Completing requires confirmation via the shared `ConfirmDialog` (green check-circle icon tile, green confirm button — a non-destructive variant of the shared component, styled to match the "Done" accent rather than the default brand-blue or destructive-red treatments) before `useCompleteTask` runs. Reopening a completed task (clicking the green pill again) is a direct, unconfirmed action.
 
 ### Due label
 

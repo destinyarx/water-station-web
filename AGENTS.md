@@ -356,6 +356,16 @@ Form rules:
 
 ---
 
+## TanStack Table Rules
+
+Use TanStack Table for every module's data table, not just complex ones.
+
+Building on TanStack Table from the start (instead of a plain HTML/div table) keeps
+pagination, sorting, and row rendering consistent across the system, and avoids a
+rewrite later when a module needs pagination.
+
+---
+
 ## shadcn/ui and Tailwind Rules
 
 Use shadcn/ui as the default component system.

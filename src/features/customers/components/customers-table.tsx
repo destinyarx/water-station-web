@@ -3,7 +3,7 @@
 import type { Customer } from '../customers.types'
 import { CustomerRowActions } from './customer-row-actions'
 
-const GRID = 'minmax(200px,1.4fr) 160px minmax(150px,1fr) minmax(160px,1fr) 64px'
+const GRID = 'minmax(200px,1.4fr) 160px max-content minmax(160px,2fr) 64px'
 
 const TH: React.CSSProperties = {
   fontSize: '11px',
