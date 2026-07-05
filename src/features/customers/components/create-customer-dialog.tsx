@@ -1,5 +1,7 @@
 'use client'
 
+import { SaveConfirmDialog } from '@/components/app/save-confirm-dialog'
+import { useSubmitConfirm } from '@/components/app/use-submit-confirm'
 import { useCreateCustomer } from '../hooks/use-create-customer'
 import type { CustomerFormValues } from '../customers.types'
 import { useMutationDialog } from '../hooks/use-mutation-dialog'
@@ -17,18 +19,45 @@ export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialo
     open,
     onOpenChange,
   })
+  const confirm = useSubmitConfirm<CustomerFormValues>()
+
+  function runMutation() {
+    if (!confirm.pending) return
+    mutation.mutate(confirm.pending, {
+      onSuccess: () => {
+        confirm.reset()
+        dialog.onOpenChange(false)
+      },
+    })
+  }
 
   return (
-    <CustomerFormDialog
-      open={dialog.open}
-      onOpenChange={dialog.onOpenChange}
-      title="Add customer"
-      description="Record a new customer for your station."
-      onSubmit={dialog.submit}
-      isPending={dialog.isPending}
-      errorMessage={dialog.errorMessage}
-      submitLabel="Save customer"
-      pendingLabel="Saving..."
-    />
+    <>
+      <CustomerFormDialog
+        open={dialog.open}
+        onOpenChange={dialog.onOpenChange}
+        title="Add customer"
+        description="Record a new customer for your station."
+        onSubmit={confirm.request}
+        isPending={dialog.isPending}
+        errorMessage={dialog.errorMessage}
+        submitLabel="Save customer"
+        pendingLabel="Saving..."
+      />
+      <SaveConfirmDialog
+        open={confirm.isOpen}
+        onOpenChange={(next) => {
+          if (!next) {
+            confirm.reset()
+            mutation.reset()
+          }
+        }}
+        mode="create"
+        entityLabel="customer"
+        isPending={mutation.isPending}
+        errorMessage={dialog.errorMessage}
+        onConfirm={runMutation}
+      />
+    </>
   )
 }

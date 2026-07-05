@@ -24,6 +24,8 @@ import {
   RequiredMark,
 } from './form-fields'
 import { ScheduleFormDialog } from './schedule-form-dialog'
+import { SaveConfirmDialog } from '@/components/app/save-confirm-dialog'
+import { useSubmitConfirm } from '@/components/app/use-submit-confirm'
 
 interface EditScheduleDialogProps {
   task: MaintenanceTaskView
@@ -34,29 +36,54 @@ interface EditScheduleDialogProps {
 export function EditScheduleDialog({ task, open, onOpenChange }: EditScheduleDialogProps) {
   const mutation = useUpdateSchedule()
   const usersQuery = useOrgUsers()
+  const confirm = useSubmitConfirm<EditMaintenanceValues>()
 
   function handleOpenChange(next: boolean) {
     onOpenChange(next)
     if (!next) mutation.reset()
   }
 
+  function runMutation() {
+    if (!confirm.pending) return
+    mutation.mutate(
+      { scheduleId: task.scheduleId, taskId: task.id, values: confirm.pending },
+      {
+        onSuccess: () => {
+          confirm.reset()
+          handleOpenChange(false)
+        },
+      },
+    )
+  }
+
   return (
-    <ScheduleFormDialog open={open} onOpenChange={handleOpenChange} title="Edit task" description={`${task.recurrenceLabel} • cadence is fixed after creation.`}>
-      <EditForm
-        task={task}
+    <>
+      <SaveConfirmDialog
+        open={confirm.isOpen}
+        onOpenChange={(next) => {
+          if (!next) {
+            confirm.reset()
+            mutation.reset()
+          }
+        }}
+        mode="update"
+        entityLabel="maintenance task"
         isPending={mutation.isPending}
         errorMessage={mutation.isError ? mutation.error.message : undefined}
-        usersLoading={usersQuery.isPending}
-        users={usersQuery.data ?? []}
-        onCancel={() => handleOpenChange(false)}
-        onSubmit={(values) =>
-          mutation.mutate(
-            { scheduleId: task.scheduleId, taskId: task.id, values },
-            { onSuccess: () => handleOpenChange(false) },
-          )
-        }
+        onConfirm={runMutation}
       />
-    </ScheduleFormDialog>
+      <ScheduleFormDialog open={open} onOpenChange={handleOpenChange} title="Edit task" description={`${task.recurrenceLabel} • cadence is fixed after creation.`}>
+        <EditForm
+          task={task}
+          isPending={mutation.isPending}
+          errorMessage={mutation.isError ? mutation.error.message : undefined}
+          usersLoading={usersQuery.isPending}
+          users={usersQuery.data ?? []}
+          onCancel={() => handleOpenChange(false)}
+          onSubmit={(values) => confirm.request(values)}
+        />
+      </ScheduleFormDialog>
+    </>
   )
 }
 

@@ -4,6 +4,7 @@
 
 ## Decisions (resolved 2026-07-04)
 - **Confirm dialog scope: destructive / state-change actions only.** Delete, archive, set-inactive, and maintenance task-complete get a confirm dialog. Create and update do **not** — the user already commits via the form modal's Save button; a second modal is pointless friction and not how the rest of the app behaves. Create/update just save + toast.
+  - **Reversed 2026-07-06 (owner request):** create AND update now show a confirm dialog after Save for Customers, Products, Maintenance, and Expenses. Implemented as a shared `SaveConfirmDialog` (`src/components/app/save-confirm-dialog.tsx`) + `useSubmitConfirm` (`src/components/app/use-submit-confirm.ts`): the form's Save stashes the validated values and opens a primary confirm on top of the form modal; confirming runs the mutation. Documents create/update were not in scope for this reversal.
 - **Set inactive vs set active:** the active↔inactive toggle only confirms when going **→ inactive** (a meaningful state change that hides the record from operations). Going **→ active** stays a one-click toggle. Both fire a toast.
 - **Toast placement: in the mutation hook**, not in dialog/component code. Every mutation hook gets `onSuccess` (success toast) and `onError` (error toast), matching the existing maintenance pattern (`use-complete-task.ts`). This covers every caller of the hook automatically. Error toast message = `error.message`.
 - **Reuse existing primitives:** `ConfirmDialog` (`src/components/app/confirm-dialog.tsx`) and the `toast` API (`src/stores/toast-store.ts`). No new components/deps.
@@ -88,3 +89,4 @@
         |          ^
     8 | }
     9 |
+    

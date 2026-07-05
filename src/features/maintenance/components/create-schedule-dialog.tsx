@@ -25,6 +25,8 @@ import {
 } from './form-fields'
 import { MultiDateCalendarPopover } from './multi-date-calendar'
 import { ScheduleFormDialog } from './schedule-form-dialog'
+import { SaveConfirmDialog } from '@/components/app/save-confirm-dialog'
+import { useSubmitConfirm } from '@/components/app/use-submit-confirm'
 
 interface CreateScheduleDialogProps {
   open: boolean
@@ -45,6 +47,7 @@ const DEFAULTS: CreateMaintenanceInput = {
 export function CreateScheduleDialog({ open, onOpenChange }: CreateScheduleDialogProps) {
   const mutation = useCreateSchedule()
   const usersQuery = useOrgUsers()
+  const confirm = useSubmitConfirm<CreateMaintenanceValues>()
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors } } =
     useForm<CreateMaintenanceInput, unknown, CreateMaintenanceValues>({
@@ -67,14 +70,37 @@ export function CreateScheduleDialog({ open, onOpenChange }: CreateScheduleDialo
     }
   }
 
-  const submit = handleSubmit((values) => {
-    mutation.mutate(values, { onSuccess: () => handleOpenChange(false) })
-  })
+  const submit = handleSubmit((values) => confirm.request(values))
+
+  function runMutation() {
+    if (!confirm.pending) return
+    mutation.mutate(confirm.pending, {
+      onSuccess: () => {
+        confirm.reset()
+        handleOpenChange(false)
+      },
+    })
+  }
 
   const isPending = mutation.isPending
 
   return (
-    <ScheduleFormDialog open={open} onOpenChange={handleOpenChange} title="Schedule Task" description="Plan recurring or one-time equipment upkeep.">
+    <>
+      <SaveConfirmDialog
+        open={confirm.isOpen}
+        onOpenChange={(next) => {
+          if (!next) {
+            confirm.reset()
+            mutation.reset()
+          }
+        }}
+        mode="create"
+        entityLabel="maintenance task"
+        isPending={mutation.isPending}
+        errorMessage={mutation.isError ? mutation.error.message : undefined}
+        onConfirm={runMutation}
+      />
+      <ScheduleFormDialog open={open} onOpenChange={handleOpenChange} title="Schedule Task" description="Plan recurring or one-time equipment upkeep.">
       <form onSubmit={submit} noValidate>
         <div style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div>
@@ -163,6 +189,7 @@ export function CreateScheduleDialog({ open, onOpenChange }: CreateScheduleDialo
           <button type="submit" disabled={isPending} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 24px', borderRadius: '11px', border: 'none', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 10px 22px rgba(14,108,196,0.3)' }}>{isPending ? 'Saving…' : 'Schedule Task'}</button>
         </div>
       </form>
-    </ScheduleFormDialog>
+      </ScheduleFormDialog>
+    </>
   )
 }

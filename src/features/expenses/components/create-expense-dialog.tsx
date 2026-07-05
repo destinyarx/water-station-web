@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+import { SaveConfirmDialog } from '@/components/app/save-confirm-dialog'
+import { useSubmitConfirm } from '@/components/app/use-submit-confirm'
 import type { ExpenseFormValues } from '../expenses.types'
 import { useCreateExpense } from '../hooks/use-create-expense'
 import { ExpenseFormDialog } from './expense-form-dialog'
@@ -9,14 +11,21 @@ import { ExpenseFormDialog } from './expense-form-dialog'
 export function CreateExpenseDialog() {
   const [open, setOpen] = useState(false)
   const mutation = useCreateExpense()
+  const confirm = useSubmitConfirm<ExpenseFormValues>()
 
   function handleOpenChange(next: boolean) {
     setOpen(next)
     if (!next) mutation.reset()
   }
 
-  function handleSubmit(values: ExpenseFormValues) {
-    mutation.mutate(values, { onSuccess: () => handleOpenChange(false) })
+  function runMutation() {
+    if (!confirm.pending) return
+    mutation.mutate(confirm.pending, {
+      onSuccess: () => {
+        confirm.reset()
+        handleOpenChange(false)
+      },
+    })
   }
 
   return (
@@ -35,11 +44,25 @@ export function CreateExpenseDialog() {
         onOpenChange={handleOpenChange}
         title="Record Expense"
         description="Log a new cost for your station."
-        onSubmit={handleSubmit}
+        onSubmit={confirm.request}
         isPending={mutation.isPending}
         errorMessage={mutation.isError ? mutation.error.message : undefined}
         submitLabel="Save expense"
         pendingLabel="Saving..."
+      />
+      <SaveConfirmDialog
+        open={confirm.isOpen}
+        onOpenChange={(next) => {
+          if (!next) {
+            confirm.reset()
+            mutation.reset()
+          }
+        }}
+        mode="create"
+        entityLabel="expense"
+        isPending={mutation.isPending}
+        errorMessage={mutation.isError ? mutation.error.message : undefined}
+        onConfirm={runMutation}
       />
     </>
   )
