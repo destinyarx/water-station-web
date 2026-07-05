@@ -6,6 +6,7 @@ import { documentKeys } from '../documents.keys'
 import type { Document } from '../documents.types'
 import { setDocumentApproval } from '../services/documents.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 export function useApproveDocument(): UseMutationResult<
   Document,
@@ -17,8 +18,12 @@ export function useApproveDocument(): UseMutationResult<
 
   return useMutation<Document, Error, { id: number; isApproved: boolean }>({
     mutationFn: ({ id, isApproved }) => setDocumentApproval(client, id, isApproved),
-    onSuccess: () => {
+    onSuccess: (_data, { isApproved }) => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      toast.success(isApproved ? 'Document approved.' : 'Approval revoked.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

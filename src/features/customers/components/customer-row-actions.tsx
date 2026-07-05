@@ -16,17 +16,32 @@ import type { Customer } from '../customers.types'
 import { useSetCustomerStatus } from '../hooks/use-set-customer-status'
 import { EditCustomerDialog } from './edit-customer-dialog'
 import { ArchiveCustomerDialog } from './archive-customer-dialog'
+import { ConfirmDialog } from '@/components/app/confirm-dialog'
 
 /** Per-row kebab menu for a customer: edit, toggle active/inactive, archive. */
 export function CustomerRowActions({ customer }: { customer: Customer }) {
   const [editing, setEditing] = useState(false)
   const [archiving, setArchiving] = useState(false)
+  const [confirmingInactive, setConfirmingInactive] = useState(false)
   const statusMutation = useSetCustomerStatus()
 
   const canEdit = canEditCustomer(customer)
 
   function toggleStatus() {
-    statusMutation.mutate({ id: customer.id, isActive: !customer.isActive })
+    // Deactivating hides the customer from active operations — confirm first.
+    // Reactivating is benign, so it stays a one-click action.
+    if (customer.isActive) {
+      setConfirmingInactive(true)
+      return
+    }
+    statusMutation.mutate({ id: customer.id, isActive: true })
+  }
+
+  function confirmInactive() {
+    statusMutation.mutate(
+      { id: customer.id, isActive: false },
+      { onSuccess: () => setConfirmingInactive(false) },
+    )
   }
 
   return (
@@ -67,6 +82,27 @@ export function CustomerRowActions({ customer }: { customer: Customer }) {
 
       <EditCustomerDialog customer={customer} open={editing} onOpenChange={setEditing} />
       <ArchiveCustomerDialog customer={customer} open={archiving} onOpenChange={setArchiving} />
+      <ConfirmDialog
+        open={confirmingInactive}
+        onOpenChange={(next) => {
+          if (!next) {
+            setConfirmingInactive(false)
+            statusMutation.reset()
+          }
+        }}
+        title="Set customer as inactive"
+        description={
+          <>
+            Mark <strong style={{ color: 'var(--app-text)' }}>{customer.name}</strong> as inactive?
+            They will be hidden from active operations but kept for your records.
+          </>
+        }
+        confirmLabel="Set inactive"
+        pendingLabel="Updating..."
+        onConfirm={confirmInactive}
+        isPending={statusMutation.isPending}
+        errorMessage={statusMutation.isError ? statusMutation.error.message : undefined}
+      />
     </>
   )
 }

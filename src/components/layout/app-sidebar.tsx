@@ -2,15 +2,18 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { UserButton } from '@clerk/nextjs'
+import { UserButton, useAuth } from '@clerk/nextjs'
 
 import { useIsCollapsed } from '@/stores/use-sidebar'
+import { canAccessAquaflowAi } from '@/features/aquaflow-ai/aquaflow-ai.guards'
 
 type NavItem = {
   key: string
   label: string
   href: string
   icon: React.ReactNode
+  ownerOnly?: boolean
+  badge?: string
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -97,6 +100,19 @@ const NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  {
+    key: 'ai',
+    label: 'AI Assistant',
+    href: '/ai-assistant',
+    ownerOnly: true,
+    badge: 'New',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3v3M12 18v3M4.2 7.2l2.1 2.1M17.7 14.7l2.1 2.1M3 12h3M18 12h3M4.2 16.8l2.1-2.1M17.7 9.3l2.1-2.1" />
+        <circle cx="12" cy="12" r="3.4" />
+      </svg>
+    ),
+  },
 ]
 
 function isActive(pathname: string, href: string): boolean {
@@ -106,6 +122,9 @@ function isActive(pathname: string, href: string): boolean {
 export function AppSidebar() {
   const isCollapsed = useIsCollapsed()
   const pathname = usePathname()
+  const { sessionClaims } = useAuth()
+  const isOwner = canAccessAquaflowAi(sessionClaims)
+  const navItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner)
 
   return (
     <aside
@@ -166,7 +185,7 @@ export function AppSidebar() {
 
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '4px 12px', flex: 1 }}>
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = isActive(pathname, item.href)
           return (
             <Link
@@ -192,6 +211,23 @@ export function AppSidebar() {
                 {item.icon}
               </span>
               {!isCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
+              {!isCollapsed && item.badge && (
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    padding: '2px 7px',
+                    borderRadius: '999px',
+                    background: 'var(--app-chip-bg)',
+                    color: 'var(--app-brand)',
+                  }}
+                >
+                  {item.badge}
+                </span>
+              )}
             </Link>
           )
         })}

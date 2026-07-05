@@ -10,6 +10,7 @@ import { createCustomer } from '../services/customers.service'
 import { customerKeys } from '../customers.keys'
 import type { Customer, CustomerFormValues } from '../customers.types'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 import { useCustomerOwner } from './use-customer-owner'
 
 /**
@@ -36,6 +37,10 @@ export function useCreateCustomer(): UseMutationResult<
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
+      toast.success('Customer added.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

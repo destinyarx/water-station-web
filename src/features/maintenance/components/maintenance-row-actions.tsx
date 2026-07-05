@@ -8,12 +8,14 @@ import { useIsOwner } from '../hooks/use-maintenance-owner'
 import { useSetScheduleStatus } from '../hooks/use-set-schedule-status'
 import { EditScheduleDialog } from './edit-schedule-dialog'
 import { DeleteScheduleDialog } from './delete-schedule-dialog'
+import { ConfirmDialog } from '@/components/app/confirm-dialog'
 
 /** Per-card kebab menu: edit, toggle schedule active/inactive, delete (owner). */
 export function MaintenanceRowActions({ task }: { task: MaintenanceTaskView }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [confirmingInactive, setConfirmingInactive] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const statusMutation = useSetScheduleStatus()
@@ -35,7 +37,20 @@ export function MaintenanceRowActions({ task }: { task: MaintenanceTaskView }) {
 
   function toggleStatus() {
     setMenuOpen(false)
-    statusMutation.mutate({ scheduleId: task.scheduleId, isActive: !task.isScheduleActive })
+    // Deactivating a schedule stops it from generating tasks — confirm first.
+    // Reactivating is benign, so it stays a one-click action.
+    if (task.isScheduleActive) {
+      setConfirmingInactive(true)
+      return
+    }
+    statusMutation.mutate({ scheduleId: task.scheduleId, isActive: true })
+  }
+
+  function confirmInactive() {
+    statusMutation.mutate(
+      { scheduleId: task.scheduleId, isActive: false },
+      { onSuccess: () => setConfirmingInactive(false) },
+    )
   }
 
   return (
@@ -85,6 +100,27 @@ export function MaintenanceRowActions({ task }: { task: MaintenanceTaskView }) {
 
       <EditScheduleDialog task={task} open={editing} onOpenChange={setEditing} />
       <DeleteScheduleDialog task={task} open={deleting} onOpenChange={setDeleting} />
+      <ConfirmDialog
+        open={confirmingInactive}
+        onOpenChange={(next) => {
+          if (!next) {
+            setConfirmingInactive(false)
+            statusMutation.reset()
+          }
+        }}
+        title="Set schedule inactive"
+        description={
+          <>
+            Mark <strong style={{ color: 'var(--app-text)' }}>{task.title}</strong> as inactive?
+            It will stop generating upcoming maintenance tasks until reactivated.
+          </>
+        }
+        confirmLabel="Set inactive"
+        pendingLabel="Updating..."
+        onConfirm={confirmInactive}
+        isPending={statusMutation.isPending}
+        errorMessage={statusMutation.isError ? statusMutation.error.message : undefined}
+      />
     </div>
   )
 }

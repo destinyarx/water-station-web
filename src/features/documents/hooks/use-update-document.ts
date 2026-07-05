@@ -6,6 +6,7 @@ import { documentKeys } from '../documents.keys'
 import type { Document, DocumentFormValues } from '../documents.types'
 import { updateDocument } from '../services/documents.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 export function useUpdateDocument(): UseMutationResult<
   Document,
@@ -19,6 +20,10 @@ export function useUpdateDocument(): UseMutationResult<
     mutationFn: ({ id, values }) => updateDocument(client, id, values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      toast.success('Document updated.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

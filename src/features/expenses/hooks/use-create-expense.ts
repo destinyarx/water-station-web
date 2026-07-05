@@ -10,6 +10,7 @@ import { expenseKeys } from '../expenses.keys'
 import type { Expense, ExpenseFormValues } from '../expenses.types'
 import { createExpense } from '../services/expenses.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 import { useExpenseOwner } from './use-expense-owner'
 
 export function useCreateExpense(): UseMutationResult<
@@ -32,6 +33,10 @@ export function useCreateExpense(): UseMutationResult<
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() })
+      toast.success('Expense recorded.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

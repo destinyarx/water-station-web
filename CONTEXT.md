@@ -195,6 +195,31 @@ _Avoid_: treating approval as a multi-step lifecycle.
 hides it from other staff (owners always see all documents regardless).
 _Avoid_: treating `only_me` as hiding from owners.
 
+## AquaFlow AI Domain (feature 011-aquaflow-ai-feature)
+
+**AquaFlow AI** — an owner-only chat assistant module for business insights
+(revenue, stock, deliveries, maintenance, expenses, customers). Not available
+to staff sessions; see `docs/adr/0008-owner-only-route-level-gating.md`.
+_Avoid_: treating this as a general-purpose chatbot open to all roles.
+
+**Conversation** — one AI chat thread, owned by a single user (`created_by`),
+not a shared org record. Backed by `ai_conversations`. See
+`docs/adr/0007-ai-chat-history-personal-not-shared.md`. _Avoid_: assuming any
+org member can see any conversation, unlike deliveries/maintenance.
+
+**Message** — a single turn in a Conversation, either `role = user` or
+`role = assistant`. Backed by `ai_messages`. An assistant message's content is
+either plain text or one of three structured card types (insight, flag,
+ranked) — see `docs/specs/011-aquaflow-ai-feature/`. _Avoid_: assuming all
+assistant replies are plain text.
+
+**Ready-made prompt** — a pre-written, business-tailored question with a short
+**title** shown on its card (e.g. "Analyze my sales") and a separate, longer
+**prompt body** with the actual prompt-engineered instructions sent to the AI.
+Clicking one creates a user Message whose displayed text is the title but
+whose actual content (what's sent/stored) is the full prompt body. _Avoid_:
+assuming the displayed chat text and the sent prompt are the same string.
+
 ---
 
 ## Authentication & Onboarding (feature 000-auth_workflow)

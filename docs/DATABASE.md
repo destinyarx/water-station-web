@@ -313,3 +313,57 @@ owner-restricted.
 See `maintenance_migration.md` → "Manual RLS verification" (cross-org isolation,
 owner-only archive, shared queue, roll-forward idempotency, weekly CHECK,
 assignee-picker org scope).
+
+---
+
+## AquaFlow AI Domain (feature 011-aquaflow-ai-feature)
+
+Two new tables back the owner-only AquaFlow AI chat. Unlike deliveries/maintenance,
+these are **personal-per-user**, not a shared org queue (ADR 0007), and the whole
+module is owner-only (ADR 0008).
+
+### `ai_conversations`
+
+One chat thread. Columns: `id`, `org_id` (FK `organizations(organization_code)`),
+`created_by` (FK `users(clerk_id)`), `title` (default `'New chat'`), `created_at`,
+`updated_at`. **No `deleted_at`** — conversations are hard-deleted and cascade to
+their messages (`on delete cascade`).
+
+### `ai_messages`
+
+One turn in a conversation. Columns: `id`, `conversation_id` (FK `ai_conversations`,
+`on delete cascade`), `role` (`user|assistant`), `content` (text actually sent/stored),
+`display_text` (nullable — bubble override for a ready-made prompt title),
+`card_type` (`insight|flag|ranked`, nullable = plain text), `card_data` (jsonb array),
+`created_at`. **No denormalized `org_id`/`created_by`** — ownership is inherited from
+the parent conversation.
+
+### Identity / org resolution
+
+`org_id`/`created_by` on `ai_conversations` are written from the resolved Clerk
+identity, never from client input. Messages carry no identity columns; their RLS is
+enforced by an `exists` subquery against the parent conversation.
+
+### Policies (summary)
+
+| Table | SELECT | INSERT | UPDATE | DELETE |
+| ----- | ------ | ------ | ------ | ------ |
+| `ai_conversations` | org + `created_by = sub` + `is_owner` | same | same | same (hard delete) |
+| `ai_messages` | parent conversation passes the same check | same | — | same (hard delete) |
+
+Every op on both tables requires the `is_owner` claim, so a staff session cannot
+read or write rows even via a direct Supabase call.
+
+### History context bound
+
+No pruning or triggers. The full message history stays readable; only the context
+sent to the assistant is bounded, via a fetch-time `LIMIT` (`AI_CONTEXT_MESSAGE_LIMIT`,
+most-recent N, reversed to oldest-first). See `services/aquaflow-ai.service.ts:getRecentMessages`.
+
+### Manual RLS verification
+
+With a **staff** session: confirm the AI Assistant nav item is hidden, `/ai-assistant`
+redirects to `/dashboard`, and a direct Supabase `select`/`insert` on either table
+returns no rows / is rejected. With **two different owner accounts** in one org: confirm
+neither can see the other's conversations. Cross-org: an org A owner cannot read org B
+conversations. Migration: `docs/specs/011-aquaflow-ai-feature/011-aquaflow-ai-schema.sql`.

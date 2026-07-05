@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { setCustomerStatus } from '../services/customers.service'
 import { customerKeys } from '../customers.keys'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 interface SetCustomerStatusInput {
   id: number
@@ -18,8 +19,12 @@ export function useSetCustomerStatus() {
 
   return useMutation<void, Error, SetCustomerStatusInput>({
     mutationFn: ({ id, isActive }) => setCustomerStatus(client, id, isActive),
-    onSuccess: () => {
+    onSuccess: (_data, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
+      toast.success(isActive ? 'Customer set as active.' : 'Customer set as inactive.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

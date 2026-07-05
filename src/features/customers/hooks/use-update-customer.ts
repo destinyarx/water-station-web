@@ -10,6 +10,7 @@ import { updateCustomer } from '../services/customers.service'
 import { customerKeys } from '../customers.keys'
 import type { Customer, CustomerFormValues } from '../customers.types'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 interface UpdateCustomerVariables {
   id: number
@@ -33,6 +34,10 @@ export function useUpdateCustomer(): UseMutationResult<
     onSuccess: (_customer, { id }) => {
       queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
       queryClient.invalidateQueries({ queryKey: customerKeys.detail(id) })
+      toast.success('Customer updated.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

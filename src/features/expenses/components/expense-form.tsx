@@ -67,8 +67,12 @@ export function ExpenseForm({
   const selectedCategory = watch('category')
   const submit = handleSubmit((values) => onSubmit(values))
 
-  const numberSetValueAs = (value: string): number | undefined =>
-    value.trim() === '' ? undefined : Number(value)
+  // On edit, the amount default arrives as a number, so coerce before trimming.
+  const numberSetValueAs = (value: unknown): number | undefined => {
+    if (typeof value === 'number') return value
+    if (typeof value !== 'string') return undefined
+    return value.trim() === '' ? undefined : Number(value)
+  }
 
   return (
     <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }} noValidate>

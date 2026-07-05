@@ -314,3 +314,41 @@ Overrides any date in the mockup: `Overdue N days` / `Due today` / `Tomorrow` / 
 ### Recurrence picker (create dialog)
 
 Violet-accented panel with One-time / Everyday / Weekly pills. One-time reveals a hand-rolled `MultiDateCalendar` (multi-select, past disabled); Everyday/Weekly reveal a `min=today` start date; Weekly adds a `WeekdayPicker` (Mon–Sun toggles, frequency = number selected, 1–3). Cadence is fixed after creation — the edit dialog shows it read-only and only edits this occurrence's date/assignee/descriptive fields. See `CONTEXT.md` → Maintenance Domain and ADR 0006.
+
+---
+
+## Module Patterns (feature 011 — AquaFlow AI Assistant)
+
+The owner-only **AI Assistant** page (`/ai-assistant`) is a full-height, two-pane chat
+shell built with React + Tailwind on the same `--app-*` tokens — no new token namespace,
+no plain CSS. Dark mode works for free via the shared tokens. The nav item carries a
+brand `New` badge and only renders for owners.
+
+### Layout
+
+Left: a fixed `264px` **conversation sidebar** (`--app-surface`, right border) with a
+gradient **New chat** button, an uppercase "Conversations" eyebrow, and a scrollable list
+of the signed-in owner's conversations (title + relative time; a trash icon reveals on
+row hover). Right: a flex column of the **message list** (scrolls, `--app-page-bg`) over a
+sticky **composer**.
+
+### Message bubbles
+
+User bubbles are right-aligned brand-gradient pills (`rounded-br-[4px]`, white text) that
+show `display_text` when present (ready-made prompt title) else `content`. Assistant bubbles
+are left-aligned surface cards with a small brand water-drop avatar and always show `content`,
+optionally followed by one structured card:
+
+- **insight** — responsive grid of metric tiles (uppercase label, `20px` value, tone-colored trend).
+- **flag** — stacked rows (title + subtitle + tone-colored badge) for attention items.
+- **ranked** — numbered rows with a brand progress bar (`pct` width) and a right-aligned value.
+
+Card tone (`green|amber|red|brand`) maps to the existing `--app-chip-*` pairs. A three-dot
+**typing indicator** (bouncing dots in an assistant bubble) shows while a reply is pending.
+
+### Empty state & prompt cards
+
+A new/empty conversation shows a centered water-drop hero ("How can I help with your station?")
+over a responsive grid of **ready-made prompt cards** (tone-colored icon tile + short title).
+Clicking one sends immediately: the bubble shows the short title while the long, prompt-engineered
+body is what gets sent/stored. See `CONTEXT.md` → AquaFlow AI Domain and ADR 0007 / 0008.

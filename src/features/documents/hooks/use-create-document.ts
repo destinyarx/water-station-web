@@ -6,6 +6,7 @@ import { documentKeys } from '../documents.keys'
 import type { Document, DocumentFormValues, DocumentOwner } from '../documents.types'
 import { createDocument } from '../services/documents.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 export function useCreateDocument(
   owner: DocumentOwner | null,
@@ -20,6 +21,10 @@ export function useCreateDocument(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      toast.success('Document added.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

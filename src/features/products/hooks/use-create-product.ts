@@ -6,6 +6,7 @@ import { productKeys } from '../products.keys'
 import type { Product, ProductFormValues } from '../products.types'
 import { createProduct } from '../services/products.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 import { useProductOwner } from './use-product-owner'
 
 export function useCreateProduct() {
@@ -23,6 +24,10 @@ export function useCreateProduct() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all })
+      toast.success('Product added.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

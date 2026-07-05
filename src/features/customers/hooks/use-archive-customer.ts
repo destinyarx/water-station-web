@@ -9,6 +9,7 @@ import {
 import { archiveCustomer } from '../services/customers.service'
 import { customerKeys } from '../customers.keys'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 /**
  * Archives (soft-deletes) a customer and refreshes the active list on success
@@ -22,6 +23,10 @@ export function useArchiveCustomer(): UseMutationResult<void, Error, number> {
     mutationFn: (id) => archiveCustomer(client, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
+      toast.success('Customer archived.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

@@ -5,6 +5,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/r
 import { documentKeys } from '../documents.keys'
 import { softDeleteDocument } from '../services/documents.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 export function useSoftDeleteDocument(): UseMutationResult<void, Error, number> {
   const client = useClerkSupabase()
@@ -14,6 +15,10 @@ export function useSoftDeleteDocument(): UseMutationResult<void, Error, number> 
     mutationFn: (id) => softDeleteDocument(client, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      toast.success('Document archived.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }

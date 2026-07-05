@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { productKeys } from '../products.keys'
 import { setProductStatus } from '../services/products.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
+import { toast } from '@/stores/toast-store'
 
 interface SetProductStatusInput {
   id: number
@@ -18,8 +19,12 @@ export function useSetProductStatus() {
 
   return useMutation<void, Error, SetProductStatusInput>({
     mutationFn: ({ id, isActive }) => setProductStatus(client, id, isActive),
-    onSuccess: () => {
+    onSuccess: (_data, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: productKeys.all })
+      toast.success(isActive ? 'Product set as active.' : 'Product discontinued.')
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 }
