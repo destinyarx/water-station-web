@@ -21,7 +21,7 @@ const deliveryRow = {
   notes: 'Call before leaving.',
   delivered_by: null,
   completed_at: null,
-  org_id: 321,
+  org_id: '00000000-0000-4000-8000-000000000321',
   created_by: 'user_123',
   created_at: '2026-06-16T00:00:00.000Z',
   updated_at: null,
@@ -35,7 +35,7 @@ const itemRow = {
   product_name: '5 Gallon Water Refill',
   unit_price: 30,
   quantity: 3,
-  org_id: 321,
+  org_id: '00000000-0000-4000-8000-000000000321',
   created_at: '2026-06-16T00:00:00.000Z',
   updated_at: null,
 }
@@ -60,7 +60,7 @@ const values: DeliveryFormValues = {
   assignedTo: '',
 }
 
-const owner = { orgId: 321, createdBy: 'user_123' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
 
 function createListClient(deliveriesResult: QueryResult, itemsResult: QueryResult) {
   const order = vi.fn(() => Promise.resolve(deliveriesResult))
@@ -105,7 +105,7 @@ function createInsertClient(options?: { failAt?: 'schedule' | 'delivery' | 'item
               status: 'active',
               notes: 'Call before leaving.',
               assigned_to: null,
-              org_id: 321,
+              org_id: '00000000-0000-4000-8000-000000000321',
               created_by: 'user_123',
               created_at: '2026-06-16T00:00:00.000Z',
               updated_at: null,
@@ -191,13 +191,13 @@ describe('createOneTimeDelivery', () => {
     const delivery = await createOneTimeDelivery(client, values, owner)
 
     expect(scheduleInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ org_id: 321, created_by: 'user_123' }),
+      expect.objectContaining({ org_id: '00000000-0000-4000-8000-000000000321', created_by: 'user_123' }),
     )
     expect(deliveryInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         schedule_id: 99,
         status: 'pending',
-        org_id: 321,
+        org_id: '00000000-0000-4000-8000-000000000321',
         created_by: 'user_123',
       }),
     )
@@ -206,7 +206,7 @@ describe('createOneTimeDelivery', () => {
         delivery_id: 77,
         product_name: '5 Gallon Water Refill',
         unit_price: 30,
-        org_id: 321,
+        org_id: '00000000-0000-4000-8000-000000000321',
       }),
     ])
     expect(delivery).toMatchObject({ id: 77, status: 'pending', total: 90 })

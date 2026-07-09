@@ -75,7 +75,7 @@ export function CreateUnifiedDeliveryDialog({
         title="Schedule delivery"
         description="Set a recurring weekly route or pick exact delivery dates."
         icon={TRUCK_ICON}
-        maxWidth="660px"
+        maxWidth="900px"
         bodyPadding="22px 26px 0"
       >
         <div style={{ maxHeight: '62vh', overflowY: 'auto', paddingBottom: '22px' }}>

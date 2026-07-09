@@ -6,7 +6,7 @@ import {
 } from '../deliveries.mapper'
 import type { DeliveryScheduleFormValues } from '../deliveries.types'
 
-const owner = { orgId: 321, createdBy: 'user_123' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
 
 function baseValues(
   overrides: Partial<DeliveryScheduleFormValues> = {},
@@ -49,7 +49,7 @@ describe('toWeeklyScheduleInsertRow', () => {
       status: 'active',
       notes: 'Standing order.',
       assigned_to: null,
-      org_id: 321,
+      org_id: '00000000-0000-4000-8000-000000000321',
       created_by: 'user_123',
     })
   })
@@ -78,8 +78,8 @@ describe('toWeeklyScheduleInsertRow', () => {
 describe('toScheduleItemInsertRows', () => {
   it('maps form items to template lines with unit_price overrides', () => {
     expect(toScheduleItemInsertRows(99, baseValues(), owner)).toEqual([
-      { schedule_id: 99, product_id: 10, quantity: 3, unit_price: 30, org_id: 321 },
-      { schedule_id: 99, product_id: 11, quantity: 1, unit_price: 25, org_id: 321 },
+      { schedule_id: 99, product_id: 10, quantity: 3, unit_price: 30, org_id: '00000000-0000-4000-8000-000000000321' },
+      { schedule_id: 99, product_id: 11, quantity: 1, unit_price: 25, org_id: '00000000-0000-4000-8000-000000000321' },
     ])
   })
 })

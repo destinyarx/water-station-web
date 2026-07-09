@@ -12,10 +12,5 @@ export function useDeliveryOwner(): DeliveryOwner | null {
     return null
   }
 
-  const orgId = Number(organization)
-  if (Number.isNaN(orgId)) {
-    return null
-  }
-
-  return { orgId, createdBy: userId }
+  return { orgId: organization, createdBy: userId }
 }

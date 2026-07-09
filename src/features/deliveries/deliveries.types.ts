@@ -46,7 +46,7 @@ export interface OrgUser {
 }
 
 export interface DeliveryOwner {
-  orgId: number
+  orgId: string
   createdBy: string
 }
 
@@ -66,7 +66,7 @@ export interface DeliveryScheduleInsert {
   status: 'active'
   notes: string | null
   assigned_to: string | null
-  org_id: number
+  org_id: string
   created_by: string
 }
 
@@ -86,14 +86,14 @@ export interface DeliveryWeeklyScheduleInsert {
   status: 'active'
   notes: string | null
   assigned_to: string | null
-  org_id: number
+  org_id: string
   created_by: string
 }
 
 export interface DeliveryScheduleDateInsert {
   schedule_id: number
   delivery_date: string
-  org_id: number
+  org_id: string
 }
 
 export interface DeliveryScheduleItemInsert {
@@ -101,7 +101,7 @@ export interface DeliveryScheduleItemInsert {
   product_id: number
   quantity: number
   unit_price: number | null
-  org_id: number
+  org_id: string
 }
 
 export interface DeliveryInsert {
@@ -110,7 +110,7 @@ export interface DeliveryInsert {
   status: 'pending'
   notes: string | null
   assigned_to: string | null
-  org_id: number
+  org_id: string
   created_by: string
 }
 
@@ -120,7 +120,7 @@ export interface DeliveryItemInsert {
   product_name: string
   unit_price: number
   quantity: number
-  org_id: number
+  org_id: string
 }
 
 export interface DeliveryItem {
@@ -131,7 +131,7 @@ export interface DeliveryItem {
   unitPrice: number
   quantity: number
   lineTotal: number
-  orgId: number
+  orgId: string
   createdAt: string
   updatedAt: string | null
 }
@@ -156,7 +156,7 @@ export interface Delivery {
   assignedTo: string | null
   deliveredBy: string | null
   completedAt: string | null
-  orgId: number
+  orgId: string
   createdBy: string
   createdAt: string
   updatedAt: string | null

@@ -40,7 +40,7 @@ const values: DeliveryFormValues = {
   assignedTo: '',
 }
 
-const owner = { orgId: 321, createdBy: 'user_123' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
 
 describe('delivery mappers', () => {
   it('maps form values to a one-time schedule insert with trusted owner fields', () => {
@@ -60,7 +60,7 @@ describe('delivery mappers', () => {
       status: 'active',
       notes: 'Call before leaving.',
       assigned_to: null,
-      org_id: 321,
+      org_id: '00000000-0000-4000-8000-000000000321',
       created_by: 'user_123',
     })
   })
@@ -72,7 +72,7 @@ describe('delivery mappers', () => {
       status: 'pending',
       notes: 'Call before leaving.',
       assigned_to: null,
-      org_id: 321,
+      org_id: '00000000-0000-4000-8000-000000000321',
       created_by: 'user_123',
     })
 
@@ -83,7 +83,7 @@ describe('delivery mappers', () => {
         product_name: '5 Gallon Water Refill',
         quantity: 3,
         unit_price: 30,
-        org_id: 321,
+        org_id: '00000000-0000-4000-8000-000000000321',
       },
       {
         delivery_id: 77,
@@ -91,7 +91,7 @@ describe('delivery mappers', () => {
         product_name: 'Delivery Fee',
         quantity: 1,
         unit_price: 20,
-        org_id: 321,
+        org_id: '00000000-0000-4000-8000-000000000321',
       },
     ])
   })
@@ -108,7 +108,7 @@ describe('delivery mappers', () => {
       assigned_to: null,
       delivered_by: null,
       completed_at: null,
-      org_id: 321,
+      org_id: '00000000-0000-4000-8000-000000000321',
       created_by: 'user_123',
       created_at: '2026-06-16T00:00:00.000Z',
       updated_at: null,
@@ -123,7 +123,7 @@ describe('delivery mappers', () => {
         product_name: '5 Gallon Water Refill',
         quantity: 3,
         unit_price: 30,
-        org_id: 321,
+        org_id: '00000000-0000-4000-8000-000000000321',
         created_at: '2026-06-16T00:00:00.000Z',
         updated_at: null,
       },
@@ -134,7 +134,7 @@ describe('delivery mappers', () => {
         product_name: 'Delivery Fee',
         quantity: 1,
         unit_price: 20,
-        org_id: 321,
+        org_id: '00000000-0000-4000-8000-000000000321',
         created_at: '2026-06-16T00:00:00.000Z',
         updated_at: null,
       },

@@ -132,7 +132,7 @@ export function UnifiedDeliveryForm({
     <form onSubmit={submit} className="space-y-5" noValidate>
 
       {/* ── Customer section ── */}
-      <div>
+      <div className="mr-3">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--app-text)' }}>
             Customer <span style={{ color: '#dc2626' }}>*</span>
@@ -173,7 +173,7 @@ export function UnifiedDeliveryForm({
       </div>
 
       {/* ── Schedule type ── */}
-      <div>
+      <div className="mr-3">
         <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--app-text)', marginBottom: '10px' }}>
           Schedule type <span style={{ color: '#dc2626' }}>*</span>
         </label>
@@ -199,7 +199,7 @@ export function UnifiedDeliveryForm({
 
       {/* ── Recurring config ── */}
       {scheduleMode === 'recurring_route' && (
-        <div style={{ background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '14px', padding: '18px' }}>
+        <div className="mr-3" style={{ background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '14px', padding: '18px' }}>
           <div style={{ fontSize: '11.5px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--app-brand)', marginBottom: '14px' }}>
             Weekly route
           </div>
@@ -282,25 +282,25 @@ export function UnifiedDeliveryForm({
 
       {/* ── Custom dates calendar ── */}
       {scheduleMode === 'custom_dates' && (
-        <>
+        <div className="mr-3">
           <MultiDateCalendar
             selected={customDates}
             onToggle={toggleDate}
             disabled={isPending}
           />
           {errors.customDates && <FieldError>{errors.customDates.message}</FieldError>}
-        </>
+        </div>
       )}
 
       {/* ── Delivery items ── */}
-      <div>
+      <div className="mr-3">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--app-text)' }}>Delivery items</label>
           <span style={{ fontSize: '12px', color: 'var(--app-text-faint)' }}>{items.length} {items.length === 1 ? 'item' : 'items'}</span>
         </div>
 
         {/* item rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="mr-3" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {fields.map((field, index) => (
             <div
               key={field.id}
@@ -399,7 +399,7 @@ export function UnifiedDeliveryForm({
       </div>
 
       {/* ── Assigned to + Notes ── */}
-      <div style={{ display: 'grid', gap: '16px' }}>
+      <div className="mr-3" style={{ display: 'grid', gap: '16px' }}>
         <div>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--app-text)', marginBottom: '7px' }}>Assigned to</label>
           <div style={{ position: 'relative' }}>
@@ -438,7 +438,7 @@ export function UnifiedDeliveryForm({
       )}
 
       {/* ── Footer actions ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '4px' }}>
+      <div className="mr-3" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '4px' }}>
         <button
           type="button"
           disabled={isPending}

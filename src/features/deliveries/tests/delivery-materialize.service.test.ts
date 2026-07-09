@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { materializeWeeklySchedule } from '../services/delivery-materialize.service'
 import type { DeliveryScheduleRow } from '../deliveries.types'
 
-const owner = { orgId: 321, createdBy: 'user_123' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
 
 const schedule: DeliveryScheduleRow = {
   id: 99,
@@ -23,7 +23,7 @@ const schedule: DeliveryScheduleRow = {
   status: 'active',
   notes: 'Standing order.',
   assigned_to: null,
-  org_id: 321,
+  org_id: '00000000-0000-4000-8000-000000000321',
   created_by: 'user_123',
   created_at: '2026-05-01T00:00:00.000Z',
   updated_at: null,
@@ -95,10 +95,10 @@ describe('materializeWeeklySchedule', () => {
     // Two occurrences (Jun 8 -> id 101, Jun 15 -> id 102), two template lines each.
     expect(insertItems).toHaveBeenCalledTimes(1)
     expect(insertItems).toHaveBeenCalledWith([
-      { delivery_id: 101, product_id: 10, product_name: 'Bottle', quantity: 3, unit_price: 30, org_id: 321 },
-      { delivery_id: 101, product_id: 11, product_name: 'Delivery Fee', quantity: 1, unit_price: 25, org_id: 321 },
-      { delivery_id: 102, product_id: 10, product_name: 'Bottle', quantity: 3, unit_price: 30, org_id: 321 },
-      { delivery_id: 102, product_id: 11, product_name: 'Delivery Fee', quantity: 1, unit_price: 25, org_id: 321 },
+      { delivery_id: 101, product_id: 10, product_name: 'Bottle', quantity: 3, unit_price: 30, org_id: '00000000-0000-4000-8000-000000000321' },
+      { delivery_id: 101, product_id: 11, product_name: 'Delivery Fee', quantity: 1, unit_price: 25, org_id: '00000000-0000-4000-8000-000000000321' },
+      { delivery_id: 102, product_id: 10, product_name: 'Bottle', quantity: 3, unit_price: 30, org_id: '00000000-0000-4000-8000-000000000321' },
+      { delivery_id: 102, product_id: 11, product_name: 'Delivery Fee', quantity: 1, unit_price: 25, org_id: '00000000-0000-4000-8000-000000000321' },
     ])
   })
 

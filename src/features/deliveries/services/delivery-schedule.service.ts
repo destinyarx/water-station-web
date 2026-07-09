@@ -91,7 +91,7 @@ export async function createWeeklySchedule(
 /** Lists organization members for delivery assignment. */
 export async function getOrgUsers(
   client: SupabaseClient,
-  orgId: number,
+  orgId: string,
 ): Promise<OrgUser[]> {
   const { data, error } = await client
     .from(USERS_TABLE)

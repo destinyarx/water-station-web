@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { updateDeliveryOccurrence } from '../services/delivery-edit.service'
 import type { DeliveryFormValues } from '../deliveries.types'
 
-const owner = { orgId: 321, createdBy: 'user_123' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
 
 const editedRow = {
   id: 77,
@@ -17,7 +17,7 @@ const editedRow = {
   assigned_to: null,
   delivered_by: null,
   completed_at: null,
-  org_id: 321,
+  org_id: '00000000-0000-4000-8000-000000000321',
   created_by: 'user_123',
   created_at: '2026-06-16T00:00:00.000Z',
   updated_at: '2026-06-18T00:00:00.000Z',
@@ -31,7 +31,7 @@ const insertedItemRow = {
   product_name: 'Bottle',
   unit_price: 30,
   quantity: 2,
-  org_id: 321,
+  org_id: '00000000-0000-4000-8000-000000000321',
   created_at: '2026-06-18T00:00:00.000Z',
   updated_at: null,
 }
@@ -106,7 +106,7 @@ describe('updateDeliveryOccurrence', () => {
         product_name: 'Bottle',
         quantity: 2,
         unit_price: 30,
-        org_id: 321,
+        org_id: '00000000-0000-4000-8000-000000000321',
       },
     ])
     expect(delivery.deliveryDate).toBe('2026-06-20')

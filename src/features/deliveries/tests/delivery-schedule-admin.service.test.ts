@@ -15,7 +15,7 @@ vi.mock('../services/delivery-materialize.service', () => ({
   materializeWeeklySchedule: (...args: unknown[]) => materialize(...args),
 }))
 
-const owner = { orgId: 321, createdBy: 'user_123' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
 
 const schedule: DeliveryScheduleRow = {
   id: 99,
@@ -34,7 +34,7 @@ const schedule: DeliveryScheduleRow = {
   status: 'active',
   notes: null,
   assigned_to: null,
-  org_id: 321,
+  org_id: '00000000-0000-4000-8000-000000000321',
   created_by: 'user_123',
   created_at: '2026-05-01T00:00:00.000Z',
   updated_at: null,

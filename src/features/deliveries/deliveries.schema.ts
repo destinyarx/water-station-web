@@ -66,7 +66,7 @@ export const deliveryScheduleRowSchema = z.object({
   status: deliveryScheduleStatusSchema,
   notes: z.string().max(500).nullable(),
   assigned_to: z.string().max(255).nullable().default(null),
-  org_id: z.number().int(),
+  org_id: z.string().uuid(),
   created_by: z.string().max(255),
   created_at: z.string(),
   updated_at: z.string().nullable(),
@@ -84,7 +84,7 @@ export const deliveryRowSchema = z.object({
   assigned_to: z.string().max(255).nullable().default(null),
   delivered_by: z.string().max(255).nullable(),
   completed_at: z.string().nullable(),
-  org_id: z.number().int(),
+  org_id: z.string().uuid(),
   created_by: z.string().max(255),
   created_at: z.string(),
   updated_at: z.string().nullable(),
@@ -103,7 +103,7 @@ export const deliveryItemRowSchema = z.object({
   product_name: z.string().min(1).max(255),
   unit_price: z.coerce.number().min(0),
   quantity: z.coerce.number().positive(),
-  org_id: z.number().int(),
+  org_id: z.string().uuid(),
   created_at: z.string(),
   updated_at: z.string().nullable(),
 })
@@ -112,7 +112,7 @@ export const deliveryScheduleDateRowSchema = z.object({
   id: z.number().int(),
   schedule_id: z.number().int(),
   delivery_date: z.string(),
-  org_id: z.number().int(),
+  org_id: z.string().uuid(),
   created_at: z.string(),
 })
 

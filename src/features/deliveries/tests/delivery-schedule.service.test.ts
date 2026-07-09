@@ -12,7 +12,7 @@ vi.mock('../services/delivery-materialize.service', () => ({
   materializeWeeklySchedule: (...args: unknown[]) => materialize(...args),
 }))
 
-const owner = { orgId: 321, createdBy: 'user_123' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
 
 const values: DeliveryScheduleFormValues = {
   targetType: 'customer',
@@ -46,7 +46,7 @@ const scheduleRow = {
   status: 'active' as const,
   notes: 'Standing order.',
   assigned_to: null,
-  org_id: 321,
+  org_id: '00000000-0000-4000-8000-000000000321',
   created_by: 'user_123',
   created_at: '2026-05-01T00:00:00.000Z',
   updated_at: null,
@@ -87,7 +87,7 @@ describe('createWeeklySchedule', () => {
     expect(insertSchedule).toHaveBeenCalledTimes(1)
     expect(insertScheduleItems).toHaveBeenCalledTimes(1)
     expect(insertScheduleItems).toHaveBeenCalledWith([
-      { schedule_id: 99, product_id: 10, quantity: 3, unit_price: 30, org_id: 321 },
+      { schedule_id: 99, product_id: 10, quantity: 3, unit_price: 30, org_id: '00000000-0000-4000-8000-000000000321' },
     ])
     expect(materialize).toHaveBeenCalledTimes(1)
     expect(result).toEqual(scheduleRow)
