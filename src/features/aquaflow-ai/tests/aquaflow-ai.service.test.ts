@@ -15,11 +15,11 @@ interface QueryResult {
   error: { message: string } | null
 }
 
-const owner = { orgId: 7, createdBy: 'user_1' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_1' }
 
 const conversationRow = {
   id: 3,
-  org_id: 7,
+  org_id: '00000000-0000-4000-8000-000000000007',
   created_by: 'user_1',
   title: 'Sales chat',
   created_at: '2026-07-01T00:00:00.000Z',
@@ -78,7 +78,7 @@ describe('getConversations', () => {
     const list = await getConversations(client)
 
     expect(order1).toHaveBeenCalledWith('updated_at', { ascending: false, nullsFirst: false })
-    expect(list[0]).toMatchObject({ id: 3, orgId: 7, createdBy: 'user_1', title: 'Sales chat' })
+    expect(list[0]).toMatchObject({ id: 3, orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_1', title: 'Sales chat' })
   })
 
   it('throws a friendly error when the query fails', async () => {
@@ -107,7 +107,7 @@ describe('createConversation', () => {
     await createConversation(client, owner, 'Analyze my sales')
 
     expect(insert).toHaveBeenCalledWith(
-      expect.objectContaining({ org_id: 7, created_by: 'user_1', title: 'Analyze my sales' }),
+      expect.objectContaining({ org_id: '00000000-0000-4000-8000-000000000007', created_by: 'user_1', title: 'Analyze my sales' }),
     )
   })
 

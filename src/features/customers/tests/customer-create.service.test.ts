@@ -17,7 +17,7 @@ function createMockClient(result: QueryResult) {
   return { client, from, insert, select, single }
 }
 
-const owner = { orgId: 7, createdBy: 'user_2abcDEF' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_2abcDEF' }
 
 const values: CustomerFormValues = {
   name: 'Crystal Springs',
@@ -46,7 +46,7 @@ const createdRow = {
   province: 'Metro Manila',
   full_address: '123 Main St, San Antonio, Pasig, Metro Manila',
   is_active: true,
-  org_id: 7,
+  org_id: '00000000-0000-4000-8000-000000000007',
   created_by: 'user_2abcDEF',
   created_at: '2026-06-12T00:00:00.000Z',
   updated_at: null,
@@ -63,7 +63,7 @@ describe('createCustomer', () => {
       id: 99,
       name: 'Crystal Springs',
       isBusiness: true,
-      orgId: 7,
+      orgId: '00000000-0000-4000-8000-000000000007',
       createdBy: 'user_2abcDEF',
     })
   })
@@ -77,7 +77,7 @@ describe('createCustomer', () => {
     await createCustomer(client, values, owner)
 
     expect(insert).toHaveBeenCalledWith(
-      expect.objectContaining({ org_id: 7, created_by: 'user_2abcDEF' }),
+      expect.objectContaining({ org_id: '00000000-0000-4000-8000-000000000007', created_by: 'user_2abcDEF' }),
     )
   })
 

@@ -25,7 +25,7 @@ export const rankedItemSchema = z.object({
 
 export const conversationRowSchema = z.object({
   id: z.number(),
-  org_id: z.number().int(),
+  org_id: z.string().uuid(),
   created_by: z.string(),
   title: z.string(),
   created_at: z.string(),

@@ -11,7 +11,7 @@ const row: ProductRow = {
   stock: 120,
   descriptions: 'Retail bottle',
   is_active: true,
-  org_id: 7,
+  org_id: '00000000-0000-4000-8000-000000000007',
   created_by: 'user_2abcDEF',
   created_at: '2026-06-13T00:00:00.000Z',
   updated_at: null,
@@ -34,7 +34,7 @@ describe('toProduct', () => {
       id: 42,
       productName: 'Bottled Water 500ml',
       isStockTracked: true,
-      orgId: 7,
+      orgId: '00000000-0000-4000-8000-000000000007',
       createdBy: 'user_2abcDEF',
       deletedAt: null,
     })
@@ -44,13 +44,13 @@ describe('toProduct', () => {
 describe('toInsertRow', () => {
   it('sets tenant and creator from the resolved owner', () => {
     const insert = toInsertRow(values, {
-      orgId: 7,
+      orgId: '00000000-0000-4000-8000-000000000007',
       createdBy: 'user_2abcDEF',
     })
 
     expect(insert).toMatchObject({
       product_name: 'Bottled Water 500ml',
-      org_id: 7,
+      org_id: '00000000-0000-4000-8000-000000000007',
       created_by: 'user_2abcDEF',
       descriptions: 'Retail bottle',
     })
@@ -59,7 +59,7 @@ describe('toInsertRow', () => {
   it('stores zero stock for non-stock-tracked products', () => {
     const insert = toInsertRow(
       { ...values, isStockTracked: false, stock: 40 },
-      { orgId: 7, createdBy: 'user_2abcDEF' },
+      { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_2abcDEF' },
     )
 
     expect(insert.stock).toBe(0)

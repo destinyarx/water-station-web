@@ -20,7 +20,7 @@ export interface MaintenanceScheduleInsert {
   times_per_week: number | null
   notes: string | null
   is_active: true
-  org_id: number
+  org_id: string
   created_by: string
 }
 
@@ -29,7 +29,7 @@ export interface MaintenanceTaskInsert {
   due_date: string
   status: 'pending'
   assigned_to: string | null
-  org_id: number
+  org_id: string
   created_by: string
 }
 

@@ -5,7 +5,7 @@ describe('registrationSchema', () => {
   it('accepts a valid owner', () => {
     const result = registrationSchema.safeParse({
       isOwner: true,
-      waterStationName: 'Crystal Springs',
+      organizationName: 'Crystal Springs',
     })
     expect(result.success).toBe(true)
   })
@@ -13,7 +13,7 @@ describe('registrationSchema', () => {
   it('rejects an owner without a station name', () => {
     const result = registrationSchema.safeParse({
       isOwner: true,
-      waterStationName: '',
+      organizationName: '',
     })
     expect(result.success).toBe(false)
   })
@@ -21,10 +21,8 @@ describe('registrationSchema', () => {
   it('accepts a valid staff member', () => {
     const result = registrationSchema.safeParse({
       isOwner: false,
-      name: 'Juan dela Cruz',
-      phoneNumber: '09171234567',
-      gender: 'male',
-      inviteCode: 'AQUA-123',
+      organizationCode: 'AQUA-123',
+      contactNumber: '09171234567',
     })
     expect(result.success).toBe(true)
   })
@@ -32,18 +30,16 @@ describe('registrationSchema', () => {
   it('rejects staff missing branch fields', () => {
     const result = registrationSchema.safeParse({
       isOwner: false,
-      name: 'Juan dela Cruz',
+      organizationCode: 'AQUA-123',
     })
     expect(result.success).toBe(false)
   })
 
-  it('rejects an invalid gender', () => {
+  it('rejects staff with an invalid contact number', () => {
     const result = registrationSchema.safeParse({
       isOwner: false,
-      name: 'Juan dela Cruz',
-      phoneNumber: '09171234567',
-      gender: 'unknown',
-      inviteCode: 'AQUA-123',
+      organizationCode: 'AQUA-123',
+      contactNumber: '123',
     })
     expect(result.success).toBe(false)
   })

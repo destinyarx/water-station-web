@@ -24,7 +24,7 @@ export const expenseRowSchema = z.object({
   description: z.string().max(255).nullable(),
   date_incurred: z.string().min(1),
   references_number: z.string().max(100).nullable(),
-  org_id: z.number().int(),
+  org_id: z.string().uuid(),
   created_by: z.string().max(255),
   created_at: z.string(),
   updated_at: z.string().nullable(),

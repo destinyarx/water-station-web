@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture Review — Customers Module</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-feature-settings: "cv02","cv03","cv04","cv11"; }
+  .card { break-inside: avoid; }
+  .diag { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .badge { font-size: 11px; letter-spacing: .04em; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+<div class="max-w-5xl mx-auto px-5 py-10">
+
+  <!-- HEADER -->
+  <header class="mb-10">
+    <div class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-sky-600 mb-3">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14.5a5 5 0 0 0 10 0c0-2.4-2-4.6-5-8-3 3.4-5 5.6-5 8Z"/></svg>
+      Water Station · Architecture Review
+    </div>
+    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Customers module — depth &amp; production readiness</h1>
+    <p class="mt-3 text-slate-600 max-w-2xl leading-relaxed">
+      A read of the documented blueprint (<code class="text-sky-700">CODEBASE.md</code>) against the actual code
+      (<code class="text-sky-700">page.tsx</code>, <code class="text-sky-700">customers.service.ts</code>, the mutation hooks,
+      <code class="text-sky-700">package.json</code>). Vocabulary follows the <em>module / interface / seam / depth</em> model:
+      the goal is to turn <strong>shallow</strong> modules (interface almost as complex as the code behind it) into
+      <strong>deep</strong> ones (a lot of behaviour behind a small interface), for the sake of scale, testability, and AI-navigability.
+    </p>
+  </header>
+
+  <!-- VERDICT -->
+  <section class="mb-10">
+    <h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4">The three questions you asked</h2>
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div class="card bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-400">Is the style good?</div>
+        <div class="mt-2 text-2xl font-extrabold text-emerald-600">Yes — strong</div>
+        <p class="mt-2 text-sm text-slate-600 leading-relaxed">The feature-slice + service/hook/mapper separation is genuinely deep and modern. This is a good 2026 foundation. Keep it.</p>
+      </div>
+      <div class="card bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-400">Good for 2026?</div>
+        <div class="mt-2 text-2xl font-extrabold text-amber-500">Mostly</div>
+        <p class="mt-2 text-sm text-slate-600 leading-relaxed">Stack is current (Next 16 / React 19 / TanStack v5 / Zod v4). But it's all client-rendered <code>force-dynamic</code>; it ignores Server Components / Server Actions that 2026 App Router leans on.</p>
+      </div>
+      <div class="card bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-400">Production ready?</div>
+        <div class="mt-2 text-2xl font-extrabold text-rose-500">Not yet</div>
+        <p class="mt-2 text-sm text-slate-600 leading-relaxed">Two blockers: the list loads <em>every</em> row and paginates in memory, and timestamps trust the browser clock. Both are fixable at one seam each.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCORECARD -->
+  <section class="mb-12">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-slate-100 text-sm font-bold text-slate-700">Production-readiness scorecard</div>
+      <div class="divide-y divide-slate-100 text-sm">
+        <div class="flex items-center gap-3 px-5 py-3"><span class="w-24 text-emerald-600 font-bold">GOOD</span><span class="text-slate-700">Tenant isolation via RLS as the real boundary; <code>org_id</code>/<code>created_by</code> from Clerk, never form input</span></div>
+        <div class="flex items-center gap-3 px-5 py-3"><span class="w-24 text-emerald-600 font-bold">GOOD</span><span class="text-slate-700">Raw DB errors never reach the UI; Zod re-validates every response; soft delete honored</span></div>
+        <div class="flex items-center gap-3 px-5 py-3"><span class="w-24 text-emerald-600 font-bold">GOOD</span><span class="text-slate-700">Four type shapes + mapper — <em>deep, earns its keep</em> (deletion test: convert snake↔camel at every call site instead? No)</span></div>
+        <div class="flex items-center gap-3 px-5 py-3"><span class="w-24 text-amber-500 font-bold">DRIFT</span><span class="text-slate-700">Inline styles + hand-rolled grid contradict the project's own Tailwind / shadcn / TanStack-Table rules</span></div>
+        <div class="flex items-center gap-3 px-5 py-3"><span class="w-24 text-amber-500 font-bold">DRIFT</span><span class="text-slate-700">5 near-identical mutation hooks — shallow duplication that grows ×N per module</span></div>
+        <div class="flex items-center gap-3 px-5 py-3"><span class="w-24 text-amber-500 font-bold">GAP</span><span class="text-slate-700">Owner vs Staff roles defined in CLAUDE.md but no authorization seam in the module (RLS-only)</span></div>
+        <div class="flex items-center gap-3 px-5 py-3"><span class="w-24 text-rose-500 font-bold">BLOCK</span><span class="text-slate-700">List fetches all rows; search/filter/paginate happen in memory — won't scale per tenant</span></div>
+        <div class="flex items-center gap-3 px-5 py-3"><span class="w-24 text-rose-500 font-bold">BLOCK</span><span class="text-slate-700"><code>updated_at</code>/<code>deleted_at</code> stamped from the browser clock — untrusted, driftable</span></div>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-5">Deepening candidates</h2>
+
+  <!-- CANDIDATE 1 -->
+  <article class="card bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <h3 class="text-xl font-bold text-slate-900">1 · Push list querying into the service seam</h3>
+      <span class="badge shrink-0 rounded-full bg-rose-100 text-rose-700 font-bold px-3 py-1 uppercase">Strong</span>
+    </div>
+    <p class="text-sm text-slate-500 mb-4"><strong>Files:</strong> <code>customers.service.ts</code> · <code>use-customers.ts</code> · <code>customers.keys.ts</code> · <code>customers-page.tsx</code></p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-3"><strong class="text-slate-900">Problem.</strong>
+    <code>getActiveCustomers(client)</code> is a <em>shallow</em> read: its interface can express nothing but "give me everything," so it pulls every non-deleted row and the page does the real work — search across five fields, type filter, and slicing into pages of 6 — in a <code>useMemo</code> in the browser. A <code>CustomerFilters</code> type already exists in <code>customers.keys.ts</code> but nothing flows through it. For a per-tenant SaaS, one busy station means the whole customer book crosses the wire on every visit.</p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-4"><strong class="text-slate-900">Solution.</strong>
+    Widen the interface, not the caller: <code>getActiveCustomers(client, { search, type, page, perPage })</code> returning <code>{ rows, total }</code>, using Supabase <code>.ilike()</code>, <code>.eq()</code>, and <code>.range()</code>. Wire the existing <code>customerKeys.list(filters)</code> as the query key so pages cache independently. The page keeps only its input state; the counting and slicing move behind the seam.</p>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
+        <div class="text-xs font-bold uppercase tracking-wide text-rose-600 mb-2">Before · shallow</div>
+        <div class="diag text-slate-600">
+          service ──▶ <span class="text-rose-600">ALL rows</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+          page.useMemo:<br>
+          &nbsp;&nbsp;• search 5 fields<br>
+          &nbsp;&nbsp;• filter type<br>
+          &nbsp;&nbsp;• slice(page,6)<br>
+          <span class="text-rose-500">↳ logic lives in the view</span>
+        </div>
+      </div>
+      <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+        <div class="text-xs font-bold uppercase tracking-wide text-emerald-600 mb-2">After · deep</div>
+        <div class="diag text-slate-600">
+          service(filters) ──▶<br>
+          &nbsp;&nbsp;.ilike / .eq / .range<br>
+          &nbsp;&nbsp;└▶ <span class="text-emerald-600">{ rows, total }</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+          page: just holds inputs<br>
+          <span class="text-emerald-600">↳ one place to test paging</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-sm text-slate-700 leading-relaxed mt-4"><strong class="text-slate-900">Benefits.</strong>
+    <em>Leverage:</em> every future module inherits the same pageable read shape. <em>Locality:</em> pagination correctness (off-by-one, empty page, total count) becomes one testable service function instead of arithmetic scattered in a 260-line component. <em>The interface becomes the test surface</em> — you can assert paging without rendering React.</p>
+  </article>
+
+  <!-- CANDIDATE 2 -->
+  <article class="card bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <h3 class="text-xl font-bold text-slate-900">2 · Let the database own time and lifecycle</h3>
+      <span class="badge shrink-0 rounded-full bg-rose-100 text-rose-700 font-bold px-3 py-1 uppercase">Strong</span>
+    </div>
+    <p class="text-sm text-slate-500 mb-4"><strong>Files:</strong> <code>customers.service.ts</code> · <code>customers.mapper.ts</code> · DB migration</p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-3"><strong class="text-slate-900">Problem.</strong>
+    <code>archiveCustomer</code>, <code>setCustomerStatus</code>, and the mapper all stamp <code>new Date().toISOString()</code> — the browser clock. In a business where "when was this delivered / archived" is an audit fact, a wrong or skewed client clock writes a wrong fact, and a client could set it deliberately. The seam that <em>should</em> own "now" (Postgres) is being bypassed.</p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-4"><strong class="text-slate-900">Solution.</strong>
+    Move <code>created_at</code>/<code>updated_at</code> to <code>default now()</code> + an <code>updated_at</code> trigger, and set <code>deleted_at = now()</code> in SQL (or via a soft-delete RPC). The service stops sending timestamps; the mapper stops computing them. <span class="text-slate-500">// ponytail: a DB default is fewer lines <em>and</em> the correct clock.</span></p>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
+        <div class="text-xs font-bold uppercase tracking-wide text-rose-600 mb-2">Before</div>
+        <div class="diag text-slate-600">
+          browser clock<br>
+          &nbsp;&nbsp;└▶ toISOString()<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└▶ sent in payload<br>
+          <span class="text-rose-500">↳ trust the client for audit time</span>
+        </div>
+      </div>
+      <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+        <div class="text-xs font-bold uppercase tracking-wide text-emerald-600 mb-2">After</div>
+        <div class="diag text-slate-600">
+          Postgres now()<br>
+          &nbsp;&nbsp;└▶ default / trigger<br>
+          <span class="text-emerald-600">↳ one authoritative clock, RLS-side</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-sm text-slate-700 leading-relaxed mt-4"><strong class="text-slate-900">Benefits.</strong>
+    <em>Locality:</em> "when did it happen" has exactly one source of truth. <em>Leverage:</em> every table that adopts the convention gets trustworthy timestamps for free, and the service functions shrink.</p>
+  </article>
+
+  <!-- CANDIDATE 3 -->
+  <article class="card bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <h3 class="text-xl font-bold text-slate-900">3 · Collapse the five mutation hooks into one deep factory</h3>
+      <span class="badge shrink-0 rounded-full bg-amber-100 text-amber-700 font-bold px-3 py-1 uppercase">Worth exploring</span>
+    </div>
+    <p class="text-sm text-slate-500 mb-4"><strong>Files:</strong> <code>use-create-customer.ts</code> · <code>use-update-customer.ts</code> · <code>use-archive-customer.ts</code> · <code>use-set-customer-status.ts</code></p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-3"><strong class="text-slate-900">Problem.</strong>
+    The four mutation hooks are the same eleven lines: grab client, grab <code>queryClient</code>, <code>useMutation</code>, invalidate <code>lists()</code>, <code>toast.success</code>, <code>toast.error(error.message)</code>. Each hook is <em>shallow</em> — its interface (a mutation) is nearly its whole body. Multiply by five modules still to build and that's ~25 copies of the same wiring. Apply the deletion test: delete one hook and the "complexity" that reappears at the call site is a single <code>useMutation</code> config — the sign of a pass-through.</p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-4"><strong class="text-slate-900">Solution.</strong>
+    One shared <code>useEntityMutation({ mutationFn, invalidate, successMessage })</code> in <code>src/hooks</code> that folds in the client, invalidation, and toast policy. The per-feature hooks become one-liners that supply only what differs. <span class="text-slate-500">// ponytail: this is the rare case where an abstraction subtracts code — two real adapters (create, update) already exist, so the seam is real, not hypothetical.</span></p>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+        <div class="text-xs font-bold uppercase tracking-wide text-amber-600 mb-2">Before · 4 shallow copies</div>
+        <div class="diag text-slate-600">
+          create ─┐<br>
+          update ─┤ each: client +<br>
+          archive ─┤ qc + invalidate +<br>
+          status ─┘ 2 toasts (×N modules)
+        </div>
+      </div>
+      <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+        <div class="text-xs font-bold uppercase tracking-wide text-emerald-600 mb-2">After · 1 deep hook</div>
+        <div class="diag text-slate-600">
+          useEntityMutation(cfg)<br>
+          &nbsp;&nbsp;└▶ create/update/…<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;= 1 line each<br>
+          <span class="text-emerald-600">↳ toast + cache policy tested once</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-sm text-slate-700 leading-relaxed mt-4"><strong class="text-slate-900">Benefits.</strong>
+    <em>Locality:</em> the "how do mutations behave" decision (error copy, what to invalidate, whether to toast) lives in one module. <em>Leverage:</em> a new module writes create/update/archive as three lines. <em>Caution:</em> keep the factory thin — the moment a hook needs bespoke <code>onSuccess</code> (e.g. <code>detail(id)</code> invalidation on update), let it pass overrides rather than growing flags.</p>
+  </article>
+
+  <!-- CANDIDATE 4 -->
+  <article class="card bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <h3 class="text-xl font-bold text-slate-900">4 · Close the UI drift: inline styles &amp; the hand-rolled table</h3>
+      <span class="badge shrink-0 rounded-full bg-amber-100 text-amber-700 font-bold px-3 py-1 uppercase">Worth exploring</span>
+    </div>
+    <p class="text-sm text-slate-500 mb-4"><strong>Files:</strong> <code>customers-page.tsx</code> · <code>customers-table.tsx</code></p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-3"><strong class="text-slate-900">Problem.</strong>
+    <code>CLAUDE.md</code> mandates Tailwind, shadcn, and TanStack Table "for every module's data table." The actual page is ~260 lines of inline <code>style={{…}}</code> objects and a hand-built grid; <code>@tanstack/react-table</code> is installed but unused here. This isn't a runtime bug — it's <em>navigability</em> drift: the documented pattern and the real code disagree, which is exactly the thing that misleads the next human and the next AI agent. Styling logic is also inseparable from layout, so nothing is reusable across modules.</p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-4"><strong class="text-slate-900">Solution.</strong>
+    Two honest options — pick one and make the doc match reality:
+    <br>(a) Adopt the documented stack: move the table to TanStack Table + shadcn, replace inline styles with Tailwind classes / the existing CSS-var tokens.
+    <br>(b) If the inline-token look is deliberate, amend <code>CODEBASE.md</code>/<code>CLAUDE.md</code> to describe what's actually done and drop the unused table dep.
+    <span class="text-slate-500">// ponytail: don't rewrite pretty working UI for dogma — but the doc must not lie about it.</span></p>
+
+    <p class="text-sm text-slate-700 leading-relaxed"><strong class="text-slate-900">Benefits.</strong>
+    <em>Locality:</em> a shared <code>DataTable</code> adapter means sorting/paging/empty-state render the same in every module. <em>Navigability:</em> doc and code stop contradicting each other, so agents scaffolding module #2 copy the real pattern.</p>
+  </article>
+
+  <!-- CANDIDATE 5 -->
+  <article class="card bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <h3 class="text-xl font-bold text-slate-900">5 · Give Owner/Staff roles an authorization seam</h3>
+      <span class="badge shrink-0 rounded-full bg-amber-100 text-amber-700 font-bold px-3 py-1 uppercase">Worth exploring</span>
+    </div>
+    <p class="text-sm text-slate-500 mb-4"><strong>Files:</strong> <code>customers.guards.ts</code> · <code>customer-row-actions.tsx</code> · <code>use-customer-owner.ts</code></p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-3"><strong class="text-slate-900">Problem.</strong>
+    The domain has two roles with different powers, but the module's only guard is <code>canEditCustomer</code> (a <code>deleted_at</code> check). Nothing asks "may <em>this role</em> archive a customer?" If RLS is the only enforcement, the UI happily shows actions a Staff user will only fail at write time — a poor experience and an easy place for the rule to be forgotten as modules multiply.</p>
+
+    <p class="text-sm text-slate-700 leading-relaxed mb-4"><strong class="text-slate-900">Solution.</strong>
+    Extend the existing guard seam with role-aware predicates — <code>canArchiveCustomer(role)</code>, <code>canEditCustomer(customer, role)</code> — sourced from the same Clerk session <code>use-customer-owner</code> already reads. Pure functions, trivially testable, gate the UI while RLS stays the real backstop.</p>
+
+    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div class="diag text-slate-600">
+        Clerk claims (role) ──▶ <span class="text-emerald-600">guards.ts</span> ──▶ row-actions renders only permitted verbs<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└▶ RLS still rejects the write (backstop unchanged)
+      </div>
+    </div>
+
+    <p class="text-sm text-slate-700 leading-relaxed mt-4"><strong class="text-slate-900">Benefits.</strong>
+    <em>Locality:</em> every "who can do what" rule lives beside the data it guards, unit-tested without a browser. <em>Leverage:</em> the pattern drops into every module's <code>guards.ts</code>.</p>
+  </article>
+
+  <!-- QUICK WINS -->
+  <section class="mb-12">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h3 class="text-lg font-bold text-slate-900 mb-3">Quick wins <span class="badge rounded-full bg-slate-100 text-slate-500 font-bold px-2 py-0.5 uppercase align-middle">Speculative</span></h3>
+      <ul class="text-sm text-slate-700 space-y-2 list-disc pl-5">
+        <li><strong>Drop <code>axios</code>.</strong> It's in <code>package.json</code> but CLAUDE.md forbids raw fetch for Supabase — likely dead weight. Delete it unless something outside this module uses it.</li>
+        <li><strong>Cap the toast array.</strong> <code>toast-store.ts</code> appends unboundedly; trim to the last N so a burst of errors can't grow the list forever.</li>
+        <li><strong>Reconsider blanket <code>force-dynamic</code>.</strong> 2026 App Router expects Server Components / Server Actions for reads; the whole app being client-fetched is a legitimate style, but it's a deliberate trade worth recording as an ADR rather than a default.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- TOP REC -->
+  <section class="mb-6">
+    <div class="rounded-2xl border-2 border-sky-300 bg-sky-50 p-6">
+      <div class="text-xs font-bold uppercase tracking-widest text-sky-600 mb-2">Top recommendation</div>
+      <h3 class="text-xl font-bold text-slate-900 mb-2">Start with Candidate 1 — server-side list querying.</h3>
+      <p class="text-sm text-slate-700 leading-relaxed">
+        It's the one thing standing between "nice demo" and "production." It's a true depth move (behaviour goes behind the service interface, the view gets simpler), it activates the <code>CustomerFilters</code> type that already exists, and it sets the read shape every later module copies. Candidate 2 (DB-owned time) is the natural follow-on in the same service file. Candidates 3–5 are quality-of-life and can wait until module #2 proves the duplication is real.
+      </p>
+    </div>
+  </section>
+
+  <p class="text-xs text-slate-400 mt-8">Generated for <code>docs/improve-architecture/</code> · vocabulary per the improve-codebase-architecture skill.</p>
+
+</div>
+</body>
+</html>

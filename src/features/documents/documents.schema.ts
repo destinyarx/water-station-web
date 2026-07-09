@@ -6,7 +6,7 @@ export const documentCategorySchema = z.enum(documentCategoryValues)
 
 export const documentRowSchema = z.object({
   id: z.number(),
-  org_id: z.number().int(),
+  org_id: z.string().uuid(),
   created_by: z.string(),
   title: z.string(),
   description: z.string().nullable(),

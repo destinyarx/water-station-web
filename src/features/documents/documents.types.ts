@@ -7,12 +7,12 @@ export type DocumentFormValues = z.output<typeof documentFormSchema>
 export type DocumentFormInput = z.input<typeof documentFormSchema>
 
 export interface DocumentOwner {
-  orgId: number
+  orgId: string
   createdBy: string
 }
 
 export interface DocumentInsert {
-  org_id: number
+  org_id: string
   created_by: string
   title: string
   description: string | null
@@ -38,7 +38,7 @@ export interface DocumentUpdate {
 
 export interface Document {
   id: number
-  orgId: number
+  orgId: string
   createdBy: string
   uploaderName: string | null
   title: string

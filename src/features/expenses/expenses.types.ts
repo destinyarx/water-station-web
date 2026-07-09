@@ -23,7 +23,7 @@ export type ExpenseFormValues = z.output<typeof expenseFormSchema>
  * layer. Never sourced from form input so a client cannot spoof station scope.
  */
 export interface ExpenseOwner {
-  orgId: number
+  orgId: string
   createdBy: string
 }
 
@@ -38,7 +38,7 @@ export interface ExpenseInsert {
   description: string | null
   date_incurred: string
   references_number: string | null
-  org_id: number
+  org_id: string
   created_by: string
 }
 
@@ -70,7 +70,7 @@ export interface Expense {
   description: string | null
   dateIncurred: string
   referencesNumber: string | null
-  orgId: number
+  orgId: string
   createdBy: string
   createdAt: string
   updatedAt: string | null

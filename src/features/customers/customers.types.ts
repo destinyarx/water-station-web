@@ -16,7 +16,7 @@ export type CustomerFormValues = z.output<typeof customerFormSchema>
  * the tenant or creator (RLS also enforces this).
  */
 export interface CustomerOwner {
-  orgId: number
+  orgId: string
   createdBy: string
 }
 
@@ -33,7 +33,7 @@ export interface CustomerInsert {
   municipality: string | null
   province: string | null
   full_address: string | null
-  org_id: number
+  org_id: string
   created_by: string
 }
 
@@ -72,7 +72,7 @@ export interface Customer {
   province: string | null
   fullAddress: string | null
   isActive: boolean
-  orgId: number
+  orgId: string
   createdBy: string
   createdAt: string
   updatedAt: string | null

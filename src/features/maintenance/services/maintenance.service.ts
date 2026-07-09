@@ -83,7 +83,7 @@ export async function getMaintenanceBoard(
 /** Lists co-members in the caller's org for the assignee picker. */
 export async function getOrgUsers(
   client: SupabaseClient,
-  orgId: number,
+  orgId: string,
 ): Promise<OrgUser[]> {
   const { data, error } = await client
     .from(USERS_TABLE)

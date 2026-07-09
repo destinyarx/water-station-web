@@ -22,7 +22,7 @@ const row = {
   stock: 120,
   descriptions: 'Retail bottle',
   is_active: true,
-  org_id: 7,
+  org_id: '00000000-0000-4000-8000-000000000007',
   created_by: 'user_2abcDEF',
   created_at: '2026-06-13T00:00:00.000Z',
   updated_at: null,
@@ -37,7 +37,7 @@ const values: ProductFormValues = {
   description: 'Retail bottle',
 }
 
-const owner = { orgId: 7, createdBy: 'user_2abcDEF' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_2abcDEF' }
 
 function createListClient(result: QueryResult) {
   const order = vi.fn(() => Promise.resolve(result))
@@ -121,7 +121,7 @@ describe('createProduct', () => {
     const product = await createProduct(client, values, owner)
 
     expect(insert).toHaveBeenCalledWith(
-      expect.objectContaining({ org_id: 7, created_by: 'user_2abcDEF' }),
+      expect.objectContaining({ org_id: '00000000-0000-4000-8000-000000000007', created_by: 'user_2abcDEF' }),
     )
     expect(product).toMatchObject({ id: 42, productName: 'Bottled Water 500ml' })
   })

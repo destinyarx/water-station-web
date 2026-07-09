@@ -20,8 +20,8 @@ export function useAquaflowAiAccess(): AquaflowAiAccess {
     return { canAccess: false, owner: null }
   }
 
-  const orgId = Number(sessionClaims.organization)
-  if (Number.isNaN(orgId)) return { canAccess: false, owner: null }
-
-  return { canAccess: true, owner: { orgId, createdBy: userId } }
+  return {
+    canAccess: true,
+    owner: { orgId: sessionClaims.organization, createdBy: userId },
+  }
 }

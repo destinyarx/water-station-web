@@ -19,7 +19,7 @@ const baseExpense: Expense = {
   description: 'Filter housing parts',
   dateIncurred: '2026-06-13',
   referencesNumber: 'GCASH-123',
-  orgId: 7,
+  orgId: '00000000-0000-4000-8000-000000000007',
   createdBy: 'user_2abcDEF',
   createdAt: '2026-06-13T00:00:00.000Z',
   updatedAt: null,

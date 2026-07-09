@@ -1,24 +1,30 @@
 import axios from 'axios'
-import { toEdgePayload } from '../registration.mapper'
-import { REGISTRATION_EDGE_URL } from '../registration.constants'
-import type { RegistrationInput } from '../registration.types'
+import { toEdgeRequest } from '../registration.mapper'
+import type {
+  RegistrationIdentity,
+  RegistrationInput,
+} from '../registration.types'
 
 /**
- * Submits onboarding data to the Supabase edge function, authenticated with the
- * caller's Clerk session token. The function updates the user's session-token
- * claims (`is_owner`, `organization`).
+ * Submits onboarding to the role-appropriate Supabase edge function,
+ * authenticated with the caller's Clerk session token. The function creates the
+ * org/membership records and writes the user's `public_metadata`
+ * (`organization` uuid + `is_owner`).
  */
 export async function submitRegistration(
   input: RegistrationInput,
   token: string,
+  identity: RegistrationIdentity,
 ): Promise<void> {
-  if (!REGISTRATION_EDGE_URL) {
+  const { url, body } = toEdgeRequest(input, identity)
+
+  if (!url) {
     throw new Error(
-      'Missing NEXT_PUBLIC_SUPABASE_EDGE_REGISTRATION_URL environment variable.',
+      'Missing onboarding edge-function URL. Check NEXT_PUBLIC_SUPABASE_EDGE_CREATE_ORG_URL and NEXT_PUBLIC_SUPABASE_EDGE_ADD_STAFF_URL.',
     )
   }
 
-  await axios.post(REGISTRATION_EDGE_URL, toEdgePayload(input), {
+  await axios.post(url, body, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,

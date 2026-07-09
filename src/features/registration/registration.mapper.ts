@@ -1,22 +1,42 @@
-import type { RegistrationInput, RegistrationPayload } from './registration.types'
+import { ADD_STAFF_EDGE_URL, CREATE_ORG_EDGE_URL } from './registration.constants'
+import type {
+  RegistrationIdentity,
+  RegistrationInput,
+  RegistrationRequest,
+} from './registration.types'
 
 /**
- * Maps validated form input to the edge-function payload.
- * - Owner: `organization` is null (server fills it); no gender/phone.
- * - Staff: `organization` is the invite code; gender + phone are included.
+ * Resolves the edge-function call for the chosen role.
+ * - Owner → `create-aquaflow-organization`: sends the station name; the edge
+ *   function generates the `organization_code` and creates the org/member/user.
+ * - Staff → `aquaflow-add-staff`: sends the org code + contact number.
+ *
+ * `name`/`email` come from the Clerk session identity, never from form input.
  */
-export function toEdgePayload(input: RegistrationInput): RegistrationPayload {
+export function toEdgeRequest(
+  input: RegistrationInput,
+  identity: RegistrationIdentity,
+): RegistrationRequest {
+  const { name, email } = identity
+
   if (input.isOwner) {
     return {
-      is_owner: true,
-      organization: null,
+      url: CREATE_ORG_EDGE_URL,
+      body: {
+        organization_name: input.organizationName,
+        name,
+        email,
+      },
     }
   }
 
   return {
-    is_owner: false,
-    organization: input.inviteCode,
-    gender: input.gender,
-    phone_number: input.phoneNumber,
+    url: ADD_STAFF_EDGE_URL,
+    body: {
+      organization_code: input.organizationCode,
+      contact_number: input.contactNumber,
+      name,
+      email,
+    },
   }
 }

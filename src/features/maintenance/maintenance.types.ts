@@ -25,7 +25,7 @@ export type EditMaintenanceInput = z.input<typeof editMaintenanceSchema>
 export type EditMaintenanceValues = z.output<typeof editMaintenanceSchema>
 
 export interface MaintenanceOwner {
-  orgId: number
+  orgId: string
   createdBy: string
 }
 

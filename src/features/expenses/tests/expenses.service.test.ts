@@ -25,7 +25,7 @@ const row = {
   description: 'Filter housing parts',
   date_incurred: '2026-06-13',
   references_number: 'GCASH-123',
-  org_id: 7,
+  org_id: '00000000-0000-4000-8000-000000000007',
   created_by: 'user_2abcDEF',
   created_at: '2026-06-13T00:00:00.000Z',
   updated_at: null,
@@ -44,7 +44,7 @@ const values: ExpenseFormValues = {
   referencesNumber: 'GCASH-123',
 }
 
-const owner = { orgId: 7, createdBy: 'user_2abcDEF' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_2abcDEF' }
 
 function createListClient(result: QueryResult) {
   const order = vi.fn(() => Promise.resolve(result))
@@ -128,7 +128,7 @@ describe('createExpense', () => {
     const expense = await createExpense(client, values, owner)
 
     expect(insert).toHaveBeenCalledWith(
-      expect.objectContaining({ org_id: 7, created_by: 'user_2abcDEF' }),
+      expect.objectContaining({ org_id: '00000000-0000-4000-8000-000000000007', created_by: 'user_2abcDEF' }),
     )
     expect(expense).toMatchObject({ id: 42, name: 'Membrane replacement' })
   })

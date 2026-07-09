@@ -31,7 +31,7 @@ export type SendMessageInput = z.infer<typeof sendMessageSchema>
 
 export interface Conversation {
   id: number
-  orgId: number
+  orgId: string
   createdBy: string
   title: string
   createdAt: string
@@ -50,7 +50,7 @@ export interface Message {
 
 /** Owner identity resolved from the Clerk session, never from client input. */
 export interface AiOwner {
-  orgId: number
+  orgId: string
   createdBy: string
 }
 

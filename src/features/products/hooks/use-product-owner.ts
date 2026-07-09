@@ -12,10 +12,5 @@ export function useProductOwner(): ProductOwner | null {
     return null
   }
 
-  const orgId = Number(organization)
-  if (Number.isNaN(orgId)) {
-    return null
-  }
-
-  return { orgId, createdBy: userId }
+  return { orgId: organization, createdBy: userId }
 }

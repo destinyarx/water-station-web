@@ -9,7 +9,7 @@ export const productRowSchema = z.object({
   stock: z.number().int().min(0),
   descriptions: z.string().max(255).nullable(),
   is_active: z.boolean(),
-  org_id: z.number().int(),
+  org_id: z.string().uuid(),
   created_by: z.string().max(255),
   created_at: z.string(),
   updated_at: z.string().nullable(),

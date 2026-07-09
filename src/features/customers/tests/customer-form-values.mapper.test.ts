@@ -16,7 +16,7 @@ const customer: Customer = {
   province: null,
   fullAddress: '123 Main St, Pasig',
   isActive: true,
-  orgId: 7,
+  orgId: '00000000-0000-4000-8000-000000000007',
   createdBy: 'user_2abcDEF',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: null,

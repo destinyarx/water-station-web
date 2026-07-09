@@ -11,10 +11,7 @@ export function useMaintenanceOwner(): MaintenanceOwner | null {
 
   if (!userId || organization == null) return null
 
-  const orgId = Number(organization)
-  if (Number.isNaN(orgId)) return null
-
-  return { orgId, createdBy: userId }
+  return { orgId: organization, createdBy: userId }
 }
 
 /** Whether the signed-in user is the station owner (archive permission). */

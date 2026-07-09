@@ -13,7 +13,7 @@ export type ProductFormValues = z.output<typeof productFormSchema>
 
 /** Tenant and creator resolved from Clerk session claims. */
 export interface ProductOwner {
-  orgId: number
+  orgId: string
   createdBy: string
 }
 
@@ -24,7 +24,7 @@ export interface ProductInsert {
   is_stock_tracked: boolean
   stock: number
   descriptions: string | null
-  org_id: number
+  org_id: string
   created_by: string
 }
 
@@ -47,7 +47,7 @@ export interface Product {
   stock: number
   description: string | null
   isActive: boolean
-  orgId: number
+  orgId: string
   createdBy: string
   createdAt: string
   updatedAt: string | null

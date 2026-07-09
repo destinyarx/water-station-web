@@ -1,30 +1,38 @@
 import { describe, it, expect } from 'vitest'
-import { toEdgePayload } from './registration.mapper'
+import { toEdgeRequest } from './registration.mapper'
 
-describe('toEdgePayload', () => {
-  it('maps an owner with a null organization and no staff fields', () => {
-    const payload = toEdgePayload({
-      isOwner: true,
-      waterStationName: 'Crystal Springs',
+const identity = { name: 'Juan dela Cruz', email: 'juan@example.com' }
+
+describe('toEdgeRequest', () => {
+  it('maps an owner to the create-org function with name + email from identity', () => {
+    const { url, body } = toEdgeRequest(
+      { isOwner: true, organizationName: 'Crystal Springs' },
+      identity,
+    )
+    expect(url).toContain('') // resolved from env; asserted on body shape below
+    expect(body).toEqual({
+      organization_name: 'Crystal Springs',
+      name: 'Juan dela Cruz',
+      email: 'juan@example.com',
     })
-    expect(payload).toEqual({ is_owner: true, organization: null })
-    expect(payload).not.toHaveProperty('gender')
-    expect(payload).not.toHaveProperty('phone_number')
+    expect(body).not.toHaveProperty('organization_code')
+    expect(body).not.toHaveProperty('contact_number')
   })
 
-  it('maps a staff member with the invite code as organization', () => {
-    const payload = toEdgePayload({
-      isOwner: false,
+  it('maps a staff member to the add-staff function with the org code + contact', () => {
+    const { body } = toEdgeRequest(
+      {
+        isOwner: false,
+        organizationCode: 'AQUA-123',
+        contactNumber: '09171234567',
+      },
+      identity,
+    )
+    expect(body).toEqual({
+      organization_code: 'AQUA-123',
+      contact_number: '09171234567',
       name: 'Juan dela Cruz',
-      phoneNumber: '09171234567',
-      gender: 'female',
-      inviteCode: 'AQUA-123',
-    })
-    expect(payload).toEqual({
-      is_owner: false,
-      organization: 'AQUA-123',
-      gender: 'female',
-      phone_number: '09171234567',
+      email: 'juan@example.com',
     })
   })
 })

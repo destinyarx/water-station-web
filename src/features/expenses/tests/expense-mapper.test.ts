@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { toExpense, toFormValues, toInsertRow, toUpdateRow } from '../expenses.mapper'
 import type { ExpenseFormValues, ExpenseRow } from '../expenses.types'
 
-const owner = { orgId: 7, createdBy: 'user_2abcDEF' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_2abcDEF' }
 
 const row: ExpenseRow = {
   id: 42,
@@ -16,7 +16,7 @@ const row: ExpenseRow = {
   description: 'Filter housing parts',
   date_incurred: '2026-06-13',
   references_number: 'GCASH-123',
-  org_id: 7,
+  org_id: '00000000-0000-4000-8000-000000000007',
   created_by: 'user_2abcDEF',
   created_at: '2026-06-13T00:00:00.000Z',
   updated_at: null,
@@ -45,7 +45,7 @@ describe('expense mappers', () => {
       amount: 1250.5,
       categoryLabel: 'Machine Maintenance & Repairs',
       paymentMethodLabel: 'GCash',
-      orgId: 7,
+      orgId: '00000000-0000-4000-8000-000000000007',
       createdBy: 'user_2abcDEF',
     })
   })
@@ -75,7 +75,7 @@ describe('expense mappers', () => {
       payment_method_other: null,
       description: 'Filter housing parts',
       references_number: null,
-      org_id: 7,
+      org_id: '00000000-0000-4000-8000-000000000007',
       created_by: 'user_2abcDEF',
     })
   })

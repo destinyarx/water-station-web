@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { toInsertRow } from '../customers.mapper'
 import type { CustomerFormValues } from '../customers.types'
 
-const owner = { orgId: 7, createdBy: 'user_2abcDEF' }
+const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_2abcDEF' }
 
 const fullValues: CustomerFormValues = {
   name: 'Crystal Springs',
@@ -28,7 +28,7 @@ describe('toInsertRow', () => {
       street_address: '123 Main St',
       latitude: 14.5995,
       longitude: 120.9842,
-      org_id: 7,
+      org_id: '00000000-0000-4000-8000-000000000007',
       created_by: 'user_2abcDEF',
     })
   })

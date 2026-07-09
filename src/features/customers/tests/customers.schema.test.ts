@@ -15,7 +15,7 @@ const validRow = {
   province: 'Metro Manila',
   full_address: '123 Main St, San Antonio, Pasig, Metro Manila',
   is_active: true,
-  org_id: 7,
+  org_id: '00000000-0000-4000-8000-000000000007',
   created_by: 'user_2abcDEF',
   created_at: '2026-01-01T00:00:00.000Z',
   updated_at: null,
@@ -51,8 +51,8 @@ describe('customerRowSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects a non-integer org_id', () => {
-    const result = customerRowSchema.safeParse({ ...validRow, org_id: 1.5 })
+  it('rejects a non-uuid org_id', () => {
+    const result = customerRowSchema.safeParse({ ...validRow, org_id: 'not-a-uuid' })
     expect(result.success).toBe(false)
   })
 })

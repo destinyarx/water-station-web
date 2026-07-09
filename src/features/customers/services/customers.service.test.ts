@@ -30,7 +30,7 @@ const dbRow = {
   province: 'Metro Manila',
   full_address: null,
   is_active: true,
-  org_id: 7,
+  org_id: '00000000-0000-4000-8000-000000000007',
   created_by: 'user_2abcDEF',
   created_at: '2026-01-01T00:00:00.000Z',
   updated_at: null,

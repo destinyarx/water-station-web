@@ -18,7 +18,7 @@ describe('toConversation', () => {
   it('maps snake_case row to the domain model', () => {
     const c = toConversation({
       id: 3,
-      org_id: 7,
+      org_id: '00000000-0000-4000-8000-000000000007',
       created_by: 'user_1',
       title: 'Sales chat',
       created_at: '2026-07-01T00:00:00.000Z',
@@ -26,7 +26,7 @@ describe('toConversation', () => {
     })
     expect(c).toEqual({
       id: 3,
-      orgId: 7,
+      orgId: '00000000-0000-4000-8000-000000000007',
       createdBy: 'user_1',
       title: 'Sales chat',
       createdAt: '2026-07-01T00:00:00.000Z',

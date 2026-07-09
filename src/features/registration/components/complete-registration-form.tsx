@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { registrationSchema } from '../registration.schema'
-import { GENDERS, GENDER_LABELS } from '../registration.constants'
 import { useCompleteRegistration } from '../hooks/use-complete-registration'
 import type { RegistrationInput } from '../registration.types'
 
@@ -22,7 +21,7 @@ export function CompleteRegistrationForm() {
     formState: { errors, isSubmitting },
   } = useForm<RegistrationInput>({
     resolver: zodResolver(registrationSchema),
-    defaultValues: { isOwner: true, waterStationName: '' },
+    defaultValues: { isOwner: true, organizationName: '' },
   })
 
   const isOwner = watch('isOwner')
@@ -60,77 +59,41 @@ export function CompleteRegistrationForm() {
 
       {isOwner ? (
         <div className="space-y-2">
-          <Label htmlFor="waterStationName">Water station name</Label>
+          <Label htmlFor="organizationName">Water station name</Label>
           <Input
-            id="waterStationName"
+            id="organizationName"
             placeholder="e.g. Crystal Springs Refilling Station"
             disabled={isPending}
-            aria-invalid={'waterStationName' in errors}
-            {...register('waterStationName')}
+            aria-invalid={'organizationName' in errors}
+            {...register('organizationName')}
           />
-          <FieldError message={getError(errors, 'waterStationName')} />
+          <FieldError message={getError(errors, 'organizationName')} />
         </div>
       ) : (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full name</Label>
+            <Label htmlFor="organizationCode">Water station code</Label>
             <Input
-              id="name"
-              placeholder="e.g. Juan dela Cruz"
+              id="organizationCode"
+              placeholder="Provided by your station owner"
               disabled={isPending}
-              aria-invalid={'name' in errors}
-              {...register('name')}
+              aria-invalid={'organizationCode' in errors}
+              {...register('organizationCode')}
             />
-            <FieldError message={getError(errors, 'name')} />
+            <FieldError message={getError(errors, 'organizationCode')} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone number</Label>
+            <Label htmlFor="contactNumber">Contact number</Label>
             <Input
-              id="phoneNumber"
+              id="contactNumber"
               type="tel"
               placeholder="e.g. 0917 123 4567"
               disabled={isPending}
-              aria-invalid={'phoneNumber' in errors}
-              {...register('phoneNumber')}
+              aria-invalid={'contactNumber' in errors}
+              {...register('contactNumber')}
             />
-            <FieldError message={getError(errors, 'phoneNumber')} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="gender">Gender</Label>
-            <select
-              id="gender"
-              disabled={isPending}
-              aria-invalid={'gender' in errors}
-              defaultValue=""
-              className={cn(
-                'h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive',
-              )}
-              {...register('gender')}
-            >
-              <option value="" disabled>
-                Select gender
-              </option>
-              {GENDERS.map((gender) => (
-                <option key={gender} value={gender}>
-                  {GENDER_LABELS[gender]}
-                </option>
-              ))}
-            </select>
-            <FieldError message={getError(errors, 'gender')} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="inviteCode">Water station invite code</Label>
-            <Input
-              id="inviteCode"
-              placeholder="Provided by your station owner"
-              disabled={isPending}
-              aria-invalid={'inviteCode' in errors}
-              {...register('inviteCode')}
-            />
-            <FieldError message={getError(errors, 'inviteCode')} />
+            <FieldError message={getError(errors, 'contactNumber')} />
           </div>
         </div>
       )}

@@ -224,24 +224,47 @@ assuming the displayed chat text and the sent prompt are the same string.
 
 ## Authentication & Onboarding (feature 000-auth_workflow)
 
-- **Water station** — the organization an owner runs. Identified to staff by an **invite
-  code** (the `organization` value in the registration payload and the Clerk
-  `organization` session claim).
-- **Owner** — creates/owns a station (`is_owner = true`). At registration the client sends
-  `organization: null`; the edge function creates the station and assigns a **non-null**
-  `organization` claim server-side.
-- **Staff** — joins an existing station with its invite code
-  (`is_owner = false`, `organization = inviteCode`).
-- **Session claims** — custom Clerk session-token claims (`organization`, `is_owner`)
-  written by the edge function. Declared in `src/types/globals.d.ts`.
+- **Water station** — the organization an owner runs. Its stable identity is the
+  `organizations.id` **uuid**; it is also labelled by a human-facing
+  **organization code** (`organizations.organization_code`) that staff use to join.
+- **Owner** — creates/owns a station (`is_owner = true`). After onboarding the
+  `organization` session claim holds the new station's **uuid** (`organizations.id`).
+- **Staff** — joins an existing station by its **organization code**; after
+  onboarding their `organization` claim also holds that station's **uuid**.
+- **`organization` session claim** — the current user's **`organizations.id` uuid**.
+  This uuid is the `org_id` written on every tenant-owned row. (Historically this
+  claim was a numeric/invite-code value matched against `organization_code`; it is
+  now the org uuid — see task `009`.)
+- **Session claims** — custom Clerk session-token claims sourced from the user's
+  Clerk `public_metadata` and flattened to top level by the JWT template:
+  `organization` (uuid string), `is_owner` (boolean), plus `name` and `email`.
+  Read via `sessionClaims.organization` / `.is_owner` / `.name` / `.email`.
+  Declared in `src/types/globals.d.ts`.
 - **Registration / onboarding** — required post-sign-up step at `/complete-registration`.
-  Submits to the Supabase `update-clerk-session-tokens` edge function (axios POST, Bearer
-  session token), which writes `is_owner` + `organization` into the session token.
+  The form branches on the chosen role and calls one of two Supabase edge functions
+  (axios POST, `Authorization: Bearer <clerk session token>`):
+  - **Owner** → `create-aquaflow-organization`
+    (`NEXT_PUBLIC_SUPABASE_EDGE_CREATE_ORG_URL`).
+    Body `{ organization_name, name, email }` — `organization_name` from the form;
+    `name`/`email` from the session claims. The function generates the
+    `organization_code` and creates the `organizations`, `organization_members`,
+    and `users` rows for the owner.
+  - **Staff** → `aquaflow-add-staff`
+    (`NEXT_PUBLIC_SUPABASE_EDGE_ADD_STAFF_URL`).
+    Body `{ organization_code, contact_number, name, email }` — `organization_code`
+    and `contact_number` from the form; `name`/`email` from the session claims. The
+    function resolves the org by `organization_code` and creates the staff's
+    `organization_members`/`users` rows.
+  Both functions write the caller's Clerk `public_metadata` with
+  `organization` (the resolved `organizations.id` uuid) and `is_owner`. After a
+  successful call the client force-refreshes the session token
+  (`getToken({ skipCache: true })`) and navigates to `/dashboard`.
 - **Registered** — `sessionClaims.organization != null && sessionClaims.is_owner != null`
   (`isRegistered()` in `src/features/registration/registration.guards.ts`). Until then,
   middleware (`src/proxy.ts`) redirects every protected route to `/complete-registration`.
   See `docs/adr/0001-onboarding-gating-via-clerk-claims.md`.
-- **`update-clerk-session-tokens`** — Supabase edge function
-  (`NEXT_PUBLIC_SUPABASE_EDGE_REGISTRATION_URL`). Assumed deployed; the app only calls it.
-  **Required guarantee:** for owners it must set a non-null `organization` claim, otherwise
-  owners loop forever on `/complete-registration`.
+- **Onboarding edge-function guarantee** — both functions **must** write a non-null
+  `organization` uuid (and `is_owner`) into `public_metadata`. If they do not, the
+  user is bounced back to `/complete-registration` by the guard. The guard is never
+  weakened to let an org-less/owner-less session through; the failure mode is a
+  stable landing on `/complete-registration`, not a bypass and not an infinite loop.

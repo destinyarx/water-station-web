@@ -6,9 +6,9 @@ import type { CustomerOwner } from '../customers.types'
 
 /**
  * Resolves the current tenant + creator from the Clerk session. `createdBy` is
- * the Clerk user id (`sub`); `orgId` is the numeric `organization` custom claim.
- * Returns null when either is missing so callers can block the write — RLS is
- * still the authoritative check.
+ * the Clerk user id (`sub`); `orgId` is the `organization` custom claim, which
+ * holds the `organizations.id` uuid. Returns null when either is missing so
+ * callers can block the write — RLS is still the authoritative check.
  */
 export function useCustomerOwner(): CustomerOwner | null {
   const { userId, sessionClaims } = useAuth()
@@ -18,10 +18,5 @@ export function useCustomerOwner(): CustomerOwner | null {
     return null
   }
 
-  const orgId = Number(organization)
-  if (Number.isNaN(orgId)) {
-    return null
-  }
-
-  return { orgId, createdBy: userId }
+  return { orgId: organization, createdBy: userId }
 }
