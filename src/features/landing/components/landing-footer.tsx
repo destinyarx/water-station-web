@@ -1,7 +1,13 @@
 const FOOTER_COLS = [
-  { heading: 'Product', links: ['Features', 'Pricing', 'Dashboard'] },
-  { heading: 'Company', links: ['About', 'Contact'] },
-  { heading: 'Support', links: ['Help center', 'Setup guide'] },
+  { heading: 'Product', links: [{ label: 'Features', href: '#' }, { label: 'Pricing', href: '#' }, { label: 'Dashboard', href: '#' }] },
+  { heading: 'Company', links: [{ label: 'About', href: '#' }, { label: 'Contact', href: '#' }] },
+  {
+    heading: 'Legal',
+    links: [
+      { label: 'Privacy Policy', href: '/privacy-policy' },
+      { label: 'Terms and Conditions', href: '/terms-and-conditions' },
+    ],
+  },
 ]
 
 export function LandingFooter() {
@@ -22,7 +28,7 @@ export function LandingFooter() {
             <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--lp-text)', marginBottom: '14px' }}>{heading}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
               {links.map((link) => (
-                <a key={link} href="#" style={{ textDecoration: 'none', color: 'var(--lp-text-soft)' }}>{link}</a>
+                <a key={link.label} href={link.href} style={{ textDecoration: 'none', color: 'var(--lp-text-soft)' }}>{link.label}</a>
               ))}
             </div>
           </div>

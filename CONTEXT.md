@@ -220,6 +220,23 @@ Clicking one creates a user Message whose displayed text is the title but
 whose actual content (what's sent/stored) is the full prompt body. _Avoid_:
 assuming the displayed chat text and the sent prompt are the same string.
 
+## Legal & Privacy (feature 012-privacy-policy-and-terms-condition)
+
+**Personal Information Controller / Processor** — AquaFlow is the *controller*
+for the account data it collects directly (owner and staff names, emails,
+credentials). For **customer records** that a station encodes, the water station
+is the controller and AquaFlow is only the *processor*. This is why the customer
+form carries no customer-facing consent notice: the customer is not present, and
+responsibility for their data sits with the station (Privacy Policy §5, Data
+Ownership). _Avoid_: describing AquaFlow as the controller of station customers'
+data.
+
+**Legal consent** — the Terms/Privacy acknowledgment a user gives when signing
+up, captured by Clerk's built-in legal-consent checkbox (`legalAcceptedAt` on
+the Clerk user). It is not stored in our Supabase database and has no consent
+table. See `docs/adr/0009-legal-consent-via-clerk.md`. _Avoid_: assuming consent
+is recorded in app tables or on the `complete-registration` form.
+
 ---
 
 ## Authentication & Onboarding (feature 000-auth_workflow)

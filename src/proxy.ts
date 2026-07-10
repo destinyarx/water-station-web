@@ -13,12 +13,20 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
 ])
 
+// Legal pages are readable by everyone (signed-in or not) and must never be
+// bounced to /dashboard or /sign-in, so they short-circuit before auth checks.
+const isLegalRoute = createRouteMatcher(['/privacy-policy', '/terms-and-conditions'])
+
 const isRegistrationRoute = createRouteMatcher([
   REGISTRATION_REDIRECT_PATH,
   `${REGISTRATION_REDIRECT_PATH}(.*)`,
 ])
 
 export default clerkMiddleware(async (auth, req) => {
+  if (isLegalRoute(req)) {
+    return NextResponse.next()
+  }
+
   const { userId, sessionClaims } = await auth()
   const url = req.url
   const pathname = req.nextUrl?.pathname || ''
