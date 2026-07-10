@@ -1,3 +1,5 @@
+## Status - [DONE]
+
 ## Goals:
 - Check if the logic of the organization logic when checking if the user already has a organization and is_owner claim in their clerk.publicmetadata
 - Since i changed the RLS policies as well as added a table organization_members.

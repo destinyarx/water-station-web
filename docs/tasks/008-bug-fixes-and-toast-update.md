@@ -1,3 +1,5 @@
+## Status - [DONE]
+
 ## Goal
 - Fix the bugs and issue listed below.
 - Add confirmation dialog and toast notification to some modules for every CRUD action.

@@ -1,3 +1,5 @@
+## Status - [DONE]
+
 ## Problem
 ### Modal
 - The current following features/modules, each have their own modal even if is just a similar structure, design and a button. 

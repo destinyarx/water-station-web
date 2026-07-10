@@ -1,3 +1,5 @@
+## Status - [DONE]
+
 Redesign only the **sidebar** and **Customers module** of my existing Next.js application.
 
 Follow the design rules, visual language, layout patterns, spacing, typography, components, and conventions already defined in my project’s `docs/DESIGN.md`. Do not introduce a completely different design system. Treat `DESIGN.md` as the source of truth.

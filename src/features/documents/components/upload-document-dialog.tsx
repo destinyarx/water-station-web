@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -20,6 +20,9 @@ import {
 } from '../documents.constants'
 import { useCreateDocument } from '../hooks/use-create-document'
 import { useDocumentOwner } from '../hooks/use-document-owner'
+import { VisibilityToggle } from './visibility-toggle'
+
+const ACCEPTED_IMAGE_TYPES = 'image/png,image/jpeg,image/webp,image/gif'
 
 interface UploadDocumentDialogProps {
   open: boolean
@@ -29,6 +32,17 @@ interface UploadDocumentDialogProps {
 export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProps) {
   const owner = useDocumentOwner()
   const { mutate, isPending } = useCreateDocument(owner)
+
+  // ponytail: file is selected client-side only — storage upload isn't wired yet
+  // (no bucket / file-path column). Upgrade path: upload to Supabase Storage on
+  // submit and persist the path alongside the row.
+  const [file, setFile] = useState<File | null>(null)
+  const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
 
   const {
     register,
@@ -46,7 +60,10 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
   const docTypeOptions = selectedCategory ? (DOCUMENT_TYPES[selectedCategory] ?? []) : []
 
   useEffect(() => {
-    if (!open) reset(DOCUMENT_FORM_DEFAULTS)
+    if (!open) {
+      reset(DOCUMENT_FORM_DEFAULTS)
+      setFile(null)
+    }
   }, [open, reset])
 
   function onSubmit(values: DocumentFormValues) {
@@ -54,6 +71,7 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
       onSuccess: () => {
         onClose()
         reset(DOCUMENT_FORM_DEFAULTS)
+        setFile(null)
       },
     })
   }
@@ -65,7 +83,7 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
         if (!next) onClose()
       }}
       title="Upload document"
-      description="Max 2 MB · JPG, PNG, PDF, DOCX, XLSX"
+      description="Max 2 MB · PNG, JPG, WEBP, GIF"
       size="md"
       icon={
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -76,18 +94,59 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
       }
     >
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-2">
-          {/* Drop zone — UI placeholder only */}
-          <div className="border-2 border-dashed border-[var(--app-border-strong)] rounded-[14px] p-7 text-center bg-[var(--app-surface-2)]">
-            <div className="w-12 h-12 rounded-[14px] bg-[var(--app-chip-bg)] flex items-center justify-center mx-auto mb-3 text-[var(--app-brand)]">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
+          {/* Image picker — click or drop to attach an image */}
+          {file && previewUrl ? (
+            <div className="flex items-center gap-3 border border-[var(--app-border)] rounded-[14px] p-3 bg-[var(--app-surface-2)]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewUrl}
+                alt={file.name}
+                className="w-14 h-14 rounded-[10px] object-cover flex-none border border-[var(--app-border)]"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[var(--app-text)] truncate">{file.name}</p>
+                <p className="text-xs text-[var(--app-text-faint)] mt-0.5">
+                  {(file.size / 1024).toFixed(0)} KB
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFile(null)}
+                className="flex-none text-xs font-semibold text-[var(--app-brand)] hover:underline"
+              >
+                Remove
+              </button>
             </div>
-            <p className="text-sm font-semibold text-[var(--app-text-soft)]">File upload coming soon</p>
-            <p className="text-xs text-[var(--app-text-faint)] mt-1">Save document info now — attach file later</p>
-          </div>
+          ) : (
+            <label
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault()
+                const dropped = e.dataTransfer.files?.[0]
+                if (dropped && dropped.type.startsWith('image/')) setFile(dropped)
+              }}
+              className="block cursor-pointer border-2 border-dashed border-[var(--app-border-strong)] rounded-[14px] p-7 text-center bg-[var(--app-surface-2)] hover:border-[var(--app-brand)] transition-colors"
+            >
+              <input
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES}
+                className="hidden"
+                onChange={(e) => {
+                  const picked = e.target.files?.[0]
+                  if (picked) setFile(picked)
+                }}
+              />
+              <div className="w-12 h-12 rounded-[14px] bg-[var(--app-chip-bg)] flex items-center justify-center mx-auto mb-3 text-[var(--app-brand)]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <p className="text-sm font-semibold text-[var(--app-text-soft)]">Click or drop an image to attach</p>
+              <p className="text-xs text-[var(--app-text-faint)] mt-1">PNG, JPG, WEBP or GIF</p>
+            </label>
+          )}
 
           {/* Document info */}
           <div className="bg-[var(--app-surface-2)] border border-[var(--app-border)] rounded-[14px] p-[18px] flex flex-col gap-[14px]">
@@ -199,54 +258,7 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
               control={control}
               name="visibility"
               render={({ field }) => (
-                <div className="flex gap-2.5">
-                  {(['all', 'only_me'] as const).map((v) => {
-                    const isSelected = field.value === v
-                    return (
-                      <button
-                        key={v}
-                        type="button"
-                        onClick={() => field.onChange(v)}
-                        className={cn(
-                          'flex-1 flex items-center gap-2.5 px-3.5 py-3 rounded-[11px] border-2 text-left transition-colors',
-                          isSelected
-                            ? 'border-[var(--app-brand)] bg-[var(--app-chip-bg)]'
-                            : 'border-[var(--app-border)] bg-[var(--app-surface)]',
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            'flex-none w-8 h-8 rounded-[9px] flex items-center justify-center',
-                            isSelected
-                              ? 'bg-[var(--app-brand)] text-white'
-                              : 'bg-[var(--app-surface-2)] text-[var(--app-text-soft)]',
-                          )}
-                        >
-                          {v === 'all' ? (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                              <circle cx="9" cy="8" r="3" />
-                              <path d="M3.5 19c0-3 2.4-4.8 5.5-4.8s5.5 1.8 5.5 4.8" />
-                              <path d="M15.5 5a3 3 0 0 1 0 5.6M17.2 19c0-2.1-.7-3.5-1.9-4.4" />
-                            </svg>
-                          ) : (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="5" y="11" width="14" height="10" rx="2" />
-                              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-                            </svg>
-                          )}
-                        </div>
-                        <div>
-                          <p className={cn('text-[13.5px] font-semibold leading-tight', isSelected ? 'text-[var(--app-brand)]' : 'text-[var(--app-text)]')}>
-                            {v === 'all' ? 'All staff' : 'Just me'}
-                          </p>
-                          <p className="text-[11.5px] text-[var(--app-text-soft)] mt-0.5">
-                            {v === 'all' ? 'Everyone in this workspace can view' : 'Hidden from other staff members'}
-                          </p>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
+                <VisibilityToggle value={field.value} onChange={field.onChange} />
               )}
             />
           </div>

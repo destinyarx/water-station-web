@@ -383,6 +383,47 @@ Prefer server state through TanStack Query for backend data.
 
 ---
 
+## Styling Standards
+
+**Use Tailwind CSS. Do not write plain CSS (inline `style` props, CSS Modules, or new
+rules in `globals.css`) when Tailwind can express it.**
+
+Reach for plain CSS only when Tailwind genuinely cannot do it:
+
+- runtime-dynamic values computed in JS (e.g. a per-element `left`/`width`/`animationDelay`
+  inside a `.map()`), which have no static class equivalent
+- `@keyframes` definitions (these live in `globals.css`; reference them from Tailwind with
+  `animate-[name_duration_easing_iteration]`)
+
+When you do use an inline style for a dynamic value, keep everything else in Tailwind and
+leave a short comment explaining why it can't be a class.
+
+Reference design tokens (`--lp-*` / `--app-*`) with Tailwind v4's CSS-variable shorthand —
+they follow dark mode automatically because the variables reassign under `html.dark`:
+
+```tsx
+// Good — Tailwind with the (--token) shorthand
+<div className="rounded-xl border border-(--lp-border) bg-(--lp-surface) text-(--lp-text)" />
+
+// Gradients / background images need the image: hint
+<main className="bg-[image:var(--lp-hero-grad)]" />
+
+// Composite values (shadow/ring) that embed a token keep the bracket form
+<input className="focus:shadow-[0_0_0_3px_var(--lp-chip-bg)]" />
+
+// Bad — plain inline styles for something Tailwind can express
+<div style={{ borderRadius: '12px', background: 'var(--lp-surface)' }} />
+```
+
+Prefer the numeric spacing scale over arbitrary pixels (`mb-4.5`, `max-w-115`), and let the
+ESLint `suggestCanonicalClasses` rule guide you to the canonical class. Use `cn()` for
+conditional classes. Prefer shadcn/ui components before hand-rolling primitives.
+
+See `docs/DESIGN.md` → Styling Approach for the design-token reference and the list of
+earlier inline-styled surfaces that predate this rule.
+
+---
+
 ## TanStack Query Standards
 
 Use TanStack Query for server state, including:

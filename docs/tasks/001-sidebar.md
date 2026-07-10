@@ -1,4 +1,7 @@
-Build a responsive **Next.js sidebar navigation** using **shadcn/ui** and **lucide-react** icons.
+## Status - [DONE]
+
+## Goal
+- Build a responsive **Next.js sidebar navigation** using **shadcn/ui** and **lucide-react** icons.
 
 Follow the visual direction and layout style from **Google Stitch design** and make sure to reference the existing design rules from:
 

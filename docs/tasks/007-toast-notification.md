@@ -1,3 +1,5 @@
+## Status - [DONE]
+
 ## Goal 
 - Create a reusable toast notification for success, error, warning, and info
 - Put it in the global shared components for easy access and usage

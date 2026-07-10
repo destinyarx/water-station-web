@@ -2,9 +2,6 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { registrationSchema } from '../registration.schema'
 import { useCompleteRegistration } from '../hooks/use-complete-registration'
@@ -32,90 +29,111 @@ export function CompleteRegistrationForm() {
   })
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6" noValidate>
-      <fieldset className="space-y-3" disabled={isPending}>
-        <legend className="text-sm font-medium text-ink">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5.5">
+      <fieldset disabled={isPending} className="m-0 flex flex-col gap-2.75 border-none p-0">
+        <legend className="mb-0.75 p-0 text-sm font-semibold text-(--lp-text)">
           How will you use AquaFlow?
         </legend>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
           <RoleOption
             label="I'm an owner"
             description="I run a water refilling station."
             selected={isOwner === true}
-            onSelect={() =>
-              setValue('isOwner', true, { shouldValidate: false })
-            }
+            onSelect={() => setValue('isOwner', true, { shouldValidate: false })}
           />
           <RoleOption
             label="I'm a staff"
             description="I work at an existing station."
             selected={isOwner === false}
-            onSelect={() =>
-              setValue('isOwner', false, { shouldValidate: false })
-            }
+            onSelect={() => setValue('isOwner', false, { shouldValidate: false })}
           />
         </div>
       </fieldset>
 
       {isOwner ? (
-        <div className="space-y-2">
-          <Label htmlFor="organizationName">Water station name</Label>
-          <Input
-            id="organizationName"
-            placeholder="e.g. Crystal Springs Refilling Station"
-            disabled={isPending}
-            aria-invalid={'organizationName' in errors}
-            {...register('organizationName')}
-          />
-          <FieldError message={getError(errors, 'organizationName')} />
-        </div>
+        <Field
+          id="organizationName"
+          label="Water station name"
+          placeholder="e.g. Crystal Springs Refilling Station"
+          disabled={isPending}
+          invalid={'organizationName' in errors}
+          error={getError(errors, 'organizationName')}
+          {...register('organizationName')}
+        />
       ) : (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="organizationCode">Water station code</Label>
-            <Input
-              id="organizationCode"
-              placeholder="Provided by your station owner"
-              disabled={isPending}
-              aria-invalid={'organizationCode' in errors}
-              {...register('organizationCode')}
-            />
-            <FieldError message={getError(errors, 'organizationCode')} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="contactNumber">Contact number</Label>
-            <Input
-              id="contactNumber"
-              type="tel"
-              placeholder="e.g. 0917 123 4567"
-              disabled={isPending}
-              aria-invalid={'contactNumber' in errors}
-              {...register('contactNumber')}
-            />
-            <FieldError message={getError(errors, 'contactNumber')} />
-          </div>
-        </div>
+        <>
+          <Field
+            id="organizationCode"
+            label="Water station code"
+            placeholder="Provided by your station owner"
+            disabled={isPending}
+            invalid={'organizationCode' in errors}
+            error={getError(errors, 'organizationCode')}
+            {...register('organizationCode')}
+          />
+          <Field
+            id="contactNumber"
+            label="Contact number"
+            type="tel"
+            placeholder="e.g. 0917 123 4567"
+            disabled={isPending}
+            invalid={'contactNumber' in errors}
+            error={getError(errors, 'contactNumber')}
+            {...register('contactNumber')}
+          />
+        </>
       )}
 
       {mutation.isError ? (
         <p
           role="alert"
-          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="m-0 rounded-[10px] border border-(--app-chip-red-text) bg-(--app-chip-red-bg) px-3 py-2.5 text-[13.5px] text-(--app-chip-red-text)"
         >
           {mutation.error.message}
         </p>
       ) : null}
 
-      <Button
+      <button
         type="submit"
-        size="lg"
         disabled={isPending}
-        className="w-full bg-gradient-to-r from-aqua-mid to-aqua-bright text-cloud hover:opacity-90"
+        className="w-full rounded-[13px] bg-linear-to-br from-[#38bdf8] to-[#0a6cc4] px-5 py-3.5 text-[15px] font-semibold text-white shadow-[0_12px_28px_rgba(14,108,196,0.32)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-65"
       >
         {isPending ? 'Completing…' : 'Complete registration'}
-      </Button>
+      </button>
     </form>
+  )
+}
+
+function Field({
+  id,
+  label,
+  error,
+  invalid,
+  className,
+  ...props
+}: {
+  id: string
+  label: string
+  error?: string
+  invalid?: boolean
+} & React.ComponentProps<'input'>) {
+  return (
+    <div className="flex flex-col gap-1.75">
+      <label htmlFor={id} className="text-[13.5px] font-semibold text-(--lp-text)">
+        {label}
+      </label>
+      <input
+        id={id}
+        aria-invalid={invalid}
+        className={cn(
+          'h-11 w-full rounded-xl border bg-(--lp-surface-2) px-3.5 text-[15px] text-(--lp-text) outline-none transition-[border-color,box-shadow] placeholder:text-(--lp-text-faint) focus:border-(--lp-brand-text) focus:shadow-[0_0_0_3px_var(--lp-chip-bg)] disabled:cursor-not-allowed disabled:opacity-60',
+          invalid ? 'border-(--app-chip-red-text)' : 'border-(--lp-border-strong)',
+          className,
+        )}
+        {...props}
+      />
+      <FieldError message={error} />
+    </div>
   )
 }
 
@@ -136,21 +154,21 @@ function RoleOption({
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        'rounded-xl border p-4 text-left transition-colors',
+        'rounded-[14px] p-3.5 text-left transition-[border-color,background]',
         selected
-          ? 'border-aqua-mid bg-aqua-mist'
-          : 'border-input bg-transparent hover:border-aqua-light',
+          ? 'border-[1.5px] border-(--lp-brand-text) bg-(--lp-chip-bg)'
+          : 'border border-(--lp-border-strong) bg-(--lp-surface) hover:border-(--lp-brand-text)',
       )}
     >
-      <span className="block text-sm font-semibold text-ink">{label}</span>
-      <span className="mt-1 block text-xs text-slate">{description}</span>
+      <span className="block text-sm font-semibold text-(--lp-text)">{label}</span>
+      <span className="mt-0.75 block text-[12.5px] text-(--lp-text-soft)">{description}</span>
     </button>
   )
 }
 
 function FieldError({ message }: { message: string | undefined }) {
   if (!message) return null
-  return <p className="text-sm text-destructive">{message}</p>
+  return <p className="m-0 text-[13px] text-(--app-chip-red-text)">{message}</p>
 }
 
 function getError(

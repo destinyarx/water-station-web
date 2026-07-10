@@ -18,6 +18,18 @@
 > replace ad-hoc `Dialog`/`Card` usage with `AppModal`/`ConfirmDialog` where it
 > fits). See `src/features/deliveries/components/` for a worked example.
 
+> **Amendment (task 010-redesign-pre-registration, 2026-07-10):** All three public
+> **auth surfaces** — complete-registration, sign-in, and sign-up — now support dark
+> mode. They share `AuthShell` (`src/components/layout/auth-shell.tsx`), a `--lp-*`
+> ocean shell that owns their single `initTheme()` call and carries the toggle. The
+> complete-registration card/form use Tailwind + the `(--lp-*)` token shorthand; the
+> Clerk `<SignIn>`/`<SignUp>` widgets are themed via `authAppearance(isDark)`
+> (`src/app/(auth)/auth-appearance.ts`), since Clerk can't read our CSS tokens.
+> `playground` is now the only remaining light-only surface. This task also set a
+> **Tailwind-first styling rule** (plain CSS/inline styles only when Tailwind can't
+> express it) — see `docs/CODING_STANDARDS.md` → Styling Standards and
+> `docs/DESIGN.md` → Styling Approach.
+
 ## Context
 
 Spec 006 introduces a new design system and redesigns three surfaces: the public landing page,
@@ -40,7 +52,9 @@ surface added since via amendment (customers, products, and — as of feature 01
 7. Maintenance module (`src/features/maintenance/components/`) — converted alongside 007/010
 8. Documents module (`src/features/documents/components/`) — converted alongside 007/010
 
-`registration` and `playground` retain their existing light-only styling and are not touched.
+9. Public auth surfaces — complete-registration, sign-in, sign-up (`src/app/complete-registration/`, `src/app/(auth)/`, `src/components/layout/auth-shell.tsx`) — task 010, on `--lp-*` tokens (Clerk widgets via `authAppearance`)
+
+Only `playground` retains its existing light-only styling and is not touched.
 
 Dark mode state is managed by a single Zustand store slice (`useThemeStore`) persisted to
 `localStorage`. Both the landing page navbar and the app header each carry their own toggle
@@ -67,5 +81,6 @@ the app header, and user preference should override OS setting.
 - `maintenance` and `documents` already use the `--app-*` token system in practice (built
   alongside/after feature 007) even though earlier revisions of this ADR didn't list them —
   treat any module using `var(--app-*)` tokens as dark-mode-supported regardless of whether
-  it's explicitly enumerated above. `registration` and `playground` are the remaining
-  light-only surfaces.
+  it's explicitly enumerated above. `playground` is the only remaining light-only
+  surface (the `/complete-registration` route and the `(auth)` sign-in/sign-up
+  screens were all converted in task 010).

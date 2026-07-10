@@ -1,3 +1,5 @@
+## Status - [DONE]
+
 ## Goal:
 - Similar to expenses page, revamp the customers page stats card to lessen the height the same approach and styling you did in expenses stat card, and also follows the same UI/UX design hierarchy.
 - The same way, do the same approach to the following module.

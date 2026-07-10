@@ -1,3 +1,5 @@
+## Status - [DONE]
+
 ## Goal
 - Fixed all the bugs listed in the issues section below.
 - Make sure that behavior is not affected and fixed properly, no regression.

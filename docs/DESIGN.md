@@ -100,7 +100,9 @@ All animations are defined as `@keyframes` in `globals.css` and referenced by na
 
 **Implementation:** `html.dark` class toggled by JavaScript, persisted to `localStorage` key `aqua-theme`.
 
-**Scope:** Landing page, app sidebar + header, expenses, **customers, products, and documents** modules. Customers and products were added in feature 007, documents in feature 009 (extends ADR 0004's original three-surface scope). Remaining modules (deliveries, maintenance) are still unaffected.
+**Scope:** Landing page, app sidebar + header, expenses, **customers, products, and documents** modules, plus deliveries, maintenance, and the **complete-registration** page. Customers and products were added in feature 007, documents in feature 009, deliveries in feature 010, and complete-registration in task 010 (all extend ADR 0004's original three-surface scope). Only the `(auth)` sign-in/sign-up screens and `playground` remain light-only.
+
+**Public auth surfaces (sign-in, sign-up, complete-registration):** all three share the `AuthShell` (`src/components/layout/auth-shell.tsx`) — a full-screen `--lp-*` ocean background with the shared `OceanBackdrop` (glow blobs, rising bubbles, drifting waves), a home logo, and the dark-mode toggle. `AuthShell` owns the single `initTheme()` call for these routes (they render outside both the landing navbar and the app shell). The complete-registration card and form use Tailwind classes with the `(--lp-*)` token shorthand so they follow dark mode. The Clerk `<SignIn>`/`<SignUp>` widgets can't read our CSS tokens, so they're themed via `authAppearance(isDark)` (`src/app/(auth)/auth-appearance.ts`), which passes concrete per-theme values.
 
 **State management:** Module-level pub/sub singletons in `src/stores/theme-store.ts` and `src/stores/sidebar-store.ts`. React components subscribe via `useSyncExternalStore` in `src/stores/use-theme.ts` and `src/stores/use-sidebar.ts`.
 
@@ -143,15 +145,39 @@ Height: `62px`. Contains: sidebar toggle, breadcrumb, theme toggle, vertical div
 
 ## Styling Approach
 
-New design-system components (landing, sidebar, header, expenses) use **inline `style` props** with `var(--token)` references. This avoids Tailwind class conflicts with dark mode token switching and keeps the HTML closer to the design source.
+**Tailwind CSS is the default.** Use Tailwind utility classes for all styling, including
+design-system tokens. Dark mode works automatically because the `--lp-*` / `--app-*` CSS
+variables reassign under `html.dark` (globals.css line 5 wires the `dark` variant to the
+`.dark` class), so a token utility switches themes without a `dark:` variant.
 
-Existing non-redesigned modules continue to use Tailwind + shadcn/ui as before.
+Reference design tokens with Tailwind v4's CSS-variable shorthand:
+
+- Colors: `bg-(--lp-surface)`, `text-(--app-text)`, `border-(--lp-border-strong)`,
+  `placeholder:text-(--lp-text-faint)`, `focus:border-(--lp-brand-text)`.
+- Gradients / images: `bg-[image:var(--lp-hero-grad)]`.
+- Composite values with a token inside (shadows, rings): keep the bracket form,
+  e.g. `focus:shadow-[0_0_0_3px_var(--lp-chip-bg)]`.
+- Prefer the numeric spacing scale over arbitrary px (`mb-4.5` not `mb-[18px]`,
+  `max-w-115` not `max-w-[460px]`) — the ESLint `suggestCanonicalClasses` rule flags these.
+
+**Use plain CSS (an inline `style` prop or a `@keyframes` rule in globals.css) only when
+Tailwind genuinely can't express it:**
+
+- Runtime-dynamic values computed in JS (e.g. per-element position/size in a `.map()`),
+  such as the bubbles in `OceanBackdrop`. Mark these with a `// ponytail:` note.
+- Keyframe animation *definitions* (already in globals.css; reference them from Tailwind
+  with `animate-[caustic_11s_ease-in-out_infinite]`).
+
+The earlier redesigned surfaces (landing, sidebar, header, expenses, and the feature 007–011
+modules) were built with inline `style` props before this guidance and are not being
+rewritten wholesale, but **new or edited components should use Tailwind**, and prefer
+migrating a component to Tailwind when you're already touching its markup.
 
 ---
 
 ## Component Library
 
-Use **shadcn/ui** for existing non-redesigned modules. The redesigned surfaces (landing, sidebar, header, expenses) use raw HTML elements with inline styles per the design source.
+Use **shadcn/ui** components where they fit. New/edited UI is styled with Tailwind (see [Styling Approach](#styling-approach)). The earlier redesigned surfaces (landing, sidebar, header, expenses) use raw HTML elements with inline styles per the design source — that predates the Tailwind-first guidance and isn't being rewritten wholesale.
 
 ---
 
