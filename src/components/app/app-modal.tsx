@@ -68,14 +68,12 @@ export function AppModal({
 
   return (
     <div
-      onClick={() => onOpenChange(false)}
       style={{ position: 'fixed', inset: 0, zIndex, background: 'var(--app-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '36px 18px', overflowY: 'auto' }}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={typeof title === 'string' ? title : undefined}
-        onClick={(event) => event.stopPropagation()}
         style={{ width: '100%', maxWidth: maxWidth ?? sizeMaxWidth[size], background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '20px', boxShadow: '0 40px 90px rgba(7,40,70,0.4)', overflow: 'hidden', animation: 'floatUp .26s ease' }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', padding: '22px 26px 18px', borderBottom: '1px solid var(--app-border)' }}>

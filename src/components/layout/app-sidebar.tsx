@@ -126,6 +126,11 @@ export function AppSidebar() {
   const isOwner = canAccessAquaflowAi(sessionClaims)
   const navItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner)
 
+  const stationName = sessionClaims?.organization_name || 'Station account'
+  const userName = sessionClaims?.name || 'AquaFlow User'
+  const role = sessionClaims?.organization_role || (sessionClaims?.is_owner ? 'Owner' : 'Staff')
+  const userLine = userName ? `${userName} (${role})` : 'Signed in'
+
   return (
     <aside
       style={{
@@ -250,8 +255,8 @@ export function AppSidebar() {
           <UserButton />
           {!isCollapsed && (
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--app-text)', whiteSpace: 'nowrap' }}>Station account</div>
-              <div style={{ fontSize: '11px', color: 'var(--app-text-soft)', whiteSpace: 'nowrap' }}>Signed in</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--app-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>{stationName}</div>
+              <div style={{ fontSize: '10px', color: 'var(--app-text-soft)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>{userLine}</div>
             </div>
           )}
         </div>

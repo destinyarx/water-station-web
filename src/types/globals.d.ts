@@ -15,5 +15,10 @@ declare global {
     is_owner?: boolean | null
     name?: string | null
     email?: string | null
+    /** Human-readable station name for display (JWT template maps
+     * `public_metadata.organization_name`); `organization` stays the uuid. */
+    organization_name?: string | null
+    /** Optional role label; falls back to `is_owner` → Owner/Staff. */
+    organization_role?: string | null
   }
 }

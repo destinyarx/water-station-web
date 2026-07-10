@@ -25,7 +25,7 @@ export default function CompleteRegistrationPage() {
 
   return (
     <AuthShell>
-      <div className="w-full max-w-115 rounded-[22px] border border-(--lp-border) bg-(--lp-surface) p-[clamp(24px,5vw,36px)] shadow-[0_30px_70px_rgba(14,108,196,0.18)]">
+      <div className="w-full max-w-130 rounded-[22px] border border-(--lp-border) bg-(--lp-surface) p-[clamp(24px,5vw,36px)] shadow-[0_30px_70px_rgba(14,108,196,0.18)]">
         <div className="mb-4.5 inline-flex items-center gap-2 rounded-full bg-(--lp-chip-bg) px-3.25 py-1.5 text-[12.5px] font-semibold text-(--lp-brand-text)">
           <span className="inline-block h-1.75 w-1.75 rounded-full bg-[#22c55e]" />
           Almost there
