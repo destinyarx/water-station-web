@@ -56,6 +56,11 @@ AquaFlow uses a two-surface token system: `--lp-*` for the public landing page a
 | `--app-chip-amber-text` | `#b45309` | `#fbbf24` |
 | `--app-chip-green-bg` | `rgba(34,197,94,0.14)` | `rgba(34,197,94,0.18)` |
 | `--app-chip-green-text` | `#15803d` | `#4ade80` |
+| `--app-green-strong` | `#3ecf8e` | `#3ecf8e` |
+| `--app-green-deep` | `#1f9d68` | `#2bbd7e` |
+| `--app-green-fill` | `linear-gradient(135deg,#40d598,#1f9d68)` | `linear-gradient(135deg,#34d399,#159f6b)` |
+| `--app-green-soft-bg` | `#e4f8ee` | `rgba(52,211,153,0.15)` |
+| `--app-green-shadow` | `0 10px 22px rgba(31,157,104,0.30)` | `0 10px 22px rgba(0,0,0,0.40)` |
 | `--app-chip-red-bg` | `rgba(239,68,68,0.14)` | `rgba(239,68,68,0.18)` |
 | `--app-chip-red-text` | `#b91c1c` | `#f87171` |
 | `--app-chip-gray-bg` | `rgba(100,116,139,0.12)` | `rgba(100,116,139,0.18)` |
@@ -214,11 +219,11 @@ toast.info(message, opts?)
 
 **Renderer** — `src/components/app/toast.tsx` exports `<Toaster />`, mounted once in `src/app/providers.tsx` (sibling to `{children}`, inside `QueryClientProvider`) so it's available app-wide. It subscribes via `useSyncExternalStore`.
 
-**Position & stacking** — `position:fixed; top:20px; right:20px; zIndex:200`, a `flex-direction:column; gap:10px` stack, width `min(360px, calc(100vw - 40px))`.
+**Position & stacking** — `position:fixed; top:22px; right:22px; zIndex:200`, a `flex-direction:column; gap:13px` stack, width `min(420px, calc(100vw - 32px))` (deliberately large/SweetAlert-scale so a toast is easy to spot).
 
-**Card style** — matches the confirm dialog's surface treatment: `var(--app-surface)` background, `1px solid var(--app-border)`, `borderRadius:14px`, elevated shadow (`0 18px 44px rgba(7,40,70,0.22)`). A 30×30 rounded-icon tile on the left keyed to type (`--app-chip-*-bg`/`-text`: green success, red error, amber warning, brand info — the same token pairs as chips elsewhere), the message text, and a small dismiss (×) button.
+**Card style** — `var(--app-surface)` background, `1px solid var(--app-border)`, `borderRadius:17px`, elevated shadow (`0 22px 50px rgba(7,40,70,0.26)`), `overflow:hidden`. Left-to-right: a 6px **accent rail** (per-type gradient), a **46×46 gradient icon disc** (white icon) with a one-shot **pulsing ring** behind it, a text block with a small uppercase type **eyebrow label** in the accent colour above the message, and a dismiss (×) button. Per-type gradients: success `#40d598→#1f9d68`, error `#fb7185→#e11d48`, warning `#fbbf24→#f59e0b`, info ocean `#4fb5e8→#00658a`. The info label reads "Notification" (info is what realtime notifications use).
 
-**Animation** — `toastSlideIn` / `toastSlideOut` keyframes in `globals.css`: enters sliding down from `translateY(-16px)` fading in, exits sliding back up fading out (`.22s ease`). Hovering a toast pauses its auto-close timer.
+**Animation** — enters via `toastSlideInRight` (from `translateX(28px)`), exits via `toastSlideOut` (`.24s ease`). The icon disc pops in (`toastIconPop`) while its stroke **draws itself in** (`toastIconDraw`, staggered per path) and the ring pulses out (`toastRingPulse`). A bottom **countdown progress bar** (`toastProgress`, `scaleX` over `duration`) shows time remaining. Hovering pauses both the auto-close timer and the progress bar. All keyframes live in `globals.css`.
 
 **Usage** — wired into the Maintenance module: `useCompleteTask`, `useCreateSchedule`, and `useUpdateSchedule` call `toast.success`/`toast.error` from their mutation `onSuccess`/`onError`, alongside the existing query invalidation. New modules should follow the same pattern — fire toasts from the mutation hook, not from the component calling it.
 

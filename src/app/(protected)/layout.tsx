@@ -1,9 +1,12 @@
 import { AppShell } from "@/components/layout/app-shell"
+import { NotificationsProvider } from "@/features/notifications"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <AppShell>
-      {children}
-    </AppShell>
+    <NotificationsProvider>
+      <AppShell>
+        {children}
+      </AppShell>
+    </NotificationsProvider>
   )
 }

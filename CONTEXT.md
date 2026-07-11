@@ -237,6 +237,28 @@ the Clerk user). It is not stored in our Supabase database and has no consent
 table. See `docs/adr/0009-legal-consent-via-clerk.md`. _Avoid_: assuming consent
 is recorded in app tables or on the `complete-registration` form.
 
+## Notifications Domain (feature 013-realtime-notifications-features)
+
+**Notification** — a personal, per-user message delivered in real time. It is
+**not** an org broadcast: `recipient_id` is the one user who sees it. `created_by`
+is the **human actor** whose action produced it (never a system user), and `org_id`
+is the recipient's org for tenant scope. Backed by `public.notifications`.
+_Avoid_: treating notifications as a shared org queue like deliveries/maintenance.
+
+**Consume-only client** — notification rows are written exclusively by
+`SECURITY DEFINER` database triggers (one per source event, e.g.
+`create_maintenance_notification`). The app never inserts; it only reads and flips
+`is_read`. There is deliberately **no INSERT RLS policy**, and `UPDATE` is locked to
+the `is_read` column via a column `GRANT` (not a policy — RLS can't diff columns).
+See `docs/adr/0010-notifications-trigger-authored-consume-only.md`.
+_Avoid_: adding a client-side insert path or a broad UPDATE grant.
+
+**Notification `type`** — a free-form domain **category** (`'maintenance'`,
+`'info'`, future `'delivery'`…), not a severity and not a DB enum. The UI maps each
+type to an icon/color and a route (`maintenance` → `/maintenances`); unknown types
+fall back. _Avoid_: treating `type` as info/warning/error severity, or enforcing it
+as an enum (a new module would then need a migration).
+
 ---
 
 ## Authentication & Onboarding (feature 000-auth_workflow)

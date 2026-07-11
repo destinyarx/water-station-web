@@ -316,6 +316,64 @@ assignee-picker org scope).
 
 ---
 
+## `public.notifications` (feature 013-realtime-notifications-features)
+
+Personal, per-user real-time notifications. Written **only** by `SECURITY DEFINER`
+triggers (one per source event); the client consumes and marks read. No
+`deleted_at` (no dismissal in v1). Migration:
+`docs/specs/013-realtime-notifications-features/013-notifications.sql`. Rationale:
+`docs/adr/0010-notifications-trigger-authored-consume-only.md`.
+
+| Column       | Type            | Notes                                                        |
+| ------------ | --------------- | ------------------------------------------------------------ |
+| id           | serial (pk)     | integer, auto-increment                                      |
+| recipient_id | varchar(255) fk | → `users(clerk_id)`; the user who sees it                    |
+| title        | text            | required                                                     |
+| message      | text            | required                                                     |
+| type         | varchar(25)     | default `'info'`; free-form **category** (e.g. `maintenance`), not an enum, not a severity |
+| is_read      | boolean         | default `false`; the only client-writable column            |
+| created_at   | timestamp       | default `now()`                                              |
+| org_id       | uuid (fk)       | → `organizations(id)`; tenant scope                          |
+| created_by   | varchar(255) fk | → `users(clerk_id)`; the **human actor** whose action fired the trigger |
+
+### Identity / org resolution
+
+`org_id` is the `organizations.id` uuid (ADR 0009); RLS checks membership via
+`private.is_org_member(org_id)` and identifies the recipient with
+`auth.jwt() ->> 'sub'`. Inserts are performed by triggers, not the client, so
+`recipient_id`/`org_id`/`created_by` are never supplied from the browser.
+
+### Policies
+
+| Policy                  | Cmd    | Rule                                                                    |
+| ----------------------- | ------ | ----------------------------------------------------------------------- |
+| (none)                  | INSERT | **No INSERT policy** — authenticated clients cannot insert; SECURITY DEFINER triggers write rows |
+| `notifications_select`  | SELECT | `recipient_id = jwt.sub` **and** `private.is_org_member(org_id)`         |
+| `notifications_update`  | UPDATE | `recipient_id = jwt.sub`; **column `GRANT UPDATE (is_read)`** limits the write to `is_read` only |
+
+> **Column-locking, not a policy.** RLS `WITH CHECK` sees only the new row, so it
+> cannot enforce "only `is_read` may change". The `REVOKE UPDATE ... ; GRANT
+> UPDATE (is_read)` privilege is what prevents a user from rewriting
+> `recipient_id`/`org_id`/`created_by`. See ADR 0010.
+
+### Realtime
+
+The table is in the `supabase_realtime` publication. The client subscribes to
+`INSERT`/`UPDATE` (Postgres Changes) filtered `recipient_id=eq.<clerkId>`. The
+SELECT policy is enforced per-connection on the stream and is the security
+boundary; the filter is a bandwidth optimisation. The Clerk token reaches
+Realtime via the Supabase client's `accessToken` option.
+
+### Manual RLS verification
+
+1. As user A, confirm the bell lists only A's notifications; a direct
+   `select` of another user's or another org's notification id returns no row.
+2. Attempt a client `insert` into `notifications` — rejected (no INSERT policy).
+3. Attempt an `update` that sets any column other than `is_read` — rejected
+   (column grant). An `is_read` update on A's own row succeeds.
+4. Assign a maintenance task to user A from another session; confirm the
+   notification appears live (no refresh) and marking it read persists.
+
 ## AquaFlow AI Domain (feature 011-aquaflow-ai-feature)
 
 Two new tables back the owner-only AquaFlow AI chat. Unlike deliveries/maintenance,

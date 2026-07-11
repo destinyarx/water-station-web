@@ -51,15 +51,18 @@ export function MaintenanceTaskCard({ task }: { task: MaintenanceTaskView }) {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
-          padding: '7px 14px',
+          padding: '8px 15px',
           borderRadius: '999px',
-          border: `1.5px solid ${done ? 'transparent' : 'var(--app-brand)'}`,
-          background: done ? 'var(--app-chip-green-text)' : 'transparent',
-          color: done ? '#fff' : 'var(--app-brand)',
+          border: '1.5px solid transparent',
+          background: done ? 'var(--app-green-soft-bg)' : 'var(--app-green-fill)',
+          color: done ? 'var(--app-green-deep)' : '#fff',
+          boxShadow: done ? 'none' : 'var(--app-green-shadow)',
           fontFamily: 'inherit',
           fontSize: '12.5px',
           fontWeight: 700,
           cursor: complete.isPending ? 'wait' : 'pointer',
+          opacity: complete.isPending ? 0.75 : 1,
+          transition: 'transform 0.12s ease, box-shadow 0.12s ease',
         }}
       >
         {checkIcon}
@@ -80,7 +83,7 @@ export function MaintenanceTaskCard({ task }: { task: MaintenanceTaskView }) {
         }
         iconColor="var(--app-chip-green-text)"
         iconBackground="var(--app-chip-green-bg)"
-        confirmButtonStyle={{ background: 'var(--app-chip-green-text)', boxShadow: '0 10px 22px rgba(34,197,94,0.3)' }}
+        confirmButtonStyle={{ background: 'var(--app-green-fill)', boxShadow: 'var(--app-green-shadow)' }}
         onConfirm={() => complete.mutate(task, { onSuccess: () => handleOpenChange(false) })}
       />
 

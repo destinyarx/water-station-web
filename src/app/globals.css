@@ -296,6 +296,12 @@
   --app-chip-bg: #e6f4ff;
   --app-chip-green-bg: #dcf5e8;
   --app-chip-green-text: #157a52;
+  /* Supabase-style action green (Complete button, success CTAs) */
+  --app-green-strong: #3ecf8e;
+  --app-green-deep: #1f9d68;
+  --app-green-fill: linear-gradient(135deg, #40d598 0%, #1f9d68 100%);
+  --app-green-soft-bg: #e4f8ee;
+  --app-green-shadow: 0 10px 22px rgba(31, 157, 104, 0.30);
   --app-chip-amber-bg: #fff7e0;
   --app-chip-amber-text: #92620a;
   --app-chip-red-bg: #fee2e2;
@@ -351,6 +357,11 @@ html.dark {
   --app-chip-bg: rgba(56, 189, 248, 0.16);
   --app-chip-green-bg: rgba(34, 197, 94, 0.16);
   --app-chip-green-text: #4ade80;
+  --app-green-strong: #3ecf8e;
+  --app-green-deep: #2bbd7e;
+  --app-green-fill: linear-gradient(135deg, #34d399 0%, #159f6b 100%);
+  --app-green-soft-bg: rgba(52, 211, 153, 0.15);
+  --app-green-shadow: 0 10px 22px rgba(0, 0, 0, 0.40);
   --app-chip-amber-bg: rgba(251, 191, 36, 0.16);
   --app-chip-amber-text: #fbbf24;
   --app-chip-red-bg: rgba(239, 68, 68, 0.16);
@@ -406,6 +417,27 @@ html.dark {
   to { transform: translateY(0); opacity: 1; }
 }
 @keyframes toastSlideOut {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(-16px); opacity: 0; }
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(24px); opacity: 0; }
+}
+@keyframes toastSlideInRight {
+  from { transform: translateX(28px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes toastIconDraw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes toastIconPop {
+  0% { transform: scale(0.55); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes toastRingPulse {
+  0% { transform: scale(0.8); opacity: 0.55; }
+  70% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes toastProgress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }

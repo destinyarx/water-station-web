@@ -7,6 +7,7 @@ import { UserButton } from '@clerk/nextjs'
 import { toggleSidebar } from '@/stores/sidebar-store'
 import { initTheme, toggleTheme } from '@/stores/theme-store'
 import { useTheme } from '@/stores/use-theme'
+import { NotificationBell } from '@/features/notifications'
 
 const ROUTE_LABELS: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -79,6 +80,7 @@ export function AppHeader() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <NotificationBell />
         <button
           type="button"
           aria-label="Toggle dark mode"
