@@ -1,3 +1,7 @@
+# Note: Validate first as my docs can be misleading
+## Source of truth is the main migrations: `C:\Users\AlphaQuadrant\Documents\0 self project\Agent Projects\water-station-supabase\supabase\migrations`
+## If you need to make any migration make sure to create one in the `docs\ai-handoff\fable-review-2026-07-14\migrations` folder.
+
 # ISS-009 — Database docs: expenses RLS is a placeholder, documents table undocumented, one table uses a different identity model
 
 > Author: Claude Fable 5 — review pass 2026-07-14

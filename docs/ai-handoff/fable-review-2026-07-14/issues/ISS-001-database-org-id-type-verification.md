@@ -1,3 +1,8 @@
+## DO NOT IMPLEMENT
+# Skip This Ticket
+# Reason: The org_id in all of the tables are already type `uuid` and i already have a seperate repo for supabase migrations.
+# Just update the conflict of type in the `docs/DATABASE.md` to match the live database.
+
 # ISS-001 — Verify live `org_id` column type on `customers`/`products` and reconcile `docs/DATABASE.md`
 
 > Author: Claude Fable 5 — review pass 2026-07-14

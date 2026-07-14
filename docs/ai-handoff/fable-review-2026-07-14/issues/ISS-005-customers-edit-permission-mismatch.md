@@ -5,7 +5,11 @@
 
 ## Goal
 
-Align the customers UI edit guard with the real (live) RLS UPDATE policy, so a user is never shown an Edit action that will fail at submit time.
+Align the customers UI edit guard with the real (live) RLS UPDATE policy, so a user is never shown an Edit action that will fail at submit time.\
+- Check this out and this will be the final goals as some context below might be misleading:
+  - check if the live RLS policy is the same as in `C:\Users\AlphaQuadrant\Documents\0 self project\Agent Projects\water-station-supabase\supabase\migrations\11.add_customers_table.sql`
+  - I need the RLS and frontend guard to be 
+    - only the creator or owner, owner can edit maanage all records in  his respective org_id rows.
 
 ## Context
 

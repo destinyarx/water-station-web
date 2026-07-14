@@ -1,3 +1,7 @@
+## STATUS: verify first in `C:\Users\AlphaQuadrant\Documents\0 self project\Agent Projects\water-station-supabase\supabase\migrations`
+## Make sure to not break anything and if there is a need for migration make sure to create one. I already have the folder `docs\ai-handoff\fable-review-2026-07-14\migrations` for this purpose.
+
+
 # ISS-004 — Deliveries: multi-step status/edit writes are not transactional (partial-write risk)
 
 > Author: Claude Fable 5 — review pass 2026-07-14

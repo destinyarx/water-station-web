@@ -12,8 +12,8 @@ Give the agent: the one ticket file + `docs/ai-handoff/14-ai-agent-context.md` +
 
 | ID | Title | Module | Priority | Needs owner decision first? |
 |---|---|---|---|---|
-| ISS-001 | Verify live `org_id` type on customers/products; reconcile `docs/DATABASE.md` | database | **P0** | No (needs live DB read access) |
-| ISS-002 | Deliveries revert/reopen silently regressed vs ADR; dead `onReverted` wiring | deliveries | P2 | **Yes** (restore vs retire) |
+| ISS-001 | **DO NOT IMPLEMENT - SKIP THIS TICKET** I already verified `org_id` is uuid in all of the tables |
+| ISS-002 | **DO NOT IMPLEMENT - SKIP THIS TICKET** | I already have a cancel delivery function no need for revert funcitonality |
 | ISS-003 | Monthly recurrence: dead schema fields, `dueDatesFor()` weekly-only | deliveries | P3 | **Yes** (implement vs retire) |
 | ISS-004 | Non-transactional status/edit writes (partial-write risk) — includes RPC migration instructions | deliveries / db | P2 | Partly (RPC vs optimistic lock) |
 | ISS-005 | UI edit guard vs documented RLS UPDATE policy mismatch | customers | P2 | **Yes** (owner override or not) |
@@ -29,13 +29,13 @@ Give the agent: the one ticket file + `docs/ai-handoff/14-ai-agent-context.md` +
 |---|---|---|---|
 | ARC-001 | Server-side list filtering/search/pagination (customers first, then propagate) | P1 | No |
 | ARC-002 | CI workflow (lint+typecheck+test) + `typecheck` script | P1 | No |
-| ARC-003 | Adopt versioned Supabase migrations (baseline via `db pull`) | P1 | No (needs project access) |
+| ARC-003 |  (deleted) I already has a seperate repo for supabase migration for project security purposes.
 | ARC-004 | Shared mutation-hook factory (`useEntityMutation`) | P2 | No |
 | ARC-005 | Role-aware `guards.ts` predicates mirroring RLS | P2 | No (after ISS-005) |
 | ARC-006 | Server-authoritative timestamps (`updated_at` trigger) — includes migration instructions | P2 | No |
-| ARC-007 | Resolve Zustand + TanStack Table doc/code drift | P2 | **Yes** (two decisions) |
+| ARC-007 | Resolve Zustand and remove tanstack-table and react-table conflict in docs | P2 | **Yes** (two decisions) |
 | ARC-008 | Testing gaps: backfill documents/notifications, move misplaced files; component-harness question | P2/P3 | Part 2 only |
-| ARC-009 | Production error monitoring | P1 (decision) | **Yes** (vendor/budget/PII) |
+| ARC-009 | Production error monitoring | P1 (decision) | **No - DO NOT IMPLEMENT SKIP THIS** (vendor/budget/PII) |
 | ARC-010 | ADR renumbering (duplicate 0009, 3-digit 003) | P3 | No |
 
 ## ADRs added by this review (`docs/adr/`)
@@ -44,6 +44,13 @@ Give the agent: the one ticket file + `docs/ai-handoff/14-ai-agent-context.md` +
 - `0012-versioned-supabase-schema-changes.md` — migrations-required rule (proposed; accepted when ARC-003 lands).
 - `0013-client-state-and-table-standards.md` — placeholder for the ARC-007 decisions (proposed).
 
+## Supabase files
+- I created the seperate supabase repo for security purposes. If you need to peek or validate a table schema use the `C:\Users\AlphaQuadrant\Documents\0 self project\Agent Projects\water-station-supabase\supabase\migrations` folder as reference and check, since this is the source of truth for my tables as it contains the real migration files.
+- My suggestion is read all of my migration before executing or implementing any issues or architecture suggestion.
+
+## Migration
+- If a issue or suggestion needs a table change, create a migration script in `docs\ai-handoff\fable-review-2026-07-14\migrations` with the proper name of the file. also do not bloat or create a big migration fiel that has many different tables in it.
+- 
 ## Suggested execution order
 
 1. **ISS-001** (P0 — everything DB-related keys off the verified `org_id` type), then **ARC-003** (the baseline mechanically answers ISS-009 too).
@@ -55,3 +62,6 @@ Give the agent: the one ticket file + `docs/ai-handoff/14-ai-agent-context.md` +
 ## What was NOT re-reviewed
 
 Live Supabase schema/RLS (no project access — that's why ISS-001/ISS-009 exist), Edge Function sources (outside the repo), git history secret scan, dependency CVE audit (`npm audit` not run), and no penetration testing. See `docs/ai-handoff/10-security-and-risks.md` for the standing scope caveats. Strong areas deliberately left alone: RLS-first tenant isolation, the four-shape type model + mappers, service-layer error discipline, the confirm-dialog pattern (see `11-quality-and-improvements.md` "Areas already strong").
+
+
+

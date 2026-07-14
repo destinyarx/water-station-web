@@ -1,3 +1,5 @@
+## DO NOT IMPLEMENT
+
 # ARC-009 — Production error monitoring (decision ticket — do not implement without vendor choice)
 
 > Author: Claude Fable 5 — review pass 2026-07-14
