@@ -51,7 +51,6 @@ export function toUpdateRow(values: ProductFormValues): ProductUpdate {
     is_stock_tracked: values.isStockTracked,
     stock: values.isStockTracked ? values.stock : 0,
     descriptions: emptyToNull(values.description),
-    updated_at: new Date().toISOString(),
   }
 }
 

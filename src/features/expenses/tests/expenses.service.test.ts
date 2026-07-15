@@ -12,6 +12,7 @@ import type { ExpenseFormValues } from '../expenses.types'
 interface QueryResult {
   data?: unknown
   error: { message: string } | null
+  count?: number | null
 }
 
 const row = {
@@ -47,13 +48,16 @@ const values: ExpenseFormValues = {
 const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_2abcDEF' }
 
 function createListClient(result: QueryResult) {
-  const order = vi.fn(() => Promise.resolve(result))
+  const range = vi.fn(() => Promise.resolve(result))
+  const order = vi.fn(() => ({ range }))
   const is = vi.fn(() => ({ order }))
   const select = vi.fn(() => ({ is }))
   const from = vi.fn(() => ({ select }))
   const client = { from } as unknown as SupabaseClient
-  return { client, from, select, is, order }
+  return { client, from, select, is, order, range }
 }
+
+const filters = { active: true, search: '', category: 'all', page: 1, perPage: 20 }
 
 function createInsertClient(result: QueryResult) {
   const single = vi.fn(() => Promise.resolve(result))
@@ -87,12 +91,12 @@ function createDeleteClient(result: Pick<QueryResult, 'error'>) {
 
 describe('getActiveExpenses', () => {
   it('returns active expenses mapped to the display model', async () => {
-    const { client } = createListClient({ data: [row], error: null })
+    const { client } = createListClient({ data: [row], error: null, count: 1 })
 
-    const expenses = await getActiveExpenses(client)
+    const page = await getActiveExpenses(client, filters)
 
-    expect(expenses).toHaveLength(1)
-    expect(expenses[0]).toMatchObject({
+    expect(page.total).toBe(1)
+    expect(page.expenses[0]).toMatchObject({
       id: 42,
       name: 'Membrane replacement',
       categoryLabel: 'Machine Maintenance & Repairs',
@@ -103,7 +107,7 @@ describe('getActiveExpenses', () => {
   it('excludes soft-deleted rows and sorts by recent expense date first', async () => {
     const { client, is, order } = createListClient({ data: [], error: null })
 
-    await getActiveExpenses(client)
+    await getActiveExpenses(client, filters)
 
     expect(is).toHaveBeenCalledWith('deleted_at', null)
     expect(order).toHaveBeenCalledWith('date_incurred', { ascending: false })
@@ -115,7 +119,7 @@ describe('getActiveExpenses', () => {
       error: { message: 'permission denied' },
     })
 
-    await expect(getActiveExpenses(client)).rejects.toThrow(
+    await expect(getActiveExpenses(client, filters)).rejects.toThrow(
       'Unable to load expenses. Please try again.',
     )
   })

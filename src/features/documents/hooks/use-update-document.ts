@@ -19,7 +19,7 @@ export function useUpdateDocument(): UseMutationResult<
   return useMutation<Document, Error, { id: number; values: DocumentFormValues }>({
     mutationFn: ({ id, values }) => updateDocument(client, id, values),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: documentKeys.all })
       toast.success('Document updated.')
     },
     onError: (error) => {

@@ -67,12 +67,12 @@ describe('toInsertRow', () => {
 })
 
 describe('toUpdateRow', () => {
-  it('omits immutable ownership fields and stamps updated_at', () => {
+  it('omits immutable ownership and server-owned timestamp fields', () => {
     const update = toUpdateRow(values)
 
     expect(Object.keys(update)).not.toContain('org_id')
     expect(Object.keys(update)).not.toContain('created_by')
-    expect(update.updated_at).toEqual(expect.any(String))
+    expect(update).not.toHaveProperty('updated_at')
   })
 })
 

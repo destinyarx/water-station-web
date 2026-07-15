@@ -45,6 +45,24 @@ export const maintenanceTaskRowSchema = z.object({
   deleted_at: z.string().nullable(),
 })
 
+/**
+ * A completed occurrence joined to its parent schedule, as read by the history
+ * modal. Narrower than `maintenanceTaskRowSchema` — history is read-only.
+ */
+export const maintenanceHistoryRowSchema = z.object({
+  id: z.number().int(),
+  due_date: z.string(),
+  completed_at: z.string().nullable(),
+  completed_by: z.string().max(255).nullable(),
+  assigned_to: z.string().max(255).nullable(),
+  schedule: z.object({
+    title: z.string().max(120),
+    equipment: z.string().max(60),
+    equipment_other: z.string().max(120).nullable(),
+    priority: maintenancePrioritySchema,
+  }),
+})
+
 /** A co-member option for the assignee picker. */
 export const orgUserRowSchema = z.object({
   clerk_id: z.string().max(255),

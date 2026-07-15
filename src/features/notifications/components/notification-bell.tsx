@@ -90,7 +90,7 @@ export function NotificationBell() {
               boxShadow: '0 0 0 2px var(--app-surface)',
             }}
           >
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadCount}
           </span>
         )}
       </button>

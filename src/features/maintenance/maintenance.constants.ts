@@ -11,6 +11,18 @@ export const MAINTENANCE_SCHEDULE_COLUMNS =
 export const MAINTENANCE_TASK_COLUMNS =
   'id, schedule_id, due_date, status, assigned_to, completed_at, completed_by, org_id, created_by, created_at, updated_at, deleted_at'
 
+/**
+ * Columns for one history row, matching `maintenanceHistoryRowSchema`. The
+ * `!inner` join drops occurrences whose schedule is archived — the SELECT
+ * policy hides those schedules, mirroring what `buildTaskViews` does on the
+ * board.
+ */
+export const MAINTENANCE_HISTORY_COLUMNS =
+  'id, due_date, completed_at, completed_by, assigned_to, schedule:maintenance_schedules!inner(title, equipment, equipment_other, priority)'
+
+/** Completed occurrences per page in the history modal. */
+export const MAINTENANCE_HISTORY_PAGE_SIZE = 10
+
 /** Columns selected for the assignee picker, matching `orgUserRowSchema`. */
 export const ORG_USER_COLUMNS = 'clerk_id, name'
 
@@ -25,6 +37,9 @@ export const MAINTENANCE_STATUS_ERROR =
   'Unable to update this schedule. Please try again.'
 export const MAINTENANCE_COMPLETE_ERROR =
   'Unable to complete this task. Please try again.'
+/** A write that matched no rows: RLS refused it, or the row was archived. */
+export const MAINTENANCE_NOT_PERMITTED_ERROR =
+  'Nothing was changed. This schedule may have been archived, or you may not have permission to change it.'
 export const ORG_USERS_LOAD_ERROR =
   'Unable to load your team. Please try again.'
 

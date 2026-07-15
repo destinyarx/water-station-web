@@ -43,6 +43,12 @@ Staff can create products and update or delete product records they created.
 Owners can update and delete organization-owned product records even when they
 were created by another staff member in the same station.
 
+Stock is the exception: staff can adjust **stock** on any product in their
+station, including products they did not create. The person moving containers is
+the person who records what moved. Everything else about another user's product
+— name, price, description, discontinuation, deletion — stays owner-or-creator.
+See ADR 0015.
+
 ## Core Modules
 
 - Implemented or actively specified: Authentication, Customers, Products, Expenses, Deliveries, Maintenance, Documents
@@ -128,10 +134,18 @@ further clarifies the task. _Avoid_: free-typing equipment outside the option se
 `public.users` row in the caller's organization (or Unassigned); stored on the
 occurrence so it can change per task. _Avoid_: free-text assignee names.
 
-**Schedule status** — *active* (running), *inactive* (paused, hidden unless
-"Show inactive"), or *completed* (one-time schedules only, all occurrences done;
-recurring schedules are never "completed"). Inactive is distinct from **archive**
-(`deleted_at`, owner-only). _Avoid_: equating inactive with archived/completed.
+**Schedule status** — *active* (running), *inactive* (paused, reachable via the
+**Inactive** filter), or *completed* (one-time schedules only, all occurrences
+done; recurring schedules are never "completed"). Inactive is distinct from
+**archive** (`deleted_at`, owner-only). Any org member may pause or resume a
+schedule; only an owner may archive one (ADR 0015). _Avoid_: equating inactive
+with archived/completed.
+
+**Maintenance History** — the modal datatable of completed occurrences only
+(mirrors **Delivery History**). Server-paginated, opened from a *History* button
+beside *Schedule Task*. Completed tasks live here and **not** in the main board:
+the board's *All* filter shows live work only — neither inactive nor completed.
+_Avoid_: a "Completed" tab on the board, or expecting All to mean literally all.
 
 ## Record Status Vocabulary
 
@@ -167,6 +181,12 @@ _Avoid_: Inventory-tracked item
 **Non-stock-tracked product**:
 A refill, service, or fee product whose available quantity is not counted, such as water refill services, delivery fees, and cleaning fees.
 _Avoid_: Service item, untracked inventory item
+
+**Stock adjustment** — adding or deducting quantity on a stock-tracked product
+as a distinct action, rather than typing a new absolute figure into the product
+form. Any org member may adjust stock on any product in their station (ADR 0015);
+the adjustment writes `products.stock` and keeps no history. _Avoid_: calling it
+an inventory movement or expecting an audit trail — there is no ledger.
 
 ## Documents Domain (feature 009-build-documents-module)
 
@@ -234,7 +254,7 @@ data.
 **Legal consent** — the Terms/Privacy acknowledgment a user gives when signing
 up, captured by Clerk's built-in legal-consent checkbox (`legalAcceptedAt` on
 the Clerk user). It is not stored in our Supabase database and has no consent
-table. See `docs/adr/0009-legal-consent-via-clerk.md`. _Avoid_: assuming consent
+table. See `docs/adr/0014-legal-consent-via-clerk.md`. _Avoid_: assuming consent
 is recorded in app tables or on the `complete-registration` form.
 
 ## Notifications Domain (feature 013-realtime-notifications-features)

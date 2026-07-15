@@ -24,6 +24,49 @@ const checkIcon = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
 )
 
+/**
+ * A restrained outline control rather than the old gradient pill: the row is a
+ * table row, and a filled green button on every one of them read as the loudest
+ * thing on the page. Both states use theme tokens, so dark mode follows.
+ */
+function CompleteButton({ done, isPending, onClick }: { done: boolean; isPending: boolean; onClick: () => void }) {
+  const [hovered, setHovered] = useState(false)
+  const active = hovered && !isPending
+
+  return (
+    <button
+      type="button"
+      aria-label={done ? 'Reopen task' : 'Complete task'}
+      disabled={isPending}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        flex: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '7px',
+        padding: '8px 14px',
+        borderRadius: '10px',
+        border: `1px solid ${done || active ? 'var(--app-green-deep)' : 'var(--app-border-strong)'}`,
+        background: done || active ? 'var(--app-green-soft-bg)' : 'var(--app-surface)',
+        color: done || active ? 'var(--app-green-deep)' : 'var(--app-text-muted)',
+        fontFamily: 'inherit',
+        fontSize: '12.5px',
+        fontWeight: 600,
+        cursor: isPending ? 'wait' : 'pointer',
+        opacity: isPending ? 0.6 : 1,
+        transition: 'background 0.12s ease, border-color 0.12s ease, color 0.12s ease',
+      }}
+    >
+      <span style={{ display: 'flex', color: done || active ? 'var(--app-green-deep)' : 'var(--app-text-faint)' }}>
+        {checkIcon}
+      </span>
+      {done ? 'Completed' : 'Complete'}
+    </button>
+  )
+}
+
 /** One occurrence row: complete button, title + meta, due pill, kebab menu. */
 export function MaintenanceTaskCard({ task }: { task: MaintenanceTaskView }) {
   const complete = useCompleteTask()
@@ -41,33 +84,11 @@ export function MaintenanceTaskCard({ task }: { task: MaintenanceTaskView }) {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '16px 18px', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '15px', boxShadow: 'var(--app-shadow-card)', opacity: dimmed ? 0.6 : 1 }}>
-      <button
-        type="button"
-        aria-label={done ? 'Reopen task' : 'Complete task'}
-        disabled={complete.isPending}
+      <CompleteButton
+        done={done}
+        isPending={complete.isPending}
         onClick={() => (done ? complete.mutate(task) : setConfirming(true))}
-        style={{
-          flex: 'none',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '8px 15px',
-          borderRadius: '999px',
-          border: '1.5px solid transparent',
-          background: done ? 'var(--app-green-soft-bg)' : 'var(--app-green-fill)',
-          color: done ? 'var(--app-green-deep)' : '#fff',
-          boxShadow: done ? 'none' : 'var(--app-green-shadow)',
-          fontFamily: 'inherit',
-          fontSize: '12.5px',
-          fontWeight: 700,
-          cursor: complete.isPending ? 'wait' : 'pointer',
-          opacity: complete.isPending ? 0.75 : 1,
-          transition: 'transform 0.12s ease, box-shadow 0.12s ease',
-        }}
-      >
-        {checkIcon}
-        {done ? 'Completed' : 'Complete'}
-      </button>
+      />
 
       <ConfirmDialog
         open={confirming}

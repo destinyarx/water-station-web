@@ -11,10 +11,18 @@ describe('customerKeys', () => {
   })
 
   it('includes filters in a scoped list key', () => {
-    expect(customerKeys.list({ archived: false })).toEqual([
+    const filters = {
+      archived: false as const,
+      search: 'Juan',
+      type: 'household' as const,
+      page: 2,
+      perPage: 20,
+    }
+
+    expect(customerKeys.list(filters)).toEqual([
       'customers',
       'list',
-      { archived: false },
+      filters,
     ])
   })
 

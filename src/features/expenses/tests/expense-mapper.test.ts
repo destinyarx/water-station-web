@@ -96,6 +96,6 @@ describe('expense mappers', () => {
 
     expect(Object.keys(update)).not.toContain('org_id')
     expect(Object.keys(update)).not.toContain('created_by')
-    expect(update.updated_at).toBeTruthy()
+    expect(update).not.toHaveProperty('updated_at')
   })
 })

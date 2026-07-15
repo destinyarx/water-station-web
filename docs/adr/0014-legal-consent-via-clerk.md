@@ -1,4 +1,6 @@
-# 0009 — Legal consent captured by Clerk, not stored in our database
+> Renumbered from 0009 (fable review, 2026-07-14).
+
+# 0014 — Legal consent captured by Clerk, not stored in our database
 
 - **Status:** accepted
 - **Date:** 2026-07-10

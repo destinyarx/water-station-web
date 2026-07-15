@@ -12,9 +12,24 @@ import { toExpense, toInsertRow, toUpdateRow } from '../expenses.mapper'
 import { expenseRowSchema } from '../expenses.schema'
 import type {
   Expense,
+  ExpensePage,
   ExpenseFormValues,
   ExpenseOwner,
 } from '../expenses.types'
+import type { ExpenseFilters } from '../expenses.keys'
+import type { ExpenseSummary } from '../expenses.summary'
+import { expenseCategories } from '../expenses.constants'
+
+const expenseSummaryRowSchema = z.object({
+  total_expenses: z.coerce.number(),
+  this_month: z.coerce.number(),
+  this_month_count: z.coerce.number().int(),
+  largest_category: z.string().nullable(),
+  largest_category_total: z.coerce.number(),
+  largest_expense: z.coerce.number(),
+  largest_expense_label: z.string().nullable(),
+  recent_expense_count: z.coerce.number().int(),
+})
 
 const expenseRowsSchema = z.array(expenseRowSchema)
 
@@ -25,19 +40,48 @@ const expenseRowsSchema = z.array(expenseRowSchema)
  */
 export async function getActiveExpenses(
   client: SupabaseClient,
-): Promise<Expense[]> {
-  const { data, error } = await client
+  filters: ExpenseFilters,
+): Promise<ExpensePage> {
+  let query = client
     .from(EXPENSES_TABLE)
-    .select(EXPENSE_COLUMNS)
+    .select(EXPENSE_COLUMNS, { count: 'exact' })
     .is('deleted_at', null)
+
+  const search = filters.search.trim()
+  if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%,references_number.ilike.%${search}%`)
+  if (filters.category !== 'all') query = query.eq('category', filters.category)
+
+  const from = (filters.page - 1) * filters.perPage
+  const { data, error, count } = await query
     .order('date_incurred', { ascending: false })
+    .range(from, from + filters.perPage - 1)
 
   if (error) {
     throw new Error(EXPENSES_LOAD_ERROR)
   }
 
   const rows = expenseRowsSchema.parse(data ?? [])
-  return rows.map(toExpense)
+  return { expenses: rows.map(toExpense), total: count ?? 0 }
+}
+
+export async function getExpenseSummary(client: SupabaseClient): Promise<ExpenseSummary> {
+  const { data, error } = await client.rpc('get_expense_summary')
+  if (error) throw new Error(EXPENSES_LOAD_ERROR)
+  const raw = Array.isArray(data) ? data[0] : data
+  const row = expenseSummaryRowSchema.parse(raw)
+  const largestCategoryLabel = expenseCategories.find(({ value }) => value === row.largest_category)?.name ?? row.largest_category ?? 'None'
+  const now = new Date()
+  return {
+    totalExpenses: row.total_expenses,
+    thisMonth: row.this_month,
+    thisMonthCount: row.this_month_count,
+    thisMonthLabel: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    largestCategoryLabel,
+    largestCategoryTotal: row.largest_category_total,
+    largestExpense: row.largest_expense,
+    largestExpenseLabel: row.largest_expense_label ?? 'No expenses yet',
+    recentExpenseCount: row.recent_expense_count,
+  }
 }
 
 /**

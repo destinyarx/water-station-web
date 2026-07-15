@@ -1,30 +1,33 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { expenseCategories } from '../expenses.constants'
-import { createExpenseSummary, filterExpenses, pesoFormatter } from '../expenses.summary'
+import { pesoFormatter } from '../expenses.summary'
 import type { Expense, ExpenseCategory } from '../expenses.types'
-import { useExpenses } from '../hooks/use-expenses'
+import { useExpenses, useExpenseSummary } from '../hooks/use-expenses'
 import { CreateExpenseDialog } from './create-expense-dialog'
 import { ExpensesTable } from './expenses-table'
 
 const EMPTY: Expense[] = []
+const PER_PAGE = 20
 
 export function ExpensesPage() {
-  const { data: expenses, isPending, isError, error } = useExpenses()
-  const expenseList = expenses ?? EMPTY
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [catFilter, setCatFilter] = useState<ExpenseCategory | 'all'>('all')
+  const [page, setPage] = useState(1)
+  const expensesQuery = useExpenses({ active: true, search: debouncedSearch, category: catFilter, page, perPage: PER_PAGE })
+  const summaryQuery = useExpenseSummary()
+  const expenseList = expensesQuery.data?.expenses ?? EMPTY
+  const total = expensesQuery.data?.total ?? 0
+  const summary = summaryQuery.data ?? { totalExpenses: 0, thisMonth: 0, thisMonthCount: 0, thisMonthLabel: '', largestCategoryLabel: 'None', largestCategoryTotal: 0, largestExpense: 0, largestExpenseLabel: 'No expenses yet', recentExpenseCount: 0 }
+  const pageCount = Math.max(1, Math.ceil(total / PER_PAGE))
 
-  const filtered = useMemo(
-    () => filterExpenses(expenseList, { search, category: catFilter }),
-    [expenseList, search, catFilter],
-  )
-
-  const summary = useMemo(() => createExpenseSummary(expenseList), [expenseList])
-
-  const filteredTotal = filtered.reduce((sum, e) => sum + e.amount, 0)
+  useEffect(() => {
+    const id = window.setTimeout(() => { setDebouncedSearch(search); setPage(1) }, 300)
+    return () => window.clearTimeout(id)
+  }, [search])
 
   return (
     <div className="max-w-[85vw] mx-auto" style={{ margin: '0 auto', padding: '26px 28px 56px' }}>
@@ -67,7 +70,7 @@ export function ExpensesPage() {
           accentColor="#38bdf8"
           icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M4 5h16M4 12h16M4 19h10" /></svg>}
           value={pesoFormatter.format(summary.totalExpenses)}
-          sub={`${expenseList.length} expense entries`}
+          sub={`${total} matching expense entries`}
         />
 
         {/* Top category */}
@@ -112,7 +115,7 @@ export function ExpensesPage() {
           <div style={{ position: 'relative' }}>
             <select
               value={catFilter}
-              onChange={(e) => setCatFilter(e.target.value as ExpenseCategory | 'all')}
+              onChange={(e) => { setCatFilter(e.target.value as ExpenseCategory | 'all'); setPage(1) }}
               style={{ appearance: 'none', padding: '10px 36px 10px 14px', border: '1px solid var(--app-border-strong)', borderRadius: '11px', background: 'var(--app-surface-2)', color: 'var(--app-text)', fontSize: '13.5px', fontWeight: 600, fontFamily: 'inherit', outline: 'none', cursor: 'pointer' }}
             >
               <option value="all">All categories</option>
@@ -126,20 +129,23 @@ export function ExpensesPage() {
           </div>
         </div>
 
-        {isPending ? (
+        {expensesQuery.isPending || summaryQuery.isPending ? (
           <LoadingState />
-        ) : isError ? (
-          <div role="alert" style={{ padding: '24px', color: '#b91c1c', fontSize: '14px' }}>{error.message}</div>
-        ) : expenseList.length === 0 ? (
+        ) : expensesQuery.isError || summaryQuery.isError ? (
+          <div role="alert" style={{ padding: '24px', color: '#b91c1c', fontSize: '14px' }}>{expensesQuery.error?.message ?? summaryQuery.error?.message}</div>
+        ) : summary.totalExpenses === 0 ? (
           <EmptyState />
-        ) : filtered.length === 0 ? (
-          <NoResultsState onClear={() => { setSearch(''); setCatFilter('all') }} />
+        ) : total === 0 ? (
+          <NoResultsState onClear={() => { setSearch(''); setCatFilter('all'); setPage(1) }} />
         ) : (
           <>
-            <ExpensesTable expenses={filtered} />
+            <ExpensesTable expenses={expenseList} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 22px', borderTop: '1px solid var(--app-border)', fontSize: '13px', color: 'var(--app-text-soft)', flexWrap: 'wrap', gap: '10px' }}>
-              <span>Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{filtered.length}</strong> of {expenseList.length} expenses</span>
-              <span>Filtered total: <strong style={{ color: 'var(--app-text)', fontWeight: 700 }}>{pesoFormatter.format(filteredTotal)}</strong></span>
+              <span>Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)}</strong> of {total} expenses{expensesQuery.isFetching ? ' · Updating…' : ''}</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" disabled={page <= 1} onClick={() => setPage((current) => current - 1)} style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', cursor: page <= 1 ? 'not-allowed' : 'pointer' }}>Previous</button>
+                <button type="button" disabled={page >= pageCount} onClick={() => setPage((current) => current + 1)} style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', cursor: page >= pageCount ? 'not-allowed' : 'pointer' }}>Next</button>
+              </div>
             </div>
           </>
         )}

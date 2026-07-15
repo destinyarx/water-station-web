@@ -18,6 +18,7 @@ export const documentRowSchema = z.object({
   visibility: z.enum(['all', 'only_me']),
   is_approved: z.boolean(),
   original_name: z.string().nullable(),
+  file_path: z.string().nullable(),
   created_at: z.string(),
   updated_at: z.string().nullable(),
   deleted_at: z.string().nullable(),

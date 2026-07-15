@@ -471,7 +471,7 @@ organization code) before any protected route is reachable. **Confirmed** —
 **What it does.** Publicly accessible static legal pages, rendered from
 markdown content files, plus sign-up-time consent captured entirely by
 Clerk's built-in legal-consent checkbox — **not** stored in Supabase.
-**Confirmed** — ADR 0009 (the `0009-legal-consent-via-clerk.md` one; note
+**Confirmed** — ADR 0014 (`0014-legal-consent-via-clerk.md`;
 there are two independent ADRs both numbered `0009` in this repo — see
 `03-specification-status.md`).
 

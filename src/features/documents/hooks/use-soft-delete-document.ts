@@ -14,7 +14,7 @@ export function useSoftDeleteDocument(): UseMutationResult<void, Error, number> 
   return useMutation<void, Error, number>({
     mutationFn: (id) => softDeleteDocument(client, id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: documentKeys.all })
       toast.success('Document archived.')
     },
     onError: (error) => {

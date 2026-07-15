@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isRegistered } from './registration.guards'
+import { isRegistered } from '../registration.guards'
 
 describe('isRegistered', () => {
   it('is true only when both claims are non-null', () => {

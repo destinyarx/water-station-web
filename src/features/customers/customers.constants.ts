@@ -19,6 +19,10 @@ export const CUSTOMER_ARCHIVE_ERROR =
 export const CUSTOMER_STATUS_ERROR =
   'Unable to update customer status. Please try again.'
 
+/** A write that matched no rows: RLS refused it, or the row was archived. */
+export const CUSTOMER_NOT_PERMITTED_ERROR =
+  'Nothing was changed. This customer may have been archived, or you may not have permission to change it.'
+
 /** Empty default values for the create/edit customer form. */
 export const CUSTOMER_FORM_DEFAULTS = {
   name: '',

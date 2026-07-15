@@ -149,7 +149,7 @@ Evidence:
   account data (owner/staff), but only a *processor* for customer records a
   station enters — the station itself is the controller of its customers'
   data. **Confirmed** —
-  Evidence: `CONTEXT.md` ("Legal & Privacy"), `docs/adr/0009-legal-consent-via-clerk.md`.
+  Evidence: `CONTEXT.md` ("Legal & Privacy"), `docs/adr/0014-legal-consent-via-clerk.md`.
 
 ## Domain Terminology
 

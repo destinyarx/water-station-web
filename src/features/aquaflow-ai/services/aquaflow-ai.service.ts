@@ -103,10 +103,9 @@ export async function touchConversation(
   client: SupabaseClient,
   conversationId: number,
 ): Promise<void> {
-  const { error } = await client
-    .from(AI_CONVERSATIONS_TABLE)
-    .update({ updated_at: new Date().toISOString() })
-    .eq('id', conversationId)
+  const { error } = await client.rpc('touch_ai_conversation', {
+    p_conversation_id: conversationId,
+  })
 
   if (error) throw new Error(AI_CONVERSATION_SAVE_ERROR)
 }

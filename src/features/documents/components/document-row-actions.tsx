@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button'
 
 import type { Document } from '../documents.types'
 import { useApproveDocument } from '../hooks/use-approve-document'
+import { useOpenDocument } from '../hooks/use-open-document'
+import { canApproveDocument, canManageDocument } from '../documents.guards'
 
 interface DocumentRowActionsProps {
   doc: Document
@@ -22,11 +24,12 @@ interface DocumentRowActionsProps {
 
 export function DocumentRowActions({ doc, onEdit, onDelete }: DocumentRowActionsProps) {
   const { userId, sessionClaims } = useAuth()
-  const isOwner = sessionClaims?.is_owner === true
-  const isCreator = doc.createdBy === userId
-  const canDelete = isOwner || isCreator
+  const actor = userId ? { userId, isOwner: sessionClaims?.is_owner === true } : null
+  const canManage = canManageDocument(doc, actor)
+  const canApprove = canApproveDocument(doc, actor)
 
   const { mutate: approve, isPending: approvePending } = useApproveDocument()
+  const { mutate: openDocument, isPending: openPending } = useOpenDocument()
 
   return (
     <DropdownMenu>
@@ -40,7 +43,11 @@ export function DocumentRowActions({ doc, onEdit, onDelete }: DocumentRowActions
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={() => onEdit(doc)}>
+        <DropdownMenuItem onClick={() => openDocument(doc)} disabled={!doc.filePath || openPending}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="mr-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6M8 13h8M8 17h5" /></svg>
+          Open file
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onEdit(doc)} disabled={!canManage}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="mr-2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
@@ -48,7 +55,7 @@ export function DocumentRowActions({ doc, onEdit, onDelete }: DocumentRowActions
           Edit
         </DropdownMenuItem>
 
-        {isOwner && (
+        {canApprove && (
           <DropdownMenuItem
             onClick={() => approve({ id: doc.id, isApproved: !doc.isApproved })}
             disabled={approvePending}
@@ -61,7 +68,7 @@ export function DocumentRowActions({ doc, onEdit, onDelete }: DocumentRowActions
           </DropdownMenuItem>
         )}
 
-        {canDelete && (
+        {canManage && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem

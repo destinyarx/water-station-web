@@ -1,3 +1,5 @@
+> Renumbered from 003 (fable review, 2026-07-14).
+
 # Supabase Multi-Tenant Architecture (Clerk + Organizations)
 
 This document defines a secure, scalable multi-tenant architecture using:

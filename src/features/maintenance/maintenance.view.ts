@@ -1,5 +1,7 @@
 import { UPCOMING_COUNTDOWN_MAX, WEEKLY_FREQUENCIES } from './maintenance.constants'
 import type {
+  MaintenanceHistoryEntry,
+  MaintenanceHistoryRow,
   MaintenanceScheduleRow,
   MaintenanceTaskRow,
   MaintenanceTaskView,
@@ -72,10 +74,14 @@ export function recurrenceLabel(
   return 'One-time'
 }
 
-function assigneeName(clerkId: string | null, byId: Map<string, OrgUser>): string {
-  if (!clerkId) return 'Unassigned'
+function assigneeName(
+  clerkId: string | null,
+  byId: Map<string, OrgUser>,
+  fallback = 'Unassigned',
+): string {
+  if (!clerkId) return fallback
   const user = byId.get(clerkId)
-  return user && user.name ? user.name : 'Unassigned'
+  return user && user.name ? user.name : fallback
 }
 
 /**
@@ -125,4 +131,28 @@ export function buildTaskViews(
   }
 
   return views
+}
+
+/**
+ * Resolves history rows into what the modal renders: the schedule's labels plus
+ * assignee/completer names. Names are joined here rather than in the query so
+ * they never cache against a stale org-users list. Pure.
+ */
+export function buildHistoryEntries(
+  rows: MaintenanceHistoryRow[],
+  users: OrgUser[],
+): MaintenanceHistoryEntry[] {
+  const userById = new Map(users.map((u) => [u.clerkId, u]))
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.schedule.title,
+    equipmentLabel: row.schedule.equipment_other ?? row.schedule.equipment,
+    priority: row.schedule.priority,
+    dueDate: row.due_date,
+    completedLabel: row.completed_at
+      ? formatDate(row.completed_at.slice(0, 10))
+      : formatDate(row.due_date),
+    completedByName: assigneeName(row.completed_by, userById, 'Unknown'),
+    assigneeName: assigneeName(row.assigned_to, userById),
+  }))
 }

@@ -20,6 +20,7 @@ export interface ToastItem {
 }
 
 let toasts: ToastItem[] = []
+const MAX_TOASTS = 5
 const listeners = new Set<(toasts: ToastItem[]) => void>()
 
 function emit(): void {
@@ -28,7 +29,16 @@ function emit(): void {
 
 function pushToast(type: ToastType, message: string, opts?: ToastOptions): string {
   const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
-  toasts = [...toasts, { id, type, message, duration: opts?.duration ?? 4000, autoClose: opts?.autoClose ?? true }]
+  toasts = [
+    ...toasts,
+    {
+      id,
+      type,
+      message,
+      duration: opts?.duration ?? 4000,
+      autoClose: opts?.autoClose ?? true,
+    },
+  ].slice(-MAX_TOASTS)
   emit()
   return id
 }

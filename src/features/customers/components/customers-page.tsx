@@ -1,14 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import type { Customer } from '../customers.types'
-import { useCustomers } from '../hooks/use-customers'
+import { useCustomers, useCustomerStats } from '../hooks/use-customers'
 import { CustomersTable } from './customers-table'
 import { CreateCustomerDialog } from './create-customer-dialog'
 
 type CustomerTypeFilter = 'all' | 'business' | 'household'
-const EMPTY_CUSTOMERS: Customer[] = []
 const PER_PAGE = 6
 
 const FILTERS: ReadonlyArray<{ key: CustomerTypeFilter; label: string }> = [
@@ -22,38 +20,37 @@ const DropIcon = (
 )
 
 export function CustomersPage() {
-  const { data, isPending, isError, error } = useCustomers()
-  const customers = data ?? EMPTY_CUSTOMERS
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<CustomerTypeFilter>('all')
   const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)
 
-  const businessCount = customers.filter((c) => c.isBusiness).length
-  const householdCount = customers.length - businessCount
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+    }, 300)
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return customers.filter((customer) => {
-      const matchesType =
-        typeFilter === 'all' ||
-        (typeFilter === 'business' && customer.isBusiness) ||
-        (typeFilter === 'household' && !customer.isBusiness)
-      if (!matchesType) return false
-      if (!q) return true
-      const haystack = [customer.name, customer.contactNumber, customer.fullAddress, customer.barangay, customer.municipality]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-      return haystack.includes(q)
-    })
-  }, [customers, search, typeFilter])
+    return () => window.clearTimeout(timeout)
+  }, [search])
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
+  const { data, isPending, isError, error, isFetching } = useCustomers({
+    archived: false,
+    search: debouncedSearch,
+    type: typeFilter,
+    page,
+    perPage: PER_PAGE,
+  })
+  const statsQuery = useCustomerStats()
+  const customers = data?.rows ?? []
+  const total = data?.total ?? 0
+  const stats = statsQuery.data ?? { total: 0, business: 0, household: 0 }
+
+  const pageCount = Math.max(1, Math.ceil(total / PER_PAGE))
   const safePage = Math.min(page, pageCount)
-  const pageItems = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE)
-  const pageStart = filtered.length === 0 ? 0 : (safePage - 1) * PER_PAGE + 1
-  const pageEnd = Math.min(safePage * PER_PAGE, filtered.length)
+  const pageStart = total === 0 ? 0 : (safePage - 1) * PER_PAGE + 1
+  const pageEnd = Math.min(safePage * PER_PAGE, total)
 
   function setFilter(next: CustomerTypeFilter) {
     setTypeFilter(next)
@@ -85,9 +82,9 @@ export function CustomersPage() {
 
       {/* stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '14px', marginBottom: '18px' }}>
-        <StatCard label="Total customers" value={customers.length} helper="Across all active refill accounts" accent="#0a6cc4" glow="rgba(56,189,248,0.16)" waveColor="rgba(56,189,248,0.16)" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={DropIcon} />
-        <StatCard label="Business accounts" value={businessCount} helper="Offices, shops & commercial orders" accent="#38bdf8" glow="rgba(56,189,248,0.14)" waveColor="rgba(56,189,248,0.14)" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M6 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16" /><path d="M15 9h2a2 2 0 0 1 2 2v10" /><path d="M9 7h2M9 11h2M9 15h2" /><path d="M4 21h16" /></svg>} />
-        <StatCard label="Households" value={householdCount} helper="Individual delivery customers" accent="#22c55e" glow="rgba(34,197,94,0.14)" waveColor="rgba(34,197,94,0.14)" iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M4 11.5 12 5l8 6.5" /><path d="M6 10.5V20h12v-9.5" /><path d="M10 20v-5h4v5" /></svg>} />
+        <StatCard label="Total customers" value={stats.total} helper="Across all active refill accounts" accent="#0a6cc4" glow="rgba(56,189,248,0.16)" waveColor="rgba(56,189,248,0.16)" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={DropIcon} />
+        <StatCard label="Business accounts" value={stats.business} helper="Offices, shops & commercial orders" accent="#38bdf8" glow="rgba(56,189,248,0.14)" waveColor="rgba(56,189,248,0.14)" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M6 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16" /><path d="M15 9h2a2 2 0 0 1 2 2v10" /><path d="M9 7h2M9 11h2M9 15h2" /><path d="M4 21h16" /></svg>} />
+        <StatCard label="Households" value={stats.household} helper="Individual delivery customers" accent="#22c55e" glow="rgba(34,197,94,0.14)" waveColor="rgba(34,197,94,0.14)" iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M4 11.5 12 5l8 6.5" /><path d="M6 10.5V20h12v-9.5" /><path d="M10 20v-5h4v5" /></svg>} />
       </div>
 
       {/* directory card */}
@@ -100,8 +97,8 @@ export function CustomersPage() {
             </span>
             <input
               value={search}
-              onChange={(event) => { setSearch(event.target.value); setPage(1) }}
-              placeholder="Search name, phone, or barangay"
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search customer name"
               aria-label="Search customers"
               style={{ width: '100%', padding: '10px 14px 10px 39px', border: '1px solid var(--app-border-strong)', borderRadius: '11px', background: 'var(--app-surface-2)', color: 'var(--app-text)', fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
             />
@@ -123,20 +120,27 @@ export function CustomersPage() {
           </div>
         </div>
 
-        {isPending ? (
+        {isPending || statsQuery.isPending ? (
           <LoadingState />
-        ) : isError ? (
-          <ErrorState message={error.message} />
-        ) : customers.length === 0 ? (
+        ) : isError || statsQuery.isError ? (
+          <ErrorState
+            message={
+              error?.message ??
+              statsQuery.error?.message ??
+              'Unable to load customers.'
+            }
+          />
+        ) : stats.total === 0 ? (
           <EmptyState onAdd={() => setCreating(true)} />
-        ) : filtered.length === 0 ? (
+        ) : total === 0 ? (
           <NoResultsState onClear={clearSearch} />
         ) : (
           <>
-            <CustomersTable customers={pageItems} />
+            <CustomersTable customers={customers} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 22px', borderTop: '1px solid var(--app-border)', fontSize: '13px', color: 'var(--app-text-soft)', flexWrap: 'wrap', gap: '12px' }}>
               <span>
-                Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{pageStart}–{pageEnd}</strong> of {filtered.length} customers
+                Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{pageStart}–{pageEnd}</strong> of {total} customers
+                {isFetching ? ' · updating…' : ''}
               </span>
               {pageCount > 1 ? (
                 <Pager page={safePage} pageCount={pageCount} onPage={setPage} />

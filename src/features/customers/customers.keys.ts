@@ -1,6 +1,10 @@
 /** Filters that scope the active customer list query. */
 export interface CustomerFilters {
-  archived: boolean
+  archived: false
+  search: string
+  type: 'all' | 'business' | 'household'
+  page: number
+  perPage: number
 }
 
 /**
@@ -12,6 +16,8 @@ export const customerKeys = {
   all: ['customers'] as const,
   lists: () => [...customerKeys.all, 'list'] as const,
   list: (filters: CustomerFilters) => [...customerKeys.lists(), filters] as const,
+  stats: () => [...customerKeys.all, 'stats'] as const,
+  options: () => [...customerKeys.all, 'options'] as const,
   details: () => [...customerKeys.all, 'detail'] as const,
   detail: (id: number) => [...customerKeys.details(), id] as const,
 }

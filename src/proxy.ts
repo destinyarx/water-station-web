@@ -35,14 +35,16 @@ export default clerkMiddleware(async (auth, req) => {
   const onRegistrationRoute = isRegistrationRoute(req)
   const registered = isRegistered(sessionClaims)
 
-  console.log('[Middleware Log]', {
-    url,
-    pathname,
-    userId: userId ? 'present' : 'null',
-    onPublicRoute,
-    onRegistrationRoute,
-    registered,
-  })
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[Middleware Log]', {
+      url,
+      pathname,
+      userId: userId ? 'present' : 'null',
+      onPublicRoute,
+      onRegistrationRoute,
+      registered,
+    })
+  }
 
   if (!userId) {
     if (onPublicRoute) {

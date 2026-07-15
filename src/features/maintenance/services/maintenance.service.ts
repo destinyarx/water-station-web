@@ -5,6 +5,7 @@ import {
   MAINTENANCE_COMPLETE_ERROR,
   MAINTENANCE_DELETE_ERROR,
   MAINTENANCE_LOAD_ERROR,
+  MAINTENANCE_NOT_PERMITTED_ERROR,
   MAINTENANCE_SAVE_ERROR,
   MAINTENANCE_SCHEDULE_COLUMNS,
   MAINTENANCE_SCHEDULES_TABLE,
@@ -138,21 +139,25 @@ export async function updateSchedule(
   taskId: number,
   values: EditMaintenanceValues,
 ): Promise<void> {
-  const { error: scheduleError } = await client
+  const { data: scheduleRows, error: scheduleError } = await client
     .from(MAINTENANCE_SCHEDULES_TABLE)
     .update(toScheduleUpdateRow(values))
     .eq('id', scheduleId)
     .is('deleted_at', null)
+    .select('id')
 
   if (scheduleError) throw new Error(MAINTENANCE_SAVE_ERROR)
+  if (!scheduleRows?.length) throw new Error(MAINTENANCE_NOT_PERMITTED_ERROR)
 
-  const { error: taskError } = await client
+  const { data: taskRows, error: taskError } = await client
     .from(MAINTENANCE_TASKS_TABLE)
     .update(toTaskUpdateRow(values))
     .eq('id', taskId)
     .is('deleted_at', null)
+    .select('id')
 
   if (taskError) throw new Error(MAINTENANCE_SAVE_ERROR)
+  if (!taskRows?.length) throw new Error(MAINTENANCE_NOT_PERMITTED_ERROR)
 }
 
 /** Soft-deletes a whole schedule (owner-only, enforced by RLS). */
@@ -176,13 +181,15 @@ export async function setScheduleStatus(
   scheduleId: number,
   isActive: boolean,
 ): Promise<void> {
-  const { error } = await client
+  const { data, error } = await client
     .from(MAINTENANCE_SCHEDULES_TABLE)
-    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .update({ is_active: isActive })
     .eq('id', scheduleId)
     .is('deleted_at', null)
+    .select('id')
 
   if (error) throw new Error(MAINTENANCE_STATUS_ERROR)
+  if (!data?.length) throw new Error(MAINTENANCE_NOT_PERMITTED_ERROR)
 }
 
 /**
@@ -198,25 +205,31 @@ export async function completeTask(
 ): Promise<void> {
   // One-time + already done → re-open (the design allows un-checking).
   if (task.status === 'completed' && !task.isRecurring) {
-    const { error } = await client
+    const { data, error } = await client
       .from(MAINTENANCE_TASKS_TABLE)
-      .update({ status: 'pending', completed_at: null, completed_by: null, updated_at: new Date().toISOString() })
+      .update({ status: 'pending', completed_at: null, completed_by: null })
       .eq('id', task.id)
       .is('deleted_at', null)
+      .select('id')
     if (error) throw new Error(MAINTENANCE_COMPLETE_ERROR)
+    if (!data?.length) throw new Error(MAINTENANCE_NOT_PERMITTED_ERROR)
     return
   }
 
   if (task.status === 'completed') return // recurring history row — no-op
 
   const now = new Date().toISOString()
-  const { error } = await client
+  const { data, error } = await client
     .from(MAINTENANCE_TASKS_TABLE)
-    .update({ status: 'completed', completed_at: now, completed_by: owner.createdBy, updated_at: now })
+    .update({ status: 'completed', completed_at: now, completed_by: owner.createdBy })
     .eq('id', task.id)
     .is('deleted_at', null)
+    .select('id')
 
   if (error) throw new Error(MAINTENANCE_COMPLETE_ERROR)
+  // Must throw before roll-forward: a refused completion that still inserted the
+  // next occurrence would leave two pending tasks and break ADR 0006's invariant.
+  if (!data?.length) throw new Error(MAINTENANCE_NOT_PERMITTED_ERROR)
 
   if (!task.isRecurring) return
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toEdgeRequest } from './registration.mapper'
+import { toEdgeRequest } from '../registration.mapper'
 
 const identity = { name: 'Juan dela Cruz', email: 'juan@example.com' }
 

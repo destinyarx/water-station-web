@@ -3,6 +3,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
   DOCUMENT_APPROVE_ERROR,
+  DOCUMENT_ACCEPTED_MIME_TYPES,
+  DOCUMENT_MAX_FILE_SIZE,
+  DOCUMENT_OPEN_ERROR,
+  DOCUMENTS_BUCKET,
   DOCUMENT_COLUMNS,
   DOCUMENT_DELETE_ERROR,
   DOCUMENT_SAVE_ERROR,
@@ -12,36 +16,106 @@ import {
 import { toDocument, toInsertRow, toUpdateRow } from '../documents.mapper'
 import { documentRowSchema } from '../documents.schema'
 import type { Document, DocumentFormValues, DocumentOwner } from '../documents.types'
+import type { CreateDocumentInput, DocumentPage, DocumentStats } from '../documents.types'
+import type { DocumentFilters } from '../documents.keys'
 
 const documentRowsSchema = z.array(documentRowSchema)
 
-export async function getActiveDocuments(client: SupabaseClient): Promise<Document[]> {
-  const { data, error } = await client
+export async function getActiveDocuments(client: SupabaseClient, filters: DocumentFilters): Promise<DocumentPage> {
+  let query = client
     .from(DOCUMENTS_TABLE)
-    .select(DOCUMENT_COLUMNS)
+    .select(DOCUMENT_COLUMNS, { count: 'exact' })
     .is('deleted_at', null)
-    .order('created_at', { ascending: false })
+
+  const search = filters.search.trim()
+  if (search) query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,document_type.ilike.%${search}%`)
+  if (filters.category !== 'all') query = query.eq('category', filters.category)
+  if (filters.visibility === 'mine') query = query.eq('created_by', filters.currentUserId)
+  if (filters.visibility === 'private') query = query.eq('created_by', filters.currentUserId).eq('visibility', 'only_me')
+
+  const from = (filters.page - 1) * filters.perPage
+  const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, from + filters.perPage - 1)
 
   if (error) throw new Error(DOCUMENTS_LOAD_ERROR)
 
   const rows = documentRowsSchema.parse(data ?? [])
-  return rows.map(toDocument)
+  return { documents: rows.map(toDocument), total: count ?? 0 }
+}
+
+export async function getDocumentStats(client: SupabaseClient): Promise<DocumentStats> {
+  const today = new Date().toISOString().slice(0, 10)
+  const inThirtyDays = new Date()
+  inThirtyDays.setDate(inThirtyDays.getDate() + 30)
+  const through = inThirtyDays.toISOString().slice(0, 10)
+  const results = await Promise.all([
+    client.from(DOCUMENTS_TABLE).select('id', { count: 'exact', head: true }).is('deleted_at', null),
+    client.from(DOCUMENTS_TABLE).select('id', { count: 'exact', head: true }).is('deleted_at', null).eq('visibility', 'only_me'),
+    client.from(DOCUMENTS_TABLE).select('id', { count: 'exact', head: true }).is('deleted_at', null).eq('visibility', 'all'),
+    client.from(DOCUMENTS_TABLE).select('id', { count: 'exact', head: true }).is('deleted_at', null).gte('expiry_date', today).lte('expiry_date', through),
+  ])
+  if (results.some(({ error }) => error)) throw new Error(DOCUMENTS_LOAD_ERROR)
+  const [total, privateCount, sharedCount, expiringSoon] = results.map(({ count }) => count ?? 0)
+  return { total, privateCount, sharedCount, expiringSoon }
+}
+
+function validateDocumentFile(file: File): void {
+  if (!DOCUMENT_ACCEPTED_MIME_TYPES.some((type) => type === file.type)) {
+    throw new Error('Choose a PDF, PNG, JPG, or WEBP file.')
+  }
+  if (file.size > DOCUMENT_MAX_FILE_SIZE) throw new Error('Document files must be 10 MB or smaller.')
+}
+
+function safeFileName(name: string): string {
+  const normalized = name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '')
+  return normalized || 'document'
 }
 
 export async function createDocument(
   client: SupabaseClient,
-  values: DocumentFormValues,
+  input: CreateDocumentInput,
   owner: DocumentOwner,
 ): Promise<Document> {
-  const { data, error } = await client
+  validateDocumentFile(input.file)
+  const { data: createdData, error: createError } = await client
     .from(DOCUMENTS_TABLE)
-    .insert(toInsertRow(values, owner))
+    .insert(toInsertRow(input.values, owner, input.file.name))
     .select(DOCUMENT_COLUMNS)
     .single()
 
-  if (error) throw new Error(DOCUMENT_SAVE_ERROR)
+  if (createError) throw new Error(DOCUMENT_SAVE_ERROR)
+  const created = toDocument(documentRowSchema.parse(createdData))
+  const path = `${owner.orgId}/${created.id}/${crypto.randomUUID()}-${safeFileName(input.file.name)}`
+  const { data: pathRows, error: pathError } = await client.from(DOCUMENTS_TABLE).update({ file_path: path }).eq('id', created.id).select('id')
+  if (pathError || !pathRows?.length) {
+    await client.from(DOCUMENTS_TABLE).update({ deleted_at: new Date().toISOString() }).eq('id', created.id)
+    throw new Error(DOCUMENT_SAVE_ERROR)
+  }
+  const { error: uploadError } = await client.storage.from(DOCUMENTS_BUCKET).upload(path, input.file, { contentType: input.file.type, upsert: false })
+  if (uploadError) {
+    await client.from(DOCUMENTS_TABLE).update({ deleted_at: new Date().toISOString() }).eq('id', created.id)
+    throw new Error(DOCUMENT_SAVE_ERROR)
+  }
+
+  const { data, error } = await client
+    .from(DOCUMENTS_TABLE)
+    .select(DOCUMENT_COLUMNS)
+    .eq('id', created.id)
+    .single()
+
+  if (error) {
+    await client.storage.from(DOCUMENTS_BUCKET).remove([path])
+    await client.from(DOCUMENTS_TABLE).update({ deleted_at: new Date().toISOString() }).eq('id', created.id)
+    throw new Error(DOCUMENT_SAVE_ERROR)
+  }
 
   return toDocument(documentRowSchema.parse(data))
+}
+
+export async function createDocumentSignedUrl(client: SupabaseClient, doc: Document): Promise<string> {
+  if (!doc.filePath) throw new Error(DOCUMENT_OPEN_ERROR)
+  const { data, error } = await client.storage.from(DOCUMENTS_BUCKET).createSignedUrl(doc.filePath, 60)
+  if (error) throw new Error(DOCUMENT_OPEN_ERROR)
+  return data.signedUrl
 }
 
 export async function updateDocument(
@@ -82,7 +156,7 @@ export async function setDocumentApproval(
 ): Promise<Document> {
   const { data, error } = await client
     .from(DOCUMENTS_TABLE)
-    .update({ is_approved: isApproved, updated_at: new Date().toISOString() })
+    .update({ is_approved: isApproved })
     .eq('id', id)
     .is('deleted_at', null)
     .select(DOCUMENT_COLUMNS)

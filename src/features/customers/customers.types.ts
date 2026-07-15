@@ -50,7 +50,6 @@ export interface CustomerUpdate {
   municipality: string | null
   province: string | null
   full_address: string | null
-  updated_at: string
 }
 
 /**
@@ -77,4 +76,15 @@ export interface Customer {
   createdAt: string
   updatedAt: string | null
   deletedAt: string | null
+}
+
+export interface CustomerPage {
+  rows: Customer[]
+  total: number
+}
+
+export interface CustomerStats {
+  total: number
+  business: number
+  household: number
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-import { materializeWeeklySchedule } from '../services/delivery-materialize.service'
+import { materializeRecurringSchedule } from '../services/delivery-materialize.service'
 import type { DeliveryScheduleRow } from '../deliveries.types'
 
 const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
@@ -79,11 +79,11 @@ function createClient(existingDates: string[]) {
   return { client: { from } as unknown as SupabaseClient, insertItems }
 }
 
-describe('materializeWeeklySchedule', () => {
+describe('materializeRecurringSchedule', () => {
   it('creates missing occurrences and copies template items with resolved prices', async () => {
     const { client, insertItems } = createClient(['2026-06-01'])
 
-    const created = await materializeWeeklySchedule(
+    const created = await materializeRecurringSchedule(
       client,
       schedule,
       owner,
@@ -109,7 +109,7 @@ describe('materializeWeeklySchedule', () => {
       '2026-06-15',
     ])
 
-    const created = await materializeWeeklySchedule(
+    const created = await materializeRecurringSchedule(
       client,
       schedule,
       owner,

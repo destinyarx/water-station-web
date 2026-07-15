@@ -7,6 +7,7 @@ import {
   CUSTOMER_COLUMNS,
   CUSTOMER_SAVE_ERROR,
   CUSTOMER_ARCHIVE_ERROR,
+  CUSTOMER_NOT_PERMITTED_ERROR,
   CUSTOMER_STATUS_ERROR,
 } from '../customers.constants'
 import { customerRowSchema } from '../customers.schema'
@@ -15,7 +16,10 @@ import type {
   Customer,
   CustomerFormValues,
   CustomerOwner,
+  CustomerPage,
+  CustomerStats,
 } from '../customers.types'
+import type { CustomerFilters } from '../customers.keys'
 
 const customerRowsSchema = z.array(customerRowSchema)
 
@@ -28,19 +32,85 @@ const customerRowsSchema = z.array(customerRowSchema)
  */
 export async function getActiveCustomers(
   client: SupabaseClient,
-): Promise<Customer[]> {
-  const { data, error } = await client
+  filters: CustomerFilters,
+): Promise<CustomerPage> {
+  const page = Math.max(1, filters.page)
+  const perPage = Math.max(1, filters.perPage)
+  const from = (page - 1) * perPage
+  const to = from + perPage - 1
+
+  let query = client
     .from(CUSTOMERS_TABLE)
-    .select(CUSTOMER_COLUMNS)
+    .select(CUSTOMER_COLUMNS, { count: 'exact' })
     .is('deleted_at', null)
+
+  const search = filters.search.trim()
+  if (search !== '') {
+    query = query.ilike('name', `%${search}%`)
+  }
+
+  if (filters.type !== 'all') {
+    query = query.eq('is_business', filters.type === 'business')
+  }
+
+  const { data, error, count } = await query
     .order('created_at', { ascending: false })
+    .range(from, to)
 
   if (error) {
     throw new Error(CUSTOMERS_LOAD_ERROR)
   }
 
   const rows = customerRowsSchema.parse(data ?? [])
-  return rows.map(toCustomer)
+  return { rows: rows.map(toCustomer), total: count ?? 0 }
+}
+
+/** Loads unfiltered customer options for delivery/customer selectors. */
+export async function getCustomerOptions(
+  client: SupabaseClient,
+): Promise<Customer[]> {
+  const { data, error } = await client
+    .from(CUSTOMERS_TABLE)
+    .select(CUSTOMER_COLUMNS)
+    .is('deleted_at', null)
+    .order('name', { ascending: true })
+    .limit(500)
+
+  if (error) throw new Error(CUSTOMERS_LOAD_ERROR)
+
+  return customerRowsSchema.parse(data ?? []).map(toCustomer)
+}
+
+/** Loads exact active customer counts independently of the current page. */
+export async function getCustomerStats(
+  client: SupabaseClient,
+): Promise<CustomerStats> {
+  const countOptions = { count: 'exact' as const, head: true }
+  const base = () =>
+    client
+      .from(CUSTOMERS_TABLE)
+      .select('id', countOptions)
+      .is('deleted_at', null)
+
+  const [totalResult, businessResult, householdResult] = await Promise.all([
+    base(),
+    base().eq('is_business', true),
+    base().eq('is_business', false),
+  ])
+
+  if (
+    totalResult.error ||
+    businessResult.error ||
+    householdResult.error
+  ) {
+    throw new Error(CUSTOMERS_LOAD_ERROR)
+  }
+
+  return {
+    total: totalResult.count ?? 0,
+    business: businessResult.count ?? 0,
+    household: householdResult.count ?? 0,
+  }
 }
 
 /**
@@ -101,14 +171,19 @@ export async function setCustomerStatus(
   id: number,
   isActive: boolean,
 ): Promise<void> {
-  const { error } = await client
+  const { data, error } = await client
     .from(CUSTOMERS_TABLE)
-    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .update({ is_active: isActive })
     .eq('id', id)
     .is('deleted_at', null)
+    .select('id')
 
   if (error) {
     throw new Error(CUSTOMER_STATUS_ERROR)
+  }
+
+  if (!data?.length) {
+    throw new Error(CUSTOMER_NOT_PERMITTED_ERROR)
   }
 }
 

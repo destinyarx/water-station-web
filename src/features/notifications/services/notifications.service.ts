@@ -32,6 +32,20 @@ export async function getNotifications(
   return rowsSchema.parse(data ?? []).map(toNotification)
 }
 
+/** Loads the exact unread total without fetching notification rows. */
+export async function getUnreadNotificationCount(
+  client: SupabaseClient,
+): Promise<number> {
+  const { count, error } = await client
+    .from(NOTIFICATIONS_TABLE)
+    .select('id', { count: 'exact', head: true })
+    .eq('is_read', false)
+
+  if (error) throw new Error(NOTIFICATIONS_LOAD_ERROR)
+
+  return count ?? 0
+}
+
 /**
  * Marks one notification read. Only `is_read` is written — the `GRANT UPDATE
  * (is_read)` column privilege rejects any attempt to touch other columns; RLS

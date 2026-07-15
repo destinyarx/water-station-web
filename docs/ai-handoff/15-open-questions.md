@@ -77,7 +77,7 @@ row 1.
 | Question | Why it matters | Evidence or conflict | Suggested owner |
 | --- | --- | --- | --- |
 | Reconcile `docs/DATABASE.md`'s `org_id` type contradiction (customers/products documented as `integer`, notifications/ai_conversations documented as `uuid`). | Same issue as the security question above, but as a pure documentation-hygiene fix once the live type is confirmed. | [`03-specification-status.md`](03-specification-status.md) row 8. | Whoever maintains `docs/DATABASE.md` |
-| Two ADRs are both filed as "0009" (`0009-legal-consent-via-clerk.md`, `0009-org-id-is-organizations-uuid.md`). | A bare "see ADR 0009" reference is ambiguous going forward. | [`11-quality-and-improvements.md`](11-quality-and-improvements.md) Q14. | Whoever maintains `docs/adr/` |
+| **Resolved 2026-07-15:** legal consent moved to ADR 0014 and organizations architecture to padded ADR 0003. | ADR 0009 now unambiguously identifies the organization UUID decision. | [`docs/adr/0014-legal-consent-via-clerk.md`](../adr/0014-legal-consent-via-clerk.md) | — |
 | `docs/DATABASE.md` has no section at all for `public.documents`. | The Documents feature's schema is undocumented outside its original spec's migration SQL. | [`04-feature-map.md`](04-feature-map.md) Documents row. | Whoever maintains `docs/DATABASE.md` |
 
 ## Missing repository information

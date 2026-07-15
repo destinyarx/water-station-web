@@ -8,7 +8,22 @@ function weekly(overrides: Partial<RecurrenceRule>): RecurrenceRule {
     recurrenceType: 'weekly',
     weekdays: [1],
     intervalWeeks: 1,
+    dayOfMonth: null,
+    intervalMonths: null,
     startDate: '2026-06-01',
+    endDate: null,
+    ...overrides,
+  }
+}
+
+function monthly(overrides: Partial<RecurrenceRule>): RecurrenceRule {
+  return {
+    recurrenceType: 'monthly',
+    weekdays: null,
+    intervalWeeks: null,
+    dayOfMonth: 31,
+    intervalMonths: 1,
+    startDate: '2026-01-01',
     endDate: null,
     ...overrides,
   }
@@ -58,7 +73,49 @@ describe('dueDatesFor', () => {
     ])
   })
 
-  it('returns nothing for non-weekly rules or empty weekdays', () => {
+  it('clamps monthly dates to 28, 29, 30, and 31-day month ends', () => {
+    expect(
+      dueDatesFor(monthly({}), '2026-01-01', '2026-04-30'),
+    ).toEqual(['2026-01-31', '2026-02-28', '2026-03-31', '2026-04-30'])
+
+    expect(
+      dueDatesFor(
+        monthly({ startDate: '2028-01-01' }),
+        '2028-01-01',
+        '2028-03-31',
+      ),
+    ).toEqual(['2028-01-31', '2028-02-29', '2028-03-31'])
+  })
+
+  it('anchors monthly intervals to start_date', () => {
+    expect(
+      dueDatesFor(
+        monthly({ intervalMonths: 2, startDate: '2026-01-15' }),
+        '2026-01-01',
+        '2026-07-31',
+      ),
+    ).toEqual(['2026-01-31', '2026-03-31', '2026-05-31', '2026-07-31'])
+  })
+
+  it('applies monthly start, from-date, horizon, and end-date boundaries', () => {
+    expect(
+      dueDatesFor(
+        monthly({ dayOfMonth: 10, startDate: '2026-01-20' }),
+        '2026-01-01',
+        '2026-03-31',
+      ),
+    ).toEqual(['2026-02-10', '2026-03-10'])
+
+    expect(
+      dueDatesFor(
+        monthly({ dayOfMonth: 15, endDate: '2026-03-14' }),
+        '2026-02-16',
+        '2026-06-30',
+      ),
+    ).toEqual([])
+  })
+
+  it('returns nothing for unsupported rules or empty weekly weekdays', () => {
     expect(
       dueDatesFor(weekly({ recurrenceType: 'one_time' }), '2026-06-01', '2026-06-30'),
     ).toEqual([])

@@ -3,7 +3,10 @@
 import type { Customer } from '../customers.types'
 import { CustomerRowActions } from './customer-row-actions'
 
-const GRID = 'minmax(200px,1.4fr) 160px max-content minmax(160px,2fr) 64px'
+// Every row is its own grid, so `max-content` here resolved per-row and the
+// columns drifted out of line whenever a cell was short or empty. All tracks
+// must be definite (or fr) for rows to agree on the same column edges.
+const GRID = 'minmax(200px,1.4fr) 160px 170px minmax(160px,2fr) 64px'
 
 const TH: React.CSSProperties = {
   fontSize: '11px',
@@ -81,9 +84,9 @@ export function CustomersTable({ customers }: { customers: Customer[] }) {
 
               {/* Contact */}
               <div style={{ padding: '13px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px', color: contact === '—' ? 'var(--app-text-faint)' : 'var(--app-text-muted)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, fontSize: '13.5px', color: contact === '—' ? 'var(--app-text-faint)' : 'var(--app-text-muted)' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" style={{ flex: 'none', opacity: 0.7 }}><path d="M5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5v3a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2Z" /></svg>
-                  {contact}
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{contact}</span>
                 </div>
               </div>
 

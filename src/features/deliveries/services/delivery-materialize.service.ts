@@ -29,13 +29,13 @@ interface ProductRow {
 
 /**
  * Client-triggered, idempotent top-up: materializes any missing `pending`
- * occurrences for a weekly schedule within `[fromDate, horizon]`, copying the
+ * occurrences for a weekly or monthly schedule within `[fromDate, horizon]`, copying the
  * schedule's template items into each occurrence. Existing dates are read first
  * and skipped; the unique `(schedule_id, delivery_date)` index is the real
  * idempotency guard, so a racing re-run is safe. Returns how many occurrences
  * were created.
  */
-export async function materializeWeeklySchedule(
+export async function materializeRecurringSchedule(
   client: SupabaseClient,
   schedule: DeliveryScheduleRow,
   owner: DeliveryOwner,

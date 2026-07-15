@@ -12,7 +12,7 @@ const materialize = vi.fn((...args: unknown[]) => {
   return Promise.resolve(2)
 })
 vi.mock('../services/delivery-materialize.service', () => ({
-  materializeWeeklySchedule: (...args: unknown[]) => materialize(...args),
+  materializeRecurringSchedule: (...args: unknown[]) => materialize(...args),
 }))
 
 const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }
@@ -45,9 +45,16 @@ beforeEach(() => {
   materialize.mockClear()
 })
 
+/** `.update().eq().select('id')` resolving to `rows`. */
+function updateReturning(rows: Array<{ id: number }>) {
+  return vi.fn(() => ({
+    eq: () => ({ select: () => Promise.resolve({ data: rows, error: null }) }),
+  }))
+}
+
 describe('pauseSchedule', () => {
   it('pauses the schedule and soft-deletes only pending occurrences dated >= today', async () => {
-    const scheduleUpdate = vi.fn(() => ({ eq: () => Promise.resolve({ error: null }) }))
+    const scheduleUpdate = updateReturning([{ id: 99 }])
 
     const occurrenceFilters: Array<[string, unknown]> = []
     let occurrenceUpdatePayload: Record<string, unknown> | null = null
@@ -89,11 +96,26 @@ describe('pauseSchedule', () => {
       ['deleted_at', null],
     ])
   })
+
+  it('throws and archives nothing when the pause matches no rows', async () => {
+    const occurrenceUpdate = vi.fn()
+    const from = vi.fn((table: string) => {
+      if (table === 'delivery_schedules') return { update: updateReturning([]) }
+      return { update: occurrenceUpdate }
+    })
+
+    await expect(
+      pauseSchedule({ from } as unknown as SupabaseClient, 99, '2026-06-23'),
+    ).rejects.toThrow()
+
+    // The whole point: a refused pause must not strip a still-active queue.
+    expect(occurrenceUpdate).not.toHaveBeenCalled()
+  })
 })
 
 describe('resumeSchedule', () => {
   it('reactivates the schedule and tops up materialization forward from today', async () => {
-    const scheduleUpdate = vi.fn(() => ({ eq: () => Promise.resolve({ error: null }) }))
+    const scheduleUpdate = updateReturning([{ id: 99 }])
     const from = vi.fn(() => ({ update: scheduleUpdate }))
 
     await resumeSchedule(
@@ -110,5 +132,21 @@ describe('resumeSchedule', () => {
     const [, passedSchedule, , fromDate] = materialize.mock.calls[0]
     expect(passedSchedule).toBe(schedule)
     expect(fromDate).toBe('2026-06-23')
+  })
+
+  it('throws and materializes nothing when the resume matches no rows', async () => {
+    const from = vi.fn(() => ({ update: updateReturning([]) }))
+
+    await expect(
+      resumeSchedule(
+        { from } as unknown as SupabaseClient,
+        schedule,
+        owner,
+        '2026-06-23',
+      ),
+    ).rejects.toThrow()
+
+    // A refused resume must not fill the queue for a still-paused schedule.
+    expect(materialize).not.toHaveBeenCalled()
   })
 })

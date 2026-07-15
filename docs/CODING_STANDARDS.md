@@ -25,7 +25,6 @@ This project uses:
 - Clerk
 - Supabase
 - TanStack Query
-- TanStack Table
 - React Hook Form
 - Zod
 - shadcn/ui
@@ -240,7 +239,7 @@ Contains mapping logic between Supabase rows, validated form values, service inp
 
 Contains reusable permission, registration, ownership, or role checks that are safe to use in UI or services.
 
-The database remains the source of truth through RLS.
+Guards must mirror the verified live RLS rules for UX so the UI does not offer actions the database will reject. They never replace RLS, which remains the security boundary. (Fable review, 2026-07-14.)
 
 ### `[feature].constants.ts`
 
@@ -300,7 +299,7 @@ Only use `'use client'` when the component needs:
 - event handlers
 - React Hook Form
 - TanStack Query
-- TanStack Table interactive behavior
+- interactive table/grid behavior
 
 Example:
 
@@ -473,50 +472,11 @@ Always handle loading states for async data.
 
 ---
 
-## TanStack Table Standards
+## Client Stores and Data Tables
 
-Use TanStack Table for every module's data table, not just complex ones. This keeps
-pagination, sorting, and row rendering consistent across the system instead of each
-feature reinventing its own table markup.
+Use the project's small `useSyncExternalStore` pub/sub pattern for shared client/UI state only. Server state belongs in TanStack Query and form state belongs in React Hook Form.
 
-TanStack Table is required when a table needs:
-
-- sorting
-- filtering
-- pagination
-- column visibility
-- row selection
-- custom column rendering
-
-Do not hand-roll a plain HTML/div table for a new module's list view — build it on
-TanStack Table (`useReactTable` + column defs) even if pagination isn't needed on day
-one, since it will almost always be needed later and retrofitting is more work than
-building it in from the start.
-
-Put large column definitions in a separate file.
-
-```txt
-src/features/customers/components/customer-columns.tsx
-```
-
-```tsx
-import type { ColumnDef } from '@tanstack/react-table';
-
-import type { Customer } from '../customers.types';
-
-export const customerColumns: ColumnDef<Customer>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Name',
-  },
-  {
-    accessorKey: 'phone',
-    header: 'Phone',
-  },
-];
-```
-
-Keep table rendering separate from data fetching when possible.
+Follow the existing feature's table/grid markup; no table library is mandated. Paginate and filter growing lists at the service/database boundary, and always keep loading, error, empty, and no-result states. (Amended by fable review, 2026-07-14.)
 
 ---
 
@@ -751,7 +711,7 @@ AI agents must follow these rules:
 12. Use Zod for validation.
 13. Use React Hook Form for forms.
 14. Use TanStack Query for server state.
-15. Use TanStack Table for complex tables.
+15. Follow the feature's existing table/grid pattern and use server pagination for growing lists.
 16. Keep components small and focused.
 17. Prefer readable code over clever code.
 18. Explain assumptions in the final response.

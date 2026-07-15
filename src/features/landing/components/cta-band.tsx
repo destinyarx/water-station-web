@@ -23,30 +23,22 @@ const VALUE_PILLARS = [
 const PRICING = [
   {
     name: 'Starter',
-    price: 'Free',
     sub: 'For a single counter',
-    cta: 'Get started',
-    ctaVariant: 'outline' as const,
+    cta: 'Get Started for Free',
     features: ['Refill & sales logging', 'Up to 100 customers', 'Basic daily reports'],
     featured: false,
   },
   {
     name: 'Station',
-    price: '₱ ???',
-    priceSub: '/mo',
     sub: 'Counter + deliveries',
-    cta: 'Start free trial',
-    ctaVariant: 'solid' as const,
+    cta: 'Choose This Plan',
     features: ['Everything in Starter', 'Delivery scheduling & routes', 'Container & deposit tracking', 'Expense & profit reports'],
     featured: true,
   },
   {
     name: 'Multi-branch',
-    price: '₱ ?,???',
-    priceSub: '/mo',
     sub: 'For growing operations',
-    cta: 'Talk to us',
-    ctaVariant: 'outline' as const,
+    cta: 'Get Started for Free',
     features: ['Everything in Station', 'Multiple locations', 'Staff roles & permissions', 'Maintenance scheduling'],
     featured: false,
   },
@@ -75,12 +67,41 @@ export function CtaBand() {
 
       {/* Pricing */}
       <section id="pricing" style={{ maxWidth: '1300px', margin: '0 auto', padding: '80px 32px' }}>
-        <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 48px' }}>
+        <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 32px' }}>
           <h2 style={{ fontSize: '38px', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 12px', color: 'var(--lp-text)' }}>Simple pricing, clear as water</h2>
-          <p style={{ fontSize: '17px', color: 'var(--lp-text-muted)', margin: 0, lineHeight: 1.6 }}>Start free. Upgrade when your station grows.</p>
+          <p style={{ fontSize: '17px', color: 'var(--lp-text-muted)', margin: 0, lineHeight: 1.6 }}>Pick the tier that fits your station. Everything is free while we launch.</p>
         </div>
+
+        {/* Launch announcement banner */}
+        <div
+          style={{
+            maxWidth: '1200px',
+            margin: '0 auto 44px',
+            background: 'linear-gradient(135deg, rgba(56,189,248,0.12), rgba(10,108,196,0.12))',
+            border: '1px solid rgba(10,108,196,0.28)',
+            borderRadius: '20px',
+            padding: '26px 32px',
+            textAlign: 'center',
+          }}
+        >
+
+
+          <div className="flex flex-row justify-start items-center gap-3">
+            <div className="w-1/3 flex justify-end">
+              <div style={{ display: 'inline-flex', gap: '7px', background: 'var(--lp-brand-text)', color: '#fff', fontSize: '12px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: '999px', marginBottom: '14px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 5.8L20 9.2l-4.4 3.8L17 19l-5-3.2L7 19l1.4-6L4 9.2l5.6-1.4L12 2z" fill="#fff" /></svg>
+                Launch offer
+              </div>
+            </div>
+
+            <h3 className="w-2/3 text-left" style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.01em', margin: '0 0 8px', color: 'var(--lp-text)' }}>All Plans Are Free During Launch</h3>
+          </div>
+
+          <p style={{ fontSize: '15px', color: 'var(--lp-text-muted)', margin: 0, lineHeight: 1.6 }}>Enjoy access to all available features at no cost during our launch period. Paid pricing may be introduced in the future, and users will be notified before any changes take effect.</p>
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '22px', alignItems: 'stretch' }}>
-          {PRICING.map(({ name, price, priceSub, sub, cta, features, featured }) => (
+          {PRICING.map(({ name, sub, cta, features, featured }) => (
             <div
               key={name}
               style={{
@@ -94,10 +115,10 @@ export function CtaBand() {
               }}
             >
               {featured && <div style={{ position: 'absolute', top: '18px', right: '18px', background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '5px 11px', borderRadius: '999px' }}>RECOMMENDED</div>}
+              <div style={{ display: 'inline-block', background: featured ? 'rgba(255,255,255,0.16)' : 'rgba(10,108,196,0.1)', color: featured ? '#eaf6ff' : 'var(--lp-brand-text)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', padding: '4px 10px', borderRadius: '999px', marginBottom: '14px' }}>Free During Launch</div>
               <div style={{ fontSize: '15px', fontWeight: 700, color: featured ? '#bfe2ff' : 'var(--lp-brand-text)', marginBottom: '6px' }}>{name}</div>
-              <div style={{ fontSize: '38px', fontWeight: 800, color: featured ? '#fff' : 'var(--lp-text)', letterSpacing: '-0.02em' }}>
-                {price}{priceSub && <span style={{ fontSize: '15px', fontWeight: 500, color: featured ? '#bfe2ff' : 'var(--lp-text-soft)' }}>{priceSub}</span>}
-              </div>
+              <div style={{ fontSize: '38px', fontWeight: 800, color: featured ? '#fff' : 'var(--lp-text)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>FREE</div>
+              <div style={{ fontSize: '13px', color: featured ? '#bfe2ff' : 'var(--lp-text-soft)', marginBottom: '4px' }}>During the launch period</div>
               <div style={{ fontSize: '14px', color: featured ? '#bfe2ff' : 'var(--lp-text-soft)', marginBottom: '22px' }}>{sub}</div>
               <SignUpButton mode="redirect">
                 <button
@@ -127,6 +148,10 @@ export function CtaBand() {
             </div>
           ))}
         </div>
+
+        <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--lp-text-soft)', margin: '28px auto 0', maxWidth: '640px', lineHeight: 1.6 }}>
+          No payment required. No credit card needed. Future pricing will be announced in advance.
+        </p>
       </section>
 
       {/* Final CTA */}

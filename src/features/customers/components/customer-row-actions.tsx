@@ -14,6 +14,7 @@ import {
 import { canEditCustomer } from '../customers.guards'
 import type { Customer } from '../customers.types'
 import { useSetCustomerStatus } from '../hooks/use-set-customer-status'
+import { useCustomerActor } from '../hooks/use-customer-actor'
 import { EditCustomerDialog } from './edit-customer-dialog'
 import { ArchiveCustomerDialog } from './archive-customer-dialog'
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
@@ -24,8 +25,9 @@ export function CustomerRowActions({ customer }: { customer: Customer }) {
   const [archiving, setArchiving] = useState(false)
   const [confirmingInactive, setConfirmingInactive] = useState(false)
   const statusMutation = useSetCustomerStatus()
+  const actor = useCustomerActor()
 
-  const canEdit = canEditCustomer(customer)
+  const canManage = canEditCustomer(customer, actor)
 
   function toggleStatus() {
     // Deactivating hides the customer from active operations — confirm first.
@@ -60,11 +62,11 @@ export function CustomerRowActions({ customer }: { customer: Customer }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[206px]">
-          <DropdownMenuItem disabled={!canEdit} onClick={() => setEditing(true)}>
+          <DropdownMenuItem disabled={!canManage} onClick={() => setEditing(true)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="mr-2 text-[var(--app-brand)]"><path d="M14.5 5.5l4 4M4 20l1-4.2L16 4.8a1.6 1.6 0 0 1 2.2 0l1 1a1.6 1.6 0 0 1 0 2.2L8.2 19 4 20Z" /></svg>
             Edit details
           </DropdownMenuItem>
-          <DropdownMenuItem disabled={statusMutation.isPending} onClick={toggleStatus}>
+          <DropdownMenuItem disabled={!canManage || statusMutation.isPending} onClick={toggleStatus}>
             {customer.isActive ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="mr-2 text-[var(--app-text-soft)]"><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5v5M14.5 9.5v5" /></svg>
             ) : (
@@ -73,7 +75,11 @@ export function CustomerRowActions({ customer }: { customer: Customer }) {
             {customer.isActive ? 'Set as inactive' : 'Set as active'}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" onClick={() => setArchiving(true)}>
+          <DropdownMenuItem
+            variant="destructive"
+            disabled={!canManage}
+            onClick={() => setArchiving(true)}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="mr-2"><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" /><path d="M10 12h4" /></svg>
             Archive customer
           </DropdownMenuItem>

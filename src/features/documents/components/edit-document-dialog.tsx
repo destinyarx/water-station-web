@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 
 import { documentFormSchema } from '../documents.schema'
 import type { Document, DocumentFormInput, DocumentFormValues } from '../documents.types'
-import { DOCUMENT_TYPES, documentCategoryValues, type DocumentCategory } from '../documents.constants'
+import { DOCUMENT_TYPES, documentCategoryValues } from '../documents.constants'
 import { toFormValues } from '../documents.mapper'
 import { useUpdateDocument } from '../hooks/use-update-document'
 import { VisibilityToggle } from './visibility-toggle'
@@ -37,7 +37,7 @@ export function EditDocumentDialog({ doc, onClose }: EditDocumentDialogProps) {
     defaultValues: doc ? toFormValues(doc) : undefined,
   })
 
-  const selectedCategory = watch('category') as DocumentCategory | ''
+  const selectedCategory = watch('category')
   const docTypeOptions = selectedCategory ? (DOCUMENT_TYPES[selectedCategory] ?? []) : []
 
   useEffect(() => {

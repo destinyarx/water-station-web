@@ -247,9 +247,9 @@ retrievable document file is building on a gap.
 `docs/DATABASE.md` and `CONTEXT.md` both cite "ADR 0003" for the
 delivery stock-deduction/revert behavior, but there is no
 `docs/adr/0003-*.md` (the `docs/adr/` folder's "003" slot is
-`003-organizations-schema-structure.md`, an unrelated topic, and there are
+`0003-organizations-schema-structure.md`, an unrelated topic, and there are
 also **two** files both numbered `0009` — `0009-org-id-is-organizations-uuid.md`
-and `0009-legal-consent-via-clerk.md` — a numbering collision in `docs/adr/`).
+and `0014-legal-consent-via-clerk.md` (renumbered by the fable review).
 The actual stock/revert ADR lives at
 `docs/specs/005-deliveries-module-continuation/adr-0003-delivery-status-stock-and-revert.md`
 (a spec-local ADR, separate numbering series from `docs/adr/`). **Confirmed**
@@ -369,7 +369,7 @@ Supabase project has any manually-seeded demo data outside version control.
   storage is wired — currently metadata only (§5.4). **Confirmed**.
 - No password/payment-card data is stored in Supabase — auth credentials
   live entirely in Clerk. **Inferred** (no such columns found anywhere).
-- `docs/adr/0009-legal-consent-via-clerk.md` confirms legal consent
+- `docs/adr/0014-legal-consent-via-clerk.md` confirms legal consent
   acceptance timestamps live in Clerk (`legalAcceptedAt`), **not** in
   Supabase — there is no consent table to protect or audit here.
 

@@ -46,8 +46,8 @@ Use this stack by default:
 - Supabase for database, storage, and backend services
 - Supabase JavaScript SDK for querying
 - TanStack Query for server state
-- TanStack Table for advanced tables
-- Zustand for lightweight client/UI state
+- Existing feature table/grid patterns with server-side pagination where needed
+- Small `useSyncExternalStore` pub/sub stores for lightweight client/UI state
 - React Hook Form for forms
 - Zod for validation
 - shadcn/ui for components

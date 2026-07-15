@@ -65,3 +65,30 @@ export interface MaintenanceTaskView {
   recurrenceLabel: string
   dueLabel: string
 }
+
+/** A completed occurrence joined to its schedule, as read from Supabase. */
+export interface MaintenanceHistoryRow {
+  id: number
+  due_date: string
+  completed_at: string | null
+  completed_by: string | null
+  assigned_to: string | null
+  schedule: {
+    title: string
+    equipment: string
+    equipment_other: string | null
+    priority: MaintenancePriority
+  }
+}
+
+/** One completed occurrence as rendered by the history modal. Read-only. */
+export interface MaintenanceHistoryEntry {
+  id: number
+  title: string
+  equipmentLabel: string
+  priority: MaintenancePriority
+  dueDate: string
+  completedLabel: string
+  completedByName: string
+  assigneeName: string
+}

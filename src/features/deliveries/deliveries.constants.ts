@@ -31,6 +31,10 @@ export const DELIVERIES_LOAD_ERROR =
 export const DELIVERY_SAVE_ERROR =
   'Unable to save delivery. Please try again.'
 
+/** A write that matched no rows: RLS refused it, or the row was archived. */
+export const DELIVERY_NOT_PERMITTED_ERROR =
+  'Nothing was changed. This schedule may have been archived, or you may not have permission to change it.'
+
 export const DELIVERY_FORM_DEFAULTS: DeliveryFormInput = {
   targetType: 'guest',
   customerId: undefined,

@@ -319,9 +319,9 @@ Invalidate or update affected queries after successful mutations.
 
 ---
 
-## Zustand Rules
+## Client UI Store Rules
 
-Use Zustand only for client/UI state.
+Use the project's small `useSyncExternalStore` pub/sub pattern for shared client/UI state. Do not add Zustand for these stores. (Amended by fable review, 2026-07-14.)
 
 Good use cases:
 
@@ -331,7 +331,7 @@ Good use cases:
 - local wizard state
 - temporary UI preferences
 
-Do not use Zustand for:
+Do not use a client UI store for:
 
 - Supabase query results
 - data already managed by TanStack Query
@@ -356,13 +356,9 @@ Form rules:
 
 ---
 
-## TanStack Table Rules
+## Data Table Rules
 
-Use TanStack Table for every module's data table, not just complex ones.
-
-Building on TanStack Table from the start (instead of a plain HTML/div table) keeps
-pagination, sorting, and row rendering consistent across the system, and avoids a
-rewrite later when a module needs pagination.
+Follow the existing feature's table/grid pattern and keep server pagination, filters, loading, error, and empty states consistent. No table library is mandated. (Amended by fable review, 2026-07-14.)
 
 ---
 

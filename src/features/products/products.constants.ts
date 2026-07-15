@@ -11,6 +11,9 @@ export const LOW_STOCK_THRESHOLD = 10
 export const PRODUCTS_LOAD_ERROR = 'Unable to load products. Please try again.'
 export const PRODUCT_SAVE_ERROR = 'Unable to save product. Please try again.'
 export const PRODUCT_DELETE_ERROR = 'Unable to delete product. Please try again.'
+/** A write that matched no rows: RLS refused it, or the row was archived. */
+export const PRODUCT_NOT_PERMITTED_ERROR =
+  'Nothing was changed. This product may have been archived, or you may only change products you created.'
 
 export const PRODUCT_FORM_DEFAULTS = {
   productName: '',

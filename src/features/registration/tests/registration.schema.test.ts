@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { registrationSchema } from './registration.schema'
+import { registrationSchema } from '../registration.schema'
 
 describe('registrationSchema', () => {
   it('accepts a valid owner', () => {

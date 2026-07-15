@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -13,16 +13,17 @@ import { cn } from '@/lib/utils'
 import { documentFormSchema } from '../documents.schema'
 import type { DocumentFormInput, DocumentFormValues } from '../documents.types'
 import {
-  DOCUMENT_FORM_DEFAULTS,
+  documentFormDefaults,
+  DOCUMENT_ACCEPTED_MIME_TYPES,
+  DOCUMENT_MAX_FILE_SIZE,
   DOCUMENT_TYPES,
   documentCategoryValues,
-  type DocumentCategory,
 } from '../documents.constants'
 import { useCreateDocument } from '../hooks/use-create-document'
 import { useDocumentOwner } from '../hooks/use-document-owner'
 import { VisibilityToggle } from './visibility-toggle'
 
-const ACCEPTED_IMAGE_TYPES = 'image/png,image/jpeg,image/webp,image/gif'
+const ACCEPTED_FILE_TYPES = DOCUMENT_ACCEPTED_MIME_TYPES.join(',')
 
 interface UploadDocumentDialogProps {
   open: boolean
@@ -37,12 +38,7 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
   // (no bucket / file-path column). Upgrade path: upload to Supabase Storage on
   // submit and persist the path alongside the row.
   const [file, setFile] = useState<File | null>(null)
-  const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
+  const [fileError, setFileError] = useState<string | null>(null)
 
   const {
     register,
@@ -53,27 +49,46 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
     formState: { errors },
   } = useForm<DocumentFormInput, unknown, DocumentFormValues>({
     resolver: zodResolver(documentFormSchema),
-    defaultValues: DOCUMENT_FORM_DEFAULTS,
+    defaultValues: documentFormDefaults(),
   })
 
-  const selectedCategory = watch('category') as DocumentCategory | ''
+  const selectedCategory = watch('category')
   const docTypeOptions = selectedCategory ? (DOCUMENT_TYPES[selectedCategory] ?? []) : []
 
   useEffect(() => {
     if (!open) {
-      reset(DOCUMENT_FORM_DEFAULTS)
+      reset(documentFormDefaults())
       setFile(null)
+      setFileError(null)
     }
   }, [open, reset])
 
   function onSubmit(values: DocumentFormValues) {
-    mutate(values, {
+    if (!file) {
+      setFileError('Choose a document file to upload.')
+      return
+    }
+    mutate({ values, file }, {
       onSuccess: () => {
         onClose()
-        reset(DOCUMENT_FORM_DEFAULTS)
+        reset(documentFormDefaults())
         setFile(null)
+        setFileError(null)
       },
     })
+  }
+
+  function chooseFile(nextFile: File): void {
+    if (!DOCUMENT_ACCEPTED_MIME_TYPES.some((type) => type === nextFile.type)) {
+      setFileError('Choose a PDF, PNG, JPG, or WEBP file.')
+      return
+    }
+    if (nextFile.size > DOCUMENT_MAX_FILE_SIZE) {
+      setFileError('Document files must be 10 MB or smaller.')
+      return
+    }
+    setFile(nextFile)
+    setFileError(null)
   }
 
   return (
@@ -83,7 +98,7 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
         if (!next) onClose()
       }}
       title="Upload document"
-      description="Max 2 MB · PNG, JPG, WEBP, GIF"
+      description="Max 10 MB · PDF, PNG, JPG, or WEBP"
       size="md"
       icon={
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -94,15 +109,9 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
       }
     >
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-2">
-          {/* Image picker — click or drop to attach an image */}
-          {file && previewUrl ? (
+          {file ? (
             <div className="flex items-center gap-3 border border-[var(--app-border)] rounded-[14px] p-3 bg-[var(--app-surface-2)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={previewUrl}
-                alt={file.name}
-                className="w-14 h-14 rounded-[10px] object-cover flex-none border border-[var(--app-border)]"
-              />
+              <div className="w-14 h-14 rounded-[10px] flex items-center justify-center flex-none border border-[var(--app-border)] bg-[var(--app-chip-bg)] text-[var(--app-brand)] font-bold text-xs">FILE</div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[var(--app-text)] truncate">{file.name}</p>
                 <p className="text-xs text-[var(--app-text-faint)] mt-0.5">
@@ -123,17 +132,19 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
               onDrop={(e) => {
                 e.preventDefault()
                 const dropped = e.dataTransfer.files?.[0]
-                if (dropped && dropped.type.startsWith('image/')) setFile(dropped)
+                if (dropped) {
+                  chooseFile(dropped)
+                }
               }}
               className="block cursor-pointer border-2 border-dashed border-[var(--app-border-strong)] rounded-[14px] p-7 text-center bg-[var(--app-surface-2)] hover:border-[var(--app-brand)] transition-colors"
             >
               <input
                 type="file"
-                accept={ACCEPTED_IMAGE_TYPES}
+                accept={ACCEPTED_FILE_TYPES}
                 className="hidden"
                 onChange={(e) => {
                   const picked = e.target.files?.[0]
-                  if (picked) setFile(picked)
+                  if (picked) chooseFile(picked)
                 }}
               />
               <div className="w-12 h-12 rounded-[14px] bg-[var(--app-chip-bg)] flex items-center justify-center mx-auto mb-3 text-[var(--app-brand)]">
@@ -143,10 +154,11 @@ export function UploadDocumentDialog({ open, onClose }: UploadDocumentDialogProp
                   <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
               </div>
-              <p className="text-sm font-semibold text-[var(--app-text-soft)]">Click or drop an image to attach</p>
-              <p className="text-xs text-[var(--app-text-faint)] mt-1">PNG, JPG, WEBP or GIF</p>
+              <p className="text-sm font-semibold text-[var(--app-text-soft)]">Click or drop a document to attach</p>
+              <p className="text-xs text-[var(--app-text-faint)] mt-1">PDF, PNG, JPG, or WEBP</p>
             </label>
           )}
+          {fileError ? <p role="alert" className="text-xs text-destructive -mt-2">{fileError}</p> : null}
 
           {/* Document info */}
           <div className="bg-[var(--app-surface-2)] border border-[var(--app-border)] rounded-[14px] p-[18px] flex flex-col gap-[14px]">

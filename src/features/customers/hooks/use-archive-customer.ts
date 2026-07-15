@@ -1,32 +1,20 @@
 'use client'
 
-import {
-  useMutation,
-  useQueryClient,
-  type UseMutationResult,
-} from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 
-import { archiveCustomer } from '../services/customers.service'
+import { useEntityMutation } from '@/hooks/use-entity-mutation'
+
 import { customerKeys } from '../customers.keys'
-import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
-import { toast } from '@/stores/toast-store'
+import { archiveCustomer } from '../services/customers.service'
 
-/**
- * Archives (soft-deletes) a customer and refreshes the active list on success
- * so the archived row drops out of the table without a full page reload.
- */
 export function useArchiveCustomer(): UseMutationResult<void, Error, number> {
-  const client = useClerkSupabase()
-  const queryClient = useQueryClient()
-
-  return useMutation<void, Error, number>({
-    mutationFn: (id) => archiveCustomer(client, id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
-      toast.success('Customer archived.')
-    },
-    onError: (error) => {
-      toast.error(error.message)
-    },
+  return useEntityMutation({
+    mutationFn: (client, id) => archiveCustomer(client, id),
+    invalidateKeys: [
+      customerKeys.lists(),
+      customerKeys.stats(),
+      customerKeys.options(),
+    ],
+    successMessage: 'Customer archived.',
   })
 }

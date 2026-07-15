@@ -28,6 +28,7 @@ export function toDocument(row: DocumentRow): Document {
     visibility: row.visibility,
     isApproved: row.is_approved,
     originalName: row.original_name,
+    filePath: row.file_path,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -37,6 +38,7 @@ export function toDocument(row: DocumentRow): Document {
 export function toInsertRow(
   values: DocumentFormValues,
   owner: DocumentOwner,
+  originalName: string,
 ): DocumentInsert {
   return {
     org_id: owner.orgId,
@@ -49,6 +51,7 @@ export function toInsertRow(
     amount: values.amount ?? null,
     expiry_date: emptyToNull(values.expiryDate),
     visibility: values.visibility,
+    original_name: originalName,
   }
 }
 
@@ -62,7 +65,6 @@ export function toUpdateRow(values: DocumentFormValues): DocumentUpdate {
     amount: values.amount ?? null,
     expiry_date: emptyToNull(values.expiryDate),
     visibility: values.visibility,
-    updated_at: new Date().toISOString(),
   }
 }
 
@@ -70,7 +72,7 @@ export function toFormValues(doc: Document): DocumentFormValues {
   return {
     title: doc.title,
     description: doc.description ?? '',
-    category: doc.category as DocumentFormValues['category'],
+    category: doc.category,
     documentType: doc.documentType ?? '',
     documentDate: doc.documentDate ?? '',
     amount: doc.amount ?? undefined,

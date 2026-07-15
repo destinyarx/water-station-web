@@ -1,19 +1,43 @@
-import { describe, it, expect, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { describe, expect, it, vi } from 'vitest'
+
+import type { CustomerFilters } from '../customers.keys'
 import { getActiveCustomers } from './customers.service'
 
 interface QueryResult {
   data: unknown
   error: { message: string } | null
+  count: number | null
+}
+
+const filters: CustomerFilters = {
+  archived: false,
+  search: '',
+  type: 'all',
+  page: 1,
+  perPage: 20,
 }
 
 function createMockClient(result: QueryResult) {
-  const order = vi.fn(() => Promise.resolve(result))
-  const is = vi.fn(() => ({ order }))
-  const select = vi.fn(() => ({ is }))
+  type Builder = {
+    is: ReturnType<typeof vi.fn>
+    ilike: ReturnType<typeof vi.fn>
+    eq: ReturnType<typeof vi.fn>
+    order: ReturnType<typeof vi.fn>
+    range: ReturnType<typeof vi.fn>
+  }
+
+  const builder: Builder = {
+    is: vi.fn(() => builder),
+    ilike: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    order: vi.fn(() => builder),
+    range: vi.fn(() => Promise.resolve(result)),
+  }
+  const select = vi.fn(() => builder)
   const from = vi.fn(() => ({ select }))
   const client = { from } as unknown as SupabaseClient
-  return { client, from, select, is, order }
+  return { client, from, select, ...builder }
 }
 
 const dbRow = {
@@ -38,13 +62,17 @@ const dbRow = {
 }
 
 describe('getActiveCustomers', () => {
-  it('returns the tenant customers mapped to the display model', async () => {
-    const { client } = createMockClient({ data: [dbRow], error: null })
+  it('returns mapped rows and the exact server total', async () => {
+    const { client } = createMockClient({
+      data: [dbRow],
+      error: null,
+      count: 31,
+    })
 
-    const customers = await getActiveCustomers(client)
+    const page = await getActiveCustomers(client, filters)
 
-    expect(customers).toHaveLength(1)
-    expect(customers[0]).toMatchObject({
+    expect(page.total).toBe(31)
+    expect(page.rows[0]).toMatchObject({
       id: dbRow.id,
       name: 'Crystal Springs',
       isBusiness: true,
@@ -52,27 +80,47 @@ describe('getActiveCustomers', () => {
     })
   })
 
-  it('excludes archived rows by filtering on a null deleted_at', async () => {
-    const { client, is } = createMockClient({ data: [], error: null })
+  it('applies active filtering, server search/type filters, and range math', async () => {
+    const { client, is, ilike, eq, range } = createMockClient({
+      data: [],
+      error: null,
+      count: 0,
+    })
 
-    await getActiveCustomers(client)
+    await getActiveCustomers(client, {
+      ...filters,
+      search: 'Spring',
+      type: 'business',
+      page: 2,
+    })
 
     expect(is).toHaveBeenCalledWith('deleted_at', null)
+    expect(ilike).toHaveBeenCalledWith('name', '%Spring%')
+    expect(eq).toHaveBeenCalledWith('is_business', true)
+    expect(range).toHaveBeenCalledWith(20, 39)
   })
 
-  it('returns an empty array when there are no customers', async () => {
-    const { client } = createMockClient({ data: [], error: null })
+  it('returns an empty page when there are no customers', async () => {
+    const { client } = createMockClient({
+      data: [],
+      error: null,
+      count: null,
+    })
 
-    await expect(getActiveCustomers(client)).resolves.toEqual([])
+    await expect(getActiveCustomers(client, filters)).resolves.toEqual({
+      rows: [],
+      total: 0,
+    })
   })
 
   it('throws a user-friendly error when the query fails', async () => {
     const { client } = createMockClient({
       data: null,
       error: { message: 'permission denied for table customers' },
+      count: null,
     })
 
-    await expect(getActiveCustomers(client)).rejects.toThrow(
+    await expect(getActiveCustomers(client, filters)).rejects.toThrow(
       'Unable to load customers. Please try again.',
     )
   })

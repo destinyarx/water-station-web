@@ -53,6 +53,10 @@ export function useNotificationsRealtime(): void {
         },
       )
 
+      void queryClient.invalidateQueries({
+        queryKey: notificationKeys.unreadCount(),
+      })
+
       if (mode === 'insert') toast.info(incoming.title)
     }
 

@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CalendarClock, History } from 'lucide-react'
 
-import { useCustomers } from '@/features/customers/hooks/use-customers'
-import { useProducts } from '@/features/products/hooks/use-products'
+import { useCustomerOptions } from '@/features/customers/hooks/use-customers'
+import { useProductOptions } from '@/features/products/hooks/use-products'
 import { useCurrentDeliveries } from '../hooks/use-current-deliveries'
 import { useDeliveryCounts } from '../hooks/use-delivery-counts'
 import { useOrgUsers } from '../hooks/use-org-users'
@@ -32,8 +32,8 @@ export function DeliveriesPage() {
   const [page, setPage] = useState(0)
   const deliveriesQuery = useCurrentDeliveries(page)
   const countsQuery = useDeliveryCounts()
-  const customersQuery = useCustomers()
-  const productsQuery = useProducts()
+  const customersQuery = useCustomerOptions()
+  const productsQuery = useProductOptions()
   const usersQuery = useOrgUsers()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<DeliveryStatusFilter>('all')

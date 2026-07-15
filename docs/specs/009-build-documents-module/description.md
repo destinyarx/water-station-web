@@ -40,3 +40,4 @@ Save the migration inside this working directory: `docs\specs\009-build-document
 - Make sure to follow the clean code principles, typescript, tailwindcss.
 - Update the `docs/DESIGN.md` to match the design system of the attach html files build by claude design.
 - all files or markdown produce by the /skills i used should only be created inside the cuirrent working path except for the ADR which should be put here  `docs\adr`.
+> **2026-07-15 storage addendum:** The earlier metadata-only upload exclusion below is superseded by the approved fable-review ISS-006 implementation. The current feature includes private Supabase Storage upload and short-lived signed URLs as specified in `REQUIREMENTS.md` and `ACCEPTANCE.md`.

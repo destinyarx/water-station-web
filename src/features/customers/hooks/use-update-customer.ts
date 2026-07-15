@@ -1,43 +1,30 @@
 'use client'
 
-import {
-  useMutation,
-  useQueryClient,
-  type UseMutationResult,
-} from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 
-import { updateCustomer } from '../services/customers.service'
+import { useEntityMutation } from '@/hooks/use-entity-mutation'
+
 import { customerKeys } from '../customers.keys'
+import { updateCustomer } from '../services/customers.service'
 import type { Customer, CustomerFormValues } from '../customers.types'
-import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
-import { toast } from '@/stores/toast-store'
 
 interface UpdateCustomerVariables {
   id: number
   values: CustomerFormValues
 }
 
-/**
- * Updates a customer and refreshes both the active list and the affected detail
- * query on success so any open list/detail view reflects the change.
- */
 export function useUpdateCustomer(): UseMutationResult<
   Customer,
   Error,
   UpdateCustomerVariables
 > {
-  const client = useClerkSupabase()
-  const queryClient = useQueryClient()
-
-  return useMutation<Customer, Error, UpdateCustomerVariables>({
-    mutationFn: ({ id, values }) => updateCustomer(client, id, values),
-    onSuccess: (_customer, { id }) => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: customerKeys.detail(id) })
-      toast.success('Customer updated.')
-    },
-    onError: (error) => {
-      toast.error(error.message)
-    },
+  return useEntityMutation({
+    mutationFn: (client, { id, values }) => updateCustomer(client, id, values),
+    invalidateKeys: (_customer, { id }) => [
+      customerKeys.lists(),
+      customerKeys.detail(id),
+      customerKeys.options(),
+    ],
+    successMessage: 'Customer updated.',
   })
 }

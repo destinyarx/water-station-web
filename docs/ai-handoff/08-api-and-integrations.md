@@ -316,7 +316,7 @@ To run this app locally an agent/developer needs, at minimum:
   `aquaflow-welcome-email` Edge Functions deployed, and `notifications`
   added to the `supabase_realtime` publication if testing that feature.
 - Clerk's **legal consent** dashboard toggle enabled if testing sign-up end
-  to end (`docs/adr/0009-legal-consent-via-clerk.md`) — this is a Clerk
+  to end (`docs/adr/0014-legal-consent-via-clerk.md`) — this is a Clerk
   Dashboard setting, not anything in this repo.
 - Without `NEXT_PUBLIC_SUPABASE_EDGE_AQUAFLOW_AI_URL` set, AquaFlow AI works
   fully against the local mock route with no external dependency — useful

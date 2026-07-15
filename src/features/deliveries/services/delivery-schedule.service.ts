@@ -32,7 +32,7 @@ import type {
   OrgUser,
   UnifiedDeliveryFormValues,
 } from '../deliveries.types'
-import { materializeWeeklySchedule } from './delivery-materialize.service'
+import { materializeRecurringSchedule } from './delivery-materialize.service'
 
 const orgUserRowsSchema = z.array(orgUserRowSchema)
 
@@ -77,7 +77,7 @@ export async function createWeeklySchedule(
 
   const today = todayIso()
   const fromDate = values.startDate > today ? values.startDate : today
-  await materializeWeeklySchedule(
+  await materializeRecurringSchedule(
     client,
     schedule,
     owner,
@@ -126,7 +126,7 @@ export async function createUnifiedDeliverySchedule(
   if (values.scheduleMode === 'recurring_route') {
     const today = todayIso()
     const fromDate = values.startDate > today ? values.startDate : today
-    await materializeWeeklySchedule(
+    await materializeRecurringSchedule(
       client,
       schedule,
       owner,

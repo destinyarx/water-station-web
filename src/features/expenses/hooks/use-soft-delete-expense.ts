@@ -18,7 +18,7 @@ export function useSoftDeleteExpense(): UseMutationResult<void, Error, number> {
   return useMutation<void, Error, number>({
     mutationFn: (id) => softDeleteExpense(client, id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: expenseKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       toast.success('Expense deleted.')
     },
     onError: (error) => {

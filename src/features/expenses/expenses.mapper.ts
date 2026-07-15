@@ -121,6 +121,5 @@ export function toUpdateRow(values: ExpenseFormValues): ExpenseUpdate {
     description: emptyToNull(values.description),
     date_incurred: values.dateIncurred,
     references_number: emptyToNull(values.referencesNumber),
-    updated_at: new Date().toISOString(),
   }
 }

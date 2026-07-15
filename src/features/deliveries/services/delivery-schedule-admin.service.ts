@@ -2,12 +2,13 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
   DELIVERIES_TABLE,
+  DELIVERY_NOT_PERMITTED_ERROR,
   DELIVERY_SAVE_ERROR,
   DELIVERY_SCHEDULES_TABLE,
   MATERIALIZE_HORIZON_DAYS,
 } from '../deliveries.constants'
 import type { DeliveryOwner, DeliveryScheduleRow } from '../deliveries.types'
-import { materializeWeeklySchedule } from './delivery-materialize.service'
+import { materializeRecurringSchedule } from './delivery-materialize.service'
 
 function addDays(iso: string, days: number): string {
   const date = new Date(`${iso}T00:00:00.000Z`)
@@ -27,12 +28,16 @@ export async function pauseSchedule(
 ): Promise<void> {
   const now = new Date().toISOString()
 
-  const { error: scheduleError } = await client
+  const { data: scheduleRows, error: scheduleError } = await client
     .from(DELIVERY_SCHEDULES_TABLE)
-    .update({ status: 'paused', updated_at: now })
+    .update({ status: 'paused' })
     .eq('id', scheduleId)
+    .select('id')
 
   if (scheduleError) throw new Error(DELIVERY_SAVE_ERROR)
+  // Must throw before archiving occurrences: a refused pause that still deleted
+  // them would strip the queue from a schedule that is still active.
+  if (!scheduleRows?.length) throw new Error(DELIVERY_NOT_PERMITTED_ERROR)
 
   const { error: occurrenceError } = await client
     .from(DELIVERIES_TABLE)
@@ -56,14 +61,18 @@ export async function resumeSchedule(
   owner: DeliveryOwner,
   today: string,
 ): Promise<void> {
-  const { error } = await client
+  const { data, error } = await client
     .from(DELIVERY_SCHEDULES_TABLE)
-    .update({ status: 'active', updated_at: new Date().toISOString() })
+    .update({ status: 'active' })
     .eq('id', schedule.id)
+    .select('id')
 
   if (error) throw new Error(DELIVERY_SAVE_ERROR)
+  // Must throw before materializing: a refused resume that still generated
+  // occurrences would fill the queue for a schedule that is still paused.
+  if (!data?.length) throw new Error(DELIVERY_NOT_PERMITTED_ERROR)
 
-  await materializeWeeklySchedule(
+  await materializeRecurringSchedule(
     client,
     schedule,
     owner,

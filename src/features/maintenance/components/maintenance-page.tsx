@@ -7,20 +7,29 @@ import type { MaintenanceTaskView } from '../maintenance.types'
 import { dayDiff, todayIso } from '../maintenance.view'
 import { useMaintenanceTasks } from '../hooks/use-maintenance-tasks'
 import { CreateScheduleDialog } from './create-schedule-dialog'
+import { MaintenanceHistoryDialog } from './maintenance-history-dialog'
 import { MaintenanceTaskCard } from './maintenance-task-card'
 
-type StatusFilter = 'all' | 'upcoming' | 'overdue' | 'completed'
+type StatusFilter = 'all' | 'upcoming' | 'overdue' | 'inactive'
 const PER_PAGE = 10
 
 const FILTERS: ReadonlyArray<{ key: StatusFilter; label: string }> = [
   { key: 'all', label: 'All' },
   { key: 'upcoming', label: 'Upcoming' },
   { key: 'overdue', label: 'Overdue' },
-  { key: 'completed', label: 'Completed' },
+  { key: 'inactive', label: 'Inactive' },
 ]
 
-function matchesFilter(task: MaintenanceTaskView, filter: StatusFilter): boolean {
-  if (filter === 'all') return task.displayStatus !== 'completed'
+/**
+ * The board shows live work only. Completed occurrences live in the history
+ * modal, and paused schedules are behind the Inactive tab — so *All* means
+ * pending work on an active schedule, not literally everything.
+ */
+export function matchesFilter(task: MaintenanceTaskView, filter: StatusFilter): boolean {
+  if (task.displayStatus === 'completed') return false
+  if (filter === 'inactive') return !task.isScheduleActive
+  if (!task.isScheduleActive) return false
+  if (filter === 'all') return true
   return task.displayStatus === filter
 }
 
@@ -28,9 +37,9 @@ export function MaintenancePage() {
   const { views, isPending, isError, error } = useMaintenanceTasks()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<StatusFilter>('all')
-  const [showInactive, setShowInactive] = useState(false)
   const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const today = todayIso()
   const month = today.slice(0, 7)
 
@@ -50,7 +59,6 @@ export function MaintenancePage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return views
-      .filter((v) => (showInactive ? true : v.isScheduleActive))
       .filter((v) => matchesFilter(v, filter))
       .filter((v) => {
         if (!q) return true
@@ -58,7 +66,7 @@ export function MaintenancePage() {
         return v.title.toLowerCase().includes(q) || equip.includes(q) || v.assigneeName.toLowerCase().includes(q)
       })
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-  }, [views, search, filter, showInactive])
+  }, [views, search, filter])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
   const safePage = Math.min(page, pageCount)
@@ -81,14 +89,66 @@ export function MaintenancePage() {
             Keep filters, pumps, and tanks on schedule. Plan recurring upkeep, assign staff, and tick tasks off as they&rsquo;re done.
           </p>
         </div>
-        <AddButton onClick={() => setCreating(true)} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <HistoryButton onClick={() => setHistoryOpen(true)} />
+          <AddButton onClick={() => setCreating(true)} />
+        </div>
       </div>
 
+      {/* ─── stat cards (mirrors the deliveries board) ─── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '14px', marginBottom: '18px' }}>
-        <StatCard label="Due this week" value={metrics.dueWeek} accent="#38bdf8" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></svg>} />
-        <StatCard label="Overdue" value={metrics.overdue} accent={metrics.overdue > 0 ? '#ef4444' : 'var(--app-border)'} numColor={metrics.overdue > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text)'} iconBg={metrics.overdue > 0 ? 'var(--app-chip-red-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.overdue > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text-faint)'} icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M10.3 4.3l-8 13.4A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
-        <StatCard label="Done this month" value={metrics.doneMonth} accent="#22c55e" iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>} />
-        <StatCard label="Recurring" value={metrics.recurring} accent="#8b5cf6" iconBg="rgba(139,92,246,0.13)" iconColor="#7c3aed" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" /></svg>} />
+        {/* featured gradient card */}
+        <article style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#0b73c8,#075098)', borderRadius: '16px', padding: '15px 16px', boxShadow: '0 14px 30px rgba(14,108,196,0.26)' }}>
+          <div style={{ position: 'absolute', right: -16, bottom: -22, lineHeight: 0, opacity: 0.22 }}>
+            <svg width="150" height="80" viewBox="0 0 150 80" preserveAspectRatio="none">
+              <path d="M0 44 C30 26 55 56 85 42 C115 28 135 50 150 40 L150 80 L0 80 Z" fill="#fff" />
+            </svg>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#bfe2ff' }}>Due this week</div>
+              <div style={{ width: '28px', height: '28px', borderRadius: '9px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></svg>
+              </div>
+            </div>
+            <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1 }}>
+              {isPending ? '—' : metrics.dueWeek}
+            </div>
+            <div style={{ fontSize: '12px', color: '#bfe2ff', marginTop: '7px' }}>Upkeep due in the next 7 days</div>
+          </div>
+        </article>
+
+        <StatCard
+          label="Overdue"
+          value={metrics.overdue}
+          description="Past due and still open"
+          accent={metrics.overdue > 0 ? '#ef4444' : 'var(--app-border)'}
+          numColor={metrics.overdue > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text)'}
+          iconBg={metrics.overdue > 0 ? 'var(--app-chip-red-bg)' : 'var(--app-chip-gray-bg)'}
+          iconColor={metrics.overdue > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text-faint)'}
+          isLoading={isPending}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M10.3 4.3l-8 13.4A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>}
+        />
+        <StatCard
+          label="Done this month"
+          value={metrics.doneMonth}
+          description="Completed upkeep so far"
+          accent="#22c55e"
+          iconBg="var(--app-chip-green-bg)"
+          iconColor="var(--app-chip-green-text)"
+          isLoading={isPending}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>}
+        />
+        <StatCard
+          label="Recurring"
+          value={metrics.recurring}
+          description="From repeating schedules"
+          accent="#8b5cf6"
+          iconBg="rgba(139,92,246,0.13)"
+          iconColor="#7c3aed"
+          isLoading={isPending}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" /></svg>}
+        />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -115,10 +175,6 @@ export function MaintenancePage() {
               )
             })}
           </div>
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--app-text-soft)', cursor: 'pointer', userSelect: 'none' }}>
-            <input type="checkbox" checked={showInactive} onChange={(event) => { setShowInactive(event.target.checked); setPage(1) }} style={{ width: '16px', height: '16px', accentColor: 'var(--app-brand)', cursor: 'pointer' }} />
-            Show inactive
-          </label>
         </div>
       </div>
 
@@ -147,7 +203,17 @@ export function MaintenancePage() {
       )}
 
       <CreateScheduleDialog open={creating} onOpenChange={setCreating} />
+      <MaintenanceHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} />
     </div>
+  )
+}
+
+function HistoryButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} style={{ flex: 'none', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>
+      History
+    </button>
   )
 }
 
@@ -163,22 +229,27 @@ function AddButton({ onClick }: { onClick: () => void }) {
 interface StatCardProps {
   label: string
   value: number
+  description: string
   accent: string
   iconBg: string
   iconColor: string
   icon: React.ReactNode
+  isLoading: boolean
   numColor?: string
 }
 
-function StatCard({ label, value, accent, iconBg, iconColor, icon, numColor }: StatCardProps) {
+function StatCard({ label, value, description, accent, iconBg, iconColor, icon, isLoading, numColor }: StatCardProps) {
   return (
-    <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '16px', padding: '15px 16px', boxShadow: 'var(--app-shadow-card)' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
-        <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '2px', lineHeight: 1.3 }}>{label}</div>
+    <article style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '16px', padding: '15px 16px', boxShadow: 'var(--app-shadow-card)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
+        <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)' }}>{label}</div>
         <div style={{ flex: 'none', width: '28px', height: '28px', borderRadius: '9px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       </div>
-      <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: numColor ?? 'var(--app-text)' }}>{value}</div>
-    </div>
+      <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: numColor ?? 'var(--app-text)' }}>
+        {isLoading ? <span style={{ color: 'var(--app-text-faint)' }}>—</span> : value}
+      </div>
+      <div style={{ fontSize: '12px', color: 'var(--app-text-soft)', marginTop: '7px' }}>{description}</div>
+    </article>
   )
 }
 

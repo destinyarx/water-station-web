@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMaintenanceSchema } from './maintenance.schema'
-import { firstDueDate, isoWeekday, nextDueDate } from './maintenance.recurrence'
-import { dueLabelFor, statusOf } from './maintenance.view'
+import { createMaintenanceSchema } from '../maintenance.schema'
+import { firstDueDate, isoWeekday, nextDueDate } from '../maintenance.recurrence'
+import { dueLabelFor, statusOf } from '../maintenance.view'
 
 describe('recurrence', () => {
   it('maps ISO weekdays (Mon=1..Sun=7)', () => {

@@ -89,7 +89,6 @@ export function toScheduleUpdateRow(values: EditMaintenanceValues): {
   equipment_other: string | null
   priority: MaintenancePriority
   notes: string | null
-  updated_at: string
 } {
   return {
     title: values.title.trim(),
@@ -98,19 +97,16 @@ export function toScheduleUpdateRow(values: EditMaintenanceValues): {
       values.equipment === OTHERS_EQUIPMENT ? nullableText(values.equipmentOther) : null,
     priority: values.priority,
     notes: nullableText(values.notes),
-    updated_at: new Date().toISOString(),
   }
 }
 
 export function toTaskUpdateRow(values: EditMaintenanceValues): {
   due_date: string
   assigned_to: string | null
-  updated_at: string
 } {
   return {
     due_date: values.dueDate,
     assigned_to: nullableText(values.assignedTo),
-    updated_at: new Date().toISOString(),
   }
 }
 

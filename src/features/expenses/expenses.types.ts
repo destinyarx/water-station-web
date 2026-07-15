@@ -53,7 +53,11 @@ export interface ExpenseUpdate {
   description: string | null
   date_incurred: string
   references_number: string | null
-  updated_at: string
+}
+
+export interface ExpensePage {
+  expenses: Expense[]
+  total: number
 }
 
 /** Display model consumed by the UI. */

@@ -1,30 +1,27 @@
 'use client'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 
-import { setCustomerStatus } from '../services/customers.service'
+import { useEntityMutation } from '@/hooks/use-entity-mutation'
+
 import { customerKeys } from '../customers.keys'
-import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
-import { toast } from '@/stores/toast-store'
+import { setCustomerStatus } from '../services/customers.service'
 
 interface SetCustomerStatusInput {
   id: number
   isActive: boolean
 }
 
-/** Marks a customer active/inactive and refreshes the directory on success. */
-export function useSetCustomerStatus() {
-  const client = useClerkSupabase()
-  const queryClient = useQueryClient()
-
-  return useMutation<void, Error, SetCustomerStatusInput>({
-    mutationFn: ({ id, isActive }) => setCustomerStatus(client, id, isActive),
-    onSuccess: (_data, { isActive }) => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() })
-      toast.success(isActive ? 'Customer set as active.' : 'Customer set as inactive.')
-    },
-    onError: (error) => {
-      toast.error(error.message)
-    },
+export function useSetCustomerStatus(): UseMutationResult<
+  void,
+  Error,
+  SetCustomerStatusInput
+> {
+  return useEntityMutation({
+    mutationFn: (client, { id, isActive }) =>
+      setCustomerStatus(client, id, isActive),
+    invalidateKeys: [customerKeys.lists(), customerKeys.options()],
+    successMessage: (_result, { isActive }) =>
+      isActive ? 'Customer set as active.' : 'Customer set as inactive.',
   })
 }

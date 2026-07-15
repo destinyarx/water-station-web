@@ -32,7 +32,7 @@ export function useCreateExpense(): UseMutationResult<
       return createExpense(client, values, owner)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: expenseKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       toast.success('Expense recorded.')
     },
     onError: (error) => {

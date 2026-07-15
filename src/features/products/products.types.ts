@@ -35,7 +35,19 @@ export interface ProductUpdate {
   is_stock_tracked: boolean
   stock: number
   descriptions: string | null
-  updated_at: string
+}
+
+export interface ProductPage {
+  products: Product[]
+  total: number
+}
+
+export interface ProductStats {
+  total: number
+  active: number
+  stockTracked: number
+  low: number
+  out: number
 }
 
 /** Display model consumed by the Products UI. */

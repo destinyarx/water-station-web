@@ -1,11 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { LOW_STOCK_THRESHOLD } from '../products.constants'
 import type { Product } from '../products.types'
 import { useProductActor } from '../hooks/use-product-actor'
-import { useProducts } from '../hooks/use-products'
+import { useProducts, useProductStats } from '../hooks/use-products'
 import { CreateProductDialog } from './create-product-dialog'
 import { ProductsGrid } from './products-table'
 
@@ -21,49 +21,28 @@ const FILTERS: ReadonlyArray<{ key: ProductFilter; label: string }> = [
 ]
 
 export function ProductsPage() {
-  const { data, isPending, isError, error } = useProducts()
   const actor = useProductActor()
-  const products = data ?? EMPTY_PRODUCTS
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filter, setFilter] = useState<ProductFilter>('all')
   const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
-  const metrics = useMemo(() => {
-    const stockTracked = products.filter((p) => p.isStockTracked)
-    const activeStockTracked = stockTracked.filter((p) => p.isActive)
-    return {
-      total: products.length,
-      active: products.filter((p) => p.isActive).length,
-      stockTracked: stockTracked.length,
-      low: activeStockTracked.filter((p) => p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD).length,
-      out: activeStockTracked.filter((p) => p.stock === 0).length,
-    }
-  }, [products])
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return products.filter((product) => {
-      const matchesFilter =
-        filter === 'all' ||
-        (filter === 'refillable' && !product.isStockTracked) ||
-        (filter === 'stocked' && product.isStockTracked) ||
-        (filter === 'discontinued' && !product.isActive)
-      if (!matchesFilter) return false
-      if (!q) return true
-      return (
-        product.productName.toLowerCase().includes(q) ||
-        (product.description ?? '').toLowerCase().includes(q)
-      )
-    })
-  }, [products, search, filter])
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
+  const productsQuery = useProducts({ deleted: false, search: debouncedSearch, category: filter, page, perPage: PER_PAGE })
+  const statsQuery = useProductStats()
+  const products = productsQuery.data?.products ?? EMPTY_PRODUCTS
+  const total = productsQuery.data?.total ?? 0
+  const metrics = statsQuery.data ?? { total: 0, active: 0, stockTracked: 0, low: 0, out: 0 }
+  const pageCount = Math.max(1, Math.ceil(total / PER_PAGE))
   const safePage = Math.min(page, pageCount)
-  const pageItems = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE)
-  const pageStart = filtered.length === 0 ? 0 : (safePage - 1) * PER_PAGE + 1
-  const pageEnd = Math.min(safePage * PER_PAGE, filtered.length)
+  const pageStart = total === 0 ? 0 : (safePage - 1) * PER_PAGE + 1
+  const pageEnd = Math.min(safePage * PER_PAGE, total)
+
+  useEffect(() => {
+    const id = window.setTimeout(() => { setDebouncedSearch(search); setPage(1) }, 300)
+    return () => window.clearTimeout(id)
+  }, [search])
 
   function chooseFilter(next: ProductFilter) {
     setFilter(next)
@@ -128,20 +107,20 @@ export function ProductsPage() {
         </div>
       </div>
 
-      {isPending ? (
+      {productsQuery.isPending || statsQuery.isPending ? (
         <LoadingGrid />
-      ) : isError ? (
-        <div role="alert" style={{ borderRadius: '16px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '16px 18px', fontSize: '14px', color: '#dc2626' }}>{error.message}</div>
-      ) : products.length === 0 ? (
+      ) : productsQuery.isError || statsQuery.isError ? (
+        <div role="alert" style={{ borderRadius: '16px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '16px 18px', fontSize: '14px', color: '#dc2626' }}>{productsQuery.error?.message ?? statsQuery.error?.message}</div>
+      ) : metrics.total === 0 ? (
         <EmptyState onAdd={() => setCreating(true)} />
-      ) : filtered.length === 0 ? (
+      ) : total === 0 ? (
         <NoResultsState />
       ) : (
         <>
-          <ProductsGrid products={pageItems} actor={actor} onActionSuccess={setStatusMessage} />
+          <ProductsGrid products={products} actor={actor} onActionSuccess={setStatusMessage} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 4px 0', fontSize: '13px', color: 'var(--app-text-soft)', flexWrap: 'wrap', gap: '12px' }}>
             <span>
-              Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{pageStart}–{pageEnd}</strong> of {filtered.length} products
+              Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{pageStart}–{pageEnd}</strong> of {total} products{productsQuery.isFetching ? ' · Updating…' : ''}
             </span>
             {pageCount > 1 ? <Pager page={safePage} pageCount={pageCount} onPage={setPage} /> : null}
           </div>

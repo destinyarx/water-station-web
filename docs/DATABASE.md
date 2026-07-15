@@ -8,7 +8,7 @@ required by `docs/SECURITY.md` ("Every policy must be documented in
 
 Customer profiles, scoped to an organization. Soft-deleted via `deleted_at`.
 
-Migration: `supabase/migrations/0001_customers.sql`
+Source migration: `water-station-supabase/supabase/migrations/20260609160137_create_customers_table.sql`.
 
 | Column          | Type           | Notes                                              |
 | --------------- | -------------- | -------------------------------------------------- |
@@ -25,7 +25,7 @@ Migration: `supabase/migrations/0001_customers.sql`
 | province        | varchar(70)    | nullable                                           |
 | full_address    | varchar(255)   | nullable; denormalized display value               |
 | is_active       | boolean        | default `true`; `false` = inactive (on file, not served) |
-| org_id          | integer (fk)   | → `organizations(organization_code)`; tenant scope |
+| org_id          | uuid (fk)      | → `organizations(id)`; tenant scope                 |
 | created_by      | varchar(255) fk| → `users(clerk_id)`; the Clerk user id (`sub`)     |
 | created_at      | timestamp      | default `now()`                                    |
 | updated_at      | timestamp      | nullable                                           |
@@ -42,10 +42,9 @@ Migration: `supabase/migrations/0001_customers.sql`
 
 RLS reads two values from the Clerk-issued JWT:
 
-- **Organization**: `(auth.jwt() -> 'user_metadata' ->> 'organization')::integer`
-  — compared against `org_id`.
-- **User**: `auth.jwt() ->> 'sub'` (the Clerk user id) — compared against
-  `created_by` for write/ownership checks.
+- **Organization membership**: `private.is_org_member(org_id)` resolves the Clerk subject and membership row.
+- **User**: `private.current_user_id()` resolves the Clerk user id and is compared with `created_by` for creator checks.
+- **Owner role**: `private.is_org_admin(org_id)` provides the organization-owner override.
 
 The browser Supabase client (`src/lib/supabase/client.ts`) forwards the caller's
 Clerk token via the `accessToken` option, using the `water-station` JWT template
@@ -59,8 +58,8 @@ rejects any mismatch.
 | Policy                                              | Cmd    | Rule                                                                                   |
 | --------------------------------------------------- | ------ | ------------------------------------------------------------------------------------- |
 | Users can view customers in their organization      | SELECT | `org_id = jwt.org` **and** `deleted_at is null`                                        |
-| Users can create customers in their organization    | INSERT | check `org_id = jwt.org` **and** `created_by = jwt.sub`                                |
-| Users can update own customers in their organization| UPDATE | `org_id = jwt.org` **and** `created_by = jwt.sub` **and** `deleted_at is null` (+check)|
+| Members can add customers in their organization     | INSERT | `private.is_org_member(org_id)`                                                        |
+| Admins/owners or creator can update customers       | UPDATE | active row and (`private.is_org_admin(org_id)` or member + `created_by = current_user`) |
 | Users can delete own customers in their organization| DELETE | Legacy hard-delete policy; must not be used by normal UI flows                         |
 
 > **Note for the active list (Issue 001):** the SELECT policy itself excludes
@@ -113,7 +112,7 @@ Table exists in Supabase. Repository feature spec:
 | stock              | integer         | default `0`; meaningful only for stock-tracked products |
 | descriptions       | varchar(255)    | nullable short description                         |
 | is_active          | boolean         | default `true`; `false` = discontinued (offered no more, kept for history) |
-| org_id             | integer (fk)    | -> `organizations(organization_code)`; tenant scope |
+| org_id             | uuid (fk)       | → `organizations(id)`; tenant scope                 |
 | created_by         | varchar(255) fk | -> `users(clerk_id)`; the Clerk user id (`sub`)     |
 | created_at         | timestamp       | default `now()`                                    |
 | updated_at         | timestamp       | nullable                                           |
@@ -148,13 +147,21 @@ access and invalid ownership/role combinations.
 | -------------------------------------------------- | ------ | -------------------------------------------------------------------- |
 | Users can view products in their organization      | SELECT | `org_id = jwt.org` and `deleted_at is null`                          |
 | Users can create products in their organization    | INSERT | check `org_id = jwt.org` and `created_by = jwt.sub`                  |
-| Users can update products in their organization    | UPDATE | `org_id = jwt.org` and `deleted_at is null`; allowed when `created_by = jwt.sub` or owner |
-| Users can delete products in their organization    | UPDATE | soft delete by setting `deleted_at`; allowed when `created_by = jwt.sub` or owner |
+| Members can update permitted products in their organization | UPDATE | using `private.is_org_member(org_id)` and `deleted_at is null`; with check `private.is_org_member(org_id)`. `private.guard_product_member_update` raises for a non-admin, non-creator changing anything except `stock` |
+| Users can delete products in their organization    | UPDATE | soft delete by setting `deleted_at`; the guard raises unless `created_by = jwt.sub` or owner |
 
 Staff users may update or soft-delete products they created. Owner users may
 update or soft-delete organization-owned products even when `created_by` does
 not match their Clerk user id. No user can access products from another
 organization.
+
+**Stock is the exception.** Any org member may adjust `stock` on any product in
+their station; `stock` is deliberately absent from the guard's protected column
+list, while `product_name`, `price`, `is_stock_tracked`, `descriptions`,
+`is_active`, `org_id`, `created_by` and `deleted_at` stay owner-or-creator. The
+guard **raises** rather than filtering, so a refusal reaches the client as a real
+error instead of a zero-row no-op. See ADR 0015 and
+`supabase/migrations/20260715000000_shared_operational_queue_rls.sql`.
 
 ### Manual RLS verification
 
@@ -173,22 +180,30 @@ organization.
 
 ## `public.expenses`
 
-Expense records are implemented in the repository under `src/features/expenses`
-and must follow the same organization-scoped identity contract as customers and
-products.
+Expense records are organization-scoped and soft-deleted. Source migration:
+`water-station-supabase/supabase/migrations/20260609175718_create_expenses_table.sql`.
 
-Repository feature spec: `docs/specs/003-expenses/`.
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | serial (pk) | integer identity |
+| `name` | varchar(100) | required |
+| `amount` | numeric(10,2) | required |
+| `category` | `expense_category` | station cost category enum |
+| `category_other` | varchar(50) | nullable custom category |
+| `payment_method` | `payment_method` | payment enum |
+| `payment_method_other` | varchar(50) | nullable custom method |
+| `description` | varchar(255) | nullable |
+| `date_incurred` | date | required |
+| `references_number` | varchar(100) | nullable receipt/reference |
+| `org_id` | uuid (fk) | → `organizations(id)` |
+| `created_by` | varchar(255) (fk) | → `users(clerk_id)` |
+| `created_at` | timestamp | default `now()` |
+| `updated_at` | timestamp | server trigger-owned after migration 003 |
+| `deleted_at` | timestamp | nullable soft-delete marker |
 
-Expense documentation must be kept synchronized with the actual Supabase table
-and RLS policies before changing expense persistence behavior. At minimum, the
-expense table documentation should include:
+RLS: active rows are readable by organization members; members may insert in their organization; updates and legacy hard deletes require the creator or an organization admin/owner. The application uses soft delete. `get_expense_summary()` is a `SECURITY INVOKER` aggregate RPC, so the same RLS limits every total.
 
-- all columns and types
-- `org_id` tenant scope
-- `created_by` Clerk user identity
-- `deleted_at` soft-delete behavior, if present
-- owner/staff read and mutation rules
-- manual RLS verification steps for cross-organization access
+Manual verification: confirm an org A user cannot read, aggregate, update, or archive org B expenses; confirm staff can update their own expense; confirm an owner can update a staff-created expense; confirm archived rows disappear from lists and summaries.
 
 ## Deliveries tables (feature 004-deliveries-module)
 
@@ -221,7 +236,7 @@ label (CHECK: exactly one). Holds the recurrence rule:
 ### `public.deliveries`
 
 A single dated occurrence carrying the operational lifecycle. `status` enum
-(`pending` | `for_delivery` | `completed` | `failed`); `failure_remarks`
+(`pending` | `for_delivery` | `completed` | `failed` | `cancelled`); `failure_remarks`
 required iff `failed` (CHECK). `delivered_by` is auto-stamped with the Clerk user
 who moves it to `for_delivery`. Unique `(schedule_id, delivery_date)` (active
 rows) makes the rolling 14-day client-triggered materialization idempotent.
@@ -232,6 +247,17 @@ Standard tenant/audit/soft-delete columns.
 Template lines vs. per-occurrence snapshot. Snapshot rows store `product_name`
 and `unit_price` captured at materialization so historical deliveries are
 unaffected by later product changes. Totals are computed in app, not persisted.
+
+### `public.delivery_schedule_dates`
+
+Custom-date schedules store one row per selected date with `schedule_id`, `delivery_date`, and organization/audit columns. Unique `(schedule_id, delivery_date)` prevents duplicate custom occurrences. RLS uses `private.is_org_member(org_id)` for SELECT, INSERT, and DELETE; it does not use `auth.uid()`.
+
+### Atomic delivery functions
+
+- `set_delivery_status_atomic(integer, text, text, text, text)` locks the occurrence, compare-and-sets the expected status, validates remarks/transitions, moves stock, and stamps server-owned lifecycle fields in one transaction.
+- `replace_delivery_items_atomic(integer, date, text, jsonb)` locks a pending occurrence and replaces its date, notes, and item snapshots in one transaction.
+
+Both functions are `SECURITY INVOKER`, executable only by `authenticated`, and rely on table RLS. Definitions are in handoff migration `005-atomic-delivery-writes.sql`.
 
 ### Identity / org resolution
 
@@ -315,6 +341,34 @@ owner-only archive, shared queue, roll-forward idempotency, weekly CHECK,
 assignee-picker org scope).
 
 ---
+
+## `public.documents`
+
+Organization permits, receipts, compliance records, and related private files. Source migration: `water-station-supabase/supabase/migrations/20260629084439_create_documents_table.sql`; storage/visibility extension: handoff migration `002-document-storage-and-visibility.sql`.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | bigint identity (pk) | document id |
+| `org_id` | uuid (fk) | → `organizations(id)` |
+| `created_by` | varchar(255) (fk) | Clerk uploader id |
+| `title` | varchar(200) | required |
+| `description` | text | nullable |
+| `category` | text + CHECK | approved document category |
+| `document_type` | text | nullable subtype |
+| `document_date` | date | nullable |
+| `amount` | numeric(12,2) | nullable |
+| `expiry_date` | date | nullable; indexed for reminders |
+| `visibility` | text + CHECK | `all` or `only_me` |
+| `is_approved` | boolean | default false; owner-reviewed state |
+| `original_name` | text | uploaded file name |
+| `file_path` | text | private Storage object path |
+| `created_at` | timestamp | default `now()` |
+| `updated_at` | timestamp | server trigger-owned |
+| `deleted_at` | timestamp | nullable soft-delete marker |
+
+RLS: organization members may insert; active shared documents are visible to members; private documents are visible only to their creator and organization admins/owners; update/archive requires creator or admin/owner. The private `documents` Storage bucket accepts PDF, PNG, JPEG, and WEBP up to 10 MiB. Object access is linked back to a visible document row and organization-prefixed path. Files are retained when metadata is soft-deleted unless an explicit purge workflow is added.
+
+Manual verification: test shared/private reads as creator, other staff, owner, and another organization; confirm invalid MIME/oversized uploads fail; confirm signed URLs expire; confirm archive removes metadata from active lists without exposing the object.
 
 ## `public.notifications` (feature 013-realtime-notifications-features)
 

@@ -1,6 +1,6 @@
 # Client-state store and data-table standards (resolving doc/code drift)
 
-Status: proposed (fable review, 2026-07-14) — awaiting two owner decisions; see options below. Flip to accepted and fill in the chosen options when decided.
+Status: accepted (owner decision implemented 2026-07-15)
 
 ## Context
 
@@ -11,13 +11,13 @@ Two documented standards contradict the shipped code (full analysis: `docs/ai-ha
 
 Every agent that touches state or tables hits these conflicts and must guess. The drift, not either implementation, is the defect.
 
-## Decision (pending)
+## Decision
 
-**D1 — client state.** Recommended: keep the hand-rolled `useSyncExternalStore` pattern and amend the four docs to describe it (same scope rules as the old Zustand section: client/UI state only, never server state/forms). Rationale: three tiny working stores don't justify a new dependency (`docs/AI-GUARDRAILS.md`). Alternative: install Zustand and rewrite the three stores.
+**D1 — client state.** Keep the hand-rolled `useSyncExternalStore` pattern for the three small UI stores. It remains limited to client/UI state; TanStack Query owns server state and React Hook Form owns form state. Three tiny working stores do not justify another dependency.
 
-**D2 — data tables.** Genuinely open; no default recommendation. Either (a) retrofit list pages onto `@tanstack/react-table` feature-by-feature alongside planned UI work, or (b) amend the docs to bless the shipped hand-rolled grid pattern and remove the unused dependency.
+**D2 — data tables.** Keep the shipped feature-specific table/grid markup and remove the TanStack Table mandate and unused dependency. Growing lists must use server-side pagination and filtering, but no rendering library is required.
 
 ## Consequences
 
-- Whichever way each decision goes, all four standards docs are updated in the **same PR** as the ADR acceptance so they cannot re-drift.
-- Until this ADR is accepted, agents encountering the conflict must follow the shipped code and flag the conflict — not silently install/rewrite.
+- `CLAUDE.md`, `AGENTS.md`, `docs/CODING_STANDARDS.md`, and `docs/ARCHITECTURE.md` now describe the same shipped patterns.
+- Future table-library adoption requires a new evidence-backed decision; agents must not silently retrofit existing list pages.

@@ -12,6 +12,7 @@ import type { ProductFormValues } from '../products.types'
 interface QueryResult {
   data?: unknown
   error: { message: string } | null
+  count?: number | null
 }
 
 const row = {
@@ -40,13 +41,16 @@ const values: ProductFormValues = {
 const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_2abcDEF' }
 
 function createListClient(result: QueryResult) {
-  const order = vi.fn(() => Promise.resolve(result))
+  const range = vi.fn(() => Promise.resolve(result))
+  const order = vi.fn(() => ({ range }))
   const is = vi.fn(() => ({ order }))
   const select = vi.fn(() => ({ is }))
   const from = vi.fn(() => ({ select }))
   const client = { from } as unknown as SupabaseClient
-  return { client, from, select, is, order }
+  return { client, from, select, is, order, range }
 }
+
+const filters = { deleted: false, search: '', category: 'all' as const, page: 1, perPage: 10 }
 
 function createInsertClient(result: QueryResult) {
   const single = vi.fn(() => Promise.resolve(result))
@@ -80,12 +84,12 @@ function createDeleteClient(result: Pick<QueryResult, 'error'>) {
 
 describe('getActiveProducts', () => {
   it('returns active products mapped to the display model', async () => {
-    const { client } = createListClient({ data: [row], error: null })
+    const { client } = createListClient({ data: [row], error: null, count: 1 })
 
-    const products = await getActiveProducts(client)
+    const page = await getActiveProducts(client, filters)
 
-    expect(products).toHaveLength(1)
-    expect(products[0]).toMatchObject({
+    expect(page.total).toBe(1)
+    expect(page.products[0]).toMatchObject({
       id: 42,
       productName: 'Bottled Water 500ml',
       isStockTracked: true,
@@ -96,7 +100,7 @@ describe('getActiveProducts', () => {
   it('excludes soft-deleted rows and sorts newest products first', async () => {
     const { client, is, order } = createListClient({ data: [], error: null })
 
-    await getActiveProducts(client)
+    await getActiveProducts(client, filters)
 
     expect(is).toHaveBeenCalledWith('deleted_at', null)
     expect(order).toHaveBeenCalledWith('created_at', { ascending: false })
@@ -108,7 +112,7 @@ describe('getActiveProducts', () => {
       error: { message: 'permission denied' },
     })
 
-    await expect(getActiveProducts(client)).rejects.toThrow(
+    await expect(getActiveProducts(client, filters)).rejects.toThrow(
       'Unable to load products. Please try again.',
     )
   })
@@ -136,9 +140,7 @@ describe('updateProduct', () => {
 
     const product = await updateProduct(client, 42, values)
 
-    expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({ updated_at: expect.any(String) }),
-    )
+    expect(update).toHaveBeenCalledWith(expect.not.objectContaining({ updated_at: expect.anything() }))
     expect(eq).toHaveBeenCalledWith('id', 42)
     expect(is).toHaveBeenCalledWith('deleted_at', null)
     expect(product.productName).toBe('Updated bottle')

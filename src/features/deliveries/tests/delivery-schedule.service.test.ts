@@ -9,7 +9,7 @@ const materialize = vi.fn((...args: unknown[]) => {
   return Promise.resolve(2)
 })
 vi.mock('../services/delivery-materialize.service', () => ({
-  materializeWeeklySchedule: (...args: unknown[]) => materialize(...args),
+  materializeRecurringSchedule: (...args: unknown[]) => materialize(...args),
 }))
 
 const owner = { orgId: '00000000-0000-4000-8000-000000000321', createdBy: 'user_123' }

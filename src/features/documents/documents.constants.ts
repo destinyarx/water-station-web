@@ -1,12 +1,17 @@
 export const DOCUMENTS_TABLE = 'documents'
 
 export const DOCUMENT_COLUMNS =
-  'id, org_id, created_by, title, description, category, document_type, document_date, amount, expiry_date, visibility, is_approved, original_name, created_at, updated_at, deleted_at, uploader:users!created_by(name)'
+  'id, org_id, created_by, title, description, category, document_type, document_date, amount, expiry_date, visibility, is_approved, original_name, file_path, created_at, updated_at, deleted_at, uploader:users!created_by(name)'
+
+export const DOCUMENTS_BUCKET = 'documents'
+export const DOCUMENT_MAX_FILE_SIZE = 10 * 1024 * 1024
+export const DOCUMENT_ACCEPTED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'] as const
 
 export const DOCUMENTS_LOAD_ERROR = 'Unable to load documents. Please try again.'
 export const DOCUMENT_SAVE_ERROR = 'Unable to save document. Please try again.'
 export const DOCUMENT_DELETE_ERROR = 'Unable to delete document. Please try again.'
 export const DOCUMENT_APPROVE_ERROR = 'Unable to update document approval. Please try again.'
+export const DOCUMENT_OPEN_ERROR = 'Unable to open document. Please try again.'
 
 export const documentCategoryValues = [
   'Business Permits',
@@ -107,13 +112,20 @@ export const DOCUMENT_TYPES: Record<DocumentCategory, string[]> = {
   'Other': ['General Document', 'Other'],
 }
 
-export const DOCUMENT_FORM_DEFAULTS = {
-  title: '',
-  description: '',
-  category: 'Business Permits' as DocumentCategory,
-  documentType: '',
-  documentDate: '',
-  amount: '',
-  expiryDate: '',
-  visibility: 'all' as 'all' | 'only_me',
+/**
+ * Blank upload form, with the document date pre-filled to today. A function,
+ * not a const: a module-level value would freeze the date at import and go
+ * stale for anyone who leaves the tab open past midnight.
+ */
+export function documentFormDefaults() {
+  return {
+    title: '',
+    description: '',
+    category: 'Business Permits' as DocumentCategory,
+    documentType: '',
+    documentDate: new Date().toLocaleDateString('en-CA'),
+    amount: '',
+    expiryDate: '',
+    visibility: 'all' as 'all' | 'only_me',
+  }
 }

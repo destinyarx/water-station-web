@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 import { canManageProduct, type ProductActor } from '../products.guards'
 import type { Product } from '../products.types'
@@ -22,6 +23,7 @@ export function ProductRowActions({ product, actor, onActionSuccess }: ProductRo
   const btnRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const statusMutation = useSetProductStatus()
+  const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -35,6 +37,32 @@ export function ProductRowActions({ product, actor, onActionSuccess }: ProductRo
     }
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
+  }, [menuOpen])
+
+  // The card and its banner both clip overflow, so an in-flow menu gets sliced
+  // at the banner's edge. Portal it to the body and pin it to the button.
+  useLayoutEffect(() => {
+    if (!menuOpen) return
+    function place() {
+      const rect = btnRef.current?.getBoundingClientRect()
+      if (rect) setAnchor({ top: rect.bottom + 6, right: window.innerWidth - rect.right })
+    }
+    place()
+    window.addEventListener('scroll', place, true)
+    window.addEventListener('resize', place)
+    return () => {
+      window.removeEventListener('scroll', place, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [menuOpen])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function onEsc(event: KeyboardEvent) {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    document.addEventListener('keydown', onEsc)
+    return () => document.removeEventListener('keydown', onEsc)
   }, [menuOpen])
 
   if (!canManageProduct(product, actor)) return null
@@ -59,10 +87,11 @@ export function ProductRowActions({ product, actor, onActionSuccess }: ProductRo
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" /></svg>
       </button>
 
-      {menuOpen ? (
+      {menuOpen && anchor ? createPortal(
         <div
           ref={menuRef}
-          style={{ position: 'absolute', right: 0, top: '34px', zIndex: 61, width: '210px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', borderRadius: '13px', boxShadow: '0 18px 44px rgba(7,40,70,0.22)', padding: '6px', animation: 'popIn .14s ease' }}
+          role="menu"
+          style={{ position: 'fixed', top: anchor.top, right: anchor.right, zIndex: 61, width: '210px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', borderRadius: '13px', boxShadow: '0 18px 44px rgba(7,40,70,0.22)', padding: '6px', animation: 'popIn .14s ease' }}
         >
           <MenuBtn
             icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" style={{ color: 'var(--app-brand)' }}><path d="M14.5 5.5l4 4M4 20l1-4.2L16 4.8a1.6 1.6 0 0 1 2.2 0l1 1a1.6 1.6 0 0 1 0 2.2L8.2 19 4 20Z" /></svg>}
@@ -88,7 +117,8 @@ export function ProductRowActions({ product, actor, onActionSuccess }: ProductRo
             onClick={() => { setMenuOpen(false); setDeleting(true) }}
             danger
           />
-        </div>
+        </div>,
+        document.body,
       ) : null}
 
       <EditProductDialog product={product} open={editing} onOpenChange={setEditing} onUpdated={() => onActionSuccess?.('Product updated successfully.')} />

@@ -19,7 +19,7 @@ export function useApproveDocument(): UseMutationResult<
   return useMutation<Document, Error, { id: number; isApproved: boolean }>({
     mutationFn: ({ id, isApproved }) => setDocumentApproval(client, id, isApproved),
     onSuccess: (_data, { isApproved }) => {
-      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: documentKeys.all })
       toast.success(isApproved ? 'Document approved.' : 'Approval revoked.')
     },
     onError: (error) => {

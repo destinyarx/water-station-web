@@ -138,6 +138,5 @@ export function toUpdateRow(values: CustomerFormValues): CustomerUpdate {
       values.municipality,
       values.province,
     ]),
-    updated_at: new Date().toISOString(),
   }
 }

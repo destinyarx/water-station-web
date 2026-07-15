@@ -28,7 +28,7 @@ export function useUpdateExpense(): UseMutationResult<
   return useMutation<Expense, Error, UpdateExpenseVariables>({
     mutationFn: ({ id, values }) => updateExpense(client, id, values),
     onSuccess: (_expense, { id }) => {
-      queryClient.invalidateQueries({ queryKey: expenseKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: expenseKeys.detail(id) })
       toast.success('Expense updated.')
     },

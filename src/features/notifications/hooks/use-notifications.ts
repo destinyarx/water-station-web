@@ -11,6 +11,7 @@ import { notificationKeys } from '../notifications.keys'
 import type { Notification } from '../notifications.types'
 import {
   getNotifications,
+  getUnreadNotificationCount,
   markAllNotificationsRead,
   markNotificationRead,
 } from '../services/notifications.service'
@@ -39,14 +40,22 @@ export function useNotifications(): UseNotifications {
     staleTime: 60_000,
   })
 
+  const unreadQuery = useQuery({
+    queryKey: notificationKeys.unreadCount(),
+    queryFn: () => getUnreadNotificationCount(client),
+    staleTime: 60_000,
+  })
+
   const notifications = useMemo(() => query.data ?? [], [query.data])
 
-  // ponytail: derived from the loaded 30; undercounts if >30 unread exist.
-  // Upgrade to a count head-query if that ever matters.
-  const unreadCount = useMemo(
-    () => notifications.filter((item) => !item.isRead).length,
-    [notifications],
-  )
+  const unreadCount = unreadQuery.data ?? 0
+
+  function setUnreadCount(update: (current: number) => number): void {
+    queryClient.setQueryData<number>(
+      notificationKeys.unreadCount(),
+      (current) => Math.max(0, update(current ?? 0)),
+    )
+  }
 
   function patchRead(match: (item: Notification) => boolean): void {
     queryClient.setQueryData<Notification[]>(notificationKeys.lists(), (prev) =>
@@ -58,10 +67,22 @@ export function useNotifications(): UseNotifications {
 
   const markOne = useMutation<void, Error, number>({
     mutationFn: (id) => markNotificationRead(client, id),
-    onMutate: (id) => patchRead((item) => item.id === id),
+    onMutate: (id) => {
+      const wasUnread = (query.data ?? []).some(
+        (item) => item.id === id && !item.isRead,
+      )
+      patchRead((item) => item.id === id)
+      if (wasUnread) setUnreadCount((current) => current - 1)
+    },
     onError: (error) => {
       toast.error(error.message)
       void query.refetch()
+      void unreadQuery.refetch()
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: notificationKeys.unreadCount(),
+      })
     },
   })
 
@@ -72,10 +93,19 @@ export function useNotifications(): UseNotifications {
       }
       return markAllNotificationsRead(client, userId)
     },
-    onMutate: () => patchRead(() => true),
+    onMutate: () => {
+      patchRead(() => true)
+      queryClient.setQueryData(notificationKeys.unreadCount(), 0)
+    },
     onError: (error) => {
       toast.error(error.message)
       void query.refetch()
+      void unreadQuery.refetch()
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: notificationKeys.unreadCount(),
+      })
     },
   })
 
@@ -84,6 +114,6 @@ export function useNotifications(): UseNotifications {
     unreadCount,
     markAsRead: (id) => markOne.mutate(id),
     markAllAsRead: () => markAll.mutate(),
-    loading: query.isLoading,
+    loading: query.isLoading || unreadQuery.isLoading,
   }
 }
