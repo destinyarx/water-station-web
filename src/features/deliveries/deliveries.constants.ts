@@ -22,7 +22,7 @@ export const DELIVERY_COLUMNS =
   'id, schedule_id, delivery_date, status, failure_remarks, cancellation_remarks, notes, assigned_to, delivered_by, completed_at, org_id, created_by, created_at, updated_at, deleted_at'
 
 export const DELIVERY_ITEM_COLUMNS =
-  'id, delivery_id, product_id, product_name, unit_price, quantity, org_id, created_at, updated_at'
+  'id, delivery_id, product_id, product_name, unit_price, quantity, is_stock_tracked, org_id, created_at, updated_at'
 
 export const ORG_USER_COLUMNS = 'clerk_id, name'
 

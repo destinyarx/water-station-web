@@ -103,6 +103,7 @@ export const deliveryItemRowSchema = z.object({
   product_name: z.string().min(1).max(255),
   unit_price: z.coerce.number().min(0),
   quantity: z.coerce.number().positive(),
+  is_stock_tracked: z.boolean(),
   org_id: z.string().uuid(),
   created_at: z.string(),
   updated_at: z.string().nullable(),
@@ -135,6 +136,7 @@ export const deliveryFormItemSchema = z.object({
     optionalNumber,
     z.number({ message: 'Unit price is required.' }).min(0),
   ),
+  isStockTracked: z.boolean(),
 })
 
 export const deliveryEditFormSchema = z.object({

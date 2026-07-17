@@ -11,6 +11,7 @@ const baseDeliveryRow = {
 }
 const itemRow = {
   id: 1, delivery_id: 77, product_id: 10, product_name: 'Bottle', unit_price: 30, quantity: 3,
+  is_stock_tracked: true,
   org_id: '00000000-0000-4000-8000-000000000321', created_at: '2026-06-16T00:00:00.000Z', updated_at: null,
 }
 

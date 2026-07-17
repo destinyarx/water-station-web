@@ -8,58 +8,34 @@ import type { MaintenanceTaskView, TaskDisplayStatus } from '../maintenance.type
 import { useCompleteTask } from '../hooks/use-complete-task'
 import { MaintenanceRowActions } from './maintenance-row-actions'
 
-const PRIORITY_STYLE: Record<MaintenanceTaskView['priority'], { bg: string; text: string; label: string }> = {
-  high: { bg: 'var(--app-chip-red-bg)', text: 'var(--app-chip-red-text)', label: 'High' },
-  medium: { bg: 'var(--app-chip-amber-bg)', text: 'var(--app-chip-amber-text)', label: 'Medium' },
-  low: { bg: 'var(--app-chip-bg)', text: 'var(--app-brand)', label: 'Low' },
+const PRIORITY_STYLE: Record<MaintenanceTaskView['priority'], { className: string; label: string }> = {
+  high: { className: 'bg-[var(--app-chip-red-bg)] text-[var(--app-chip-red-text)]', label: 'High' },
+  medium: { className: 'bg-[var(--app-chip-amber-bg)] text-[var(--app-chip-amber-text)]', label: 'Medium' },
+  low: { className: 'bg-[var(--app-chip-bg)] text-[var(--app-brand)]', label: 'Low' },
 }
 
-const DUE_STYLE: Record<TaskDisplayStatus, { bg: string; text: string }> = {
-  overdue: { bg: 'var(--app-chip-red-bg)', text: 'var(--app-chip-red-text)' },
-  upcoming: { bg: 'var(--app-chip-bg)', text: 'var(--app-brand)' },
-  completed: { bg: 'var(--app-chip-green-bg)', text: 'var(--app-chip-green-text)' },
+const DUE_STYLE: Record<TaskDisplayStatus, string> = {
+  overdue: 'bg-[var(--app-chip-red-bg)] text-[var(--app-chip-red-text)]',
+  upcoming: 'bg-[var(--app-chip-bg)] text-[var(--app-brand)]',
+  completed: 'bg-[var(--app-chip-green-bg)] text-[var(--app-chip-green-text)]',
 }
 
 const checkIcon = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
 )
 
-/**
- * A restrained outline control rather than the old gradient pill: the row is a
- * table row, and a filled green button on every one of them read as the loudest
- * thing on the page. Both states use theme tokens, so dark mode follows.
- */
 function CompleteButton({ done, isPending, onClick }: { done: boolean; isPending: boolean; onClick: () => void }) {
-  const [hovered, setHovered] = useState(false)
-  const active = hovered && !isPending
-
   return (
     <button
       type="button"
       aria-label={done ? 'Reopen task' : 'Complete task'}
       disabled={isPending}
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        flex: 'none',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '7px',
-        padding: '8px 14px',
-        borderRadius: '10px',
-        border: `1px solid ${done || active ? 'var(--app-green-deep)' : 'var(--app-border-strong)'}`,
-        background: done || active ? 'var(--app-green-soft-bg)' : 'var(--app-surface)',
-        color: done || active ? 'var(--app-green-deep)' : 'var(--app-text-muted)',
-        fontFamily: 'inherit',
-        fontSize: '12.5px',
-        fontWeight: 600,
-        cursor: isPending ? 'wait' : 'pointer',
-        opacity: isPending ? 0.6 : 1,
-        transition: 'background 0.12s ease, border-color 0.12s ease, color 0.12s ease',
-      }}
+      className={done
+        ? 'inline-flex flex-none items-center gap-1.5 rounded-[10px] border border-[var(--app-green-deep)] bg-[var(--app-green-soft-bg)] px-3.5 py-2 text-[12.5px] font-semibold text-[var(--app-green-deep)] transition-colors hover:bg-[var(--app-chip-green-bg)] disabled:cursor-wait disabled:opacity-60'
+        : 'inline-flex flex-none items-center gap-1.5 rounded-[10px] border border-transparent bg-[var(--app-green-fill)] px-3.5 py-2 text-[12.5px] font-semibold text-white shadow-[var(--app-green-shadow)] transition-[filter,transform] hover:brightness-95 active:translate-y-px disabled:cursor-wait disabled:opacity-60'}
     >
-      <span style={{ display: 'flex', color: done || active ? 'var(--app-green-deep)' : 'var(--app-text-faint)' }}>
+      <span className="flex">
         {checkIcon}
       </span>
       {done ? 'Completed' : 'Complete'}
@@ -83,7 +59,7 @@ export function MaintenanceTaskCard({ task }: { task: MaintenanceTaskView }) {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '16px 18px', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '15px', boxShadow: 'var(--app-shadow-card)', opacity: dimmed ? 0.6 : 1 }}>
+    <div className={`flex items-center gap-[15px] rounded-[15px] border border-[var(--app-border)] bg-[var(--app-surface)] px-[18px] py-4 shadow-[var(--app-shadow-card)] ${dimmed ? 'opacity-60' : ''}`}>
       <CompleteButton
         done={done}
         isPending={complete.isPending}
@@ -104,37 +80,36 @@ export function MaintenanceTaskCard({ task }: { task: MaintenanceTaskView }) {
         }
         iconColor="var(--app-chip-green-text)"
         iconBackground="var(--app-chip-green-bg)"
-        confirmButtonStyle={{ background: 'var(--app-green-fill)', boxShadow: 'var(--app-green-shadow)' }}
         onConfirm={() => complete.mutate(task, { onSuccess: () => handleOpenChange(false) })}
       />
 
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '5px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--app-text)', textDecoration: done ? 'line-through' : 'none' }}>{task.title}</span>
+      <div className="min-w-0 flex-1">
+        <div className="mb-[5px] flex flex-wrap items-center gap-[9px]">
+          <span className={`text-[14.5px] font-bold text-[var(--app-text)] ${done ? 'line-through' : ''}`}>{task.title}</span>
           {task.isRecurring ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 600, color: '#7c3aed', background: 'rgba(139,92,246,0.13)', borderRadius: '99px', padding: '2px 8px' }}>
+            <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/13 px-2 py-0.5 text-[11px] font-semibold text-violet-600 dark:text-violet-300">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" /></svg>
               {task.recurrenceLabel}
             </span>
           ) : null}
           {dimmed ? (
-            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--app-text-faint)', background: 'var(--app-chip-gray-bg)', borderRadius: '99px', padding: '2px 8px' }}>Inactive</span>
+            <span className="rounded-full bg-[var(--app-chip-gray-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--app-text-faint)]">Inactive</span>
           ) : null}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '13px', fontSize: '12.5px', color: 'var(--app-text-soft)', flexWrap: 'wrap' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+        <div className="flex flex-wrap items-center gap-[13px] text-[12.5px] text-[var(--app-text-soft)]">
+          <span className="inline-flex items-center gap-[5px]">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M14.7 6.3a3.7 3.7 0 0 0-4.9 4.6L4 16.7 7.3 20l5.8-5.8a3.7 3.7 0 0 0 4.6-4.9l-2.4 2.4-2-2 2.4-2.4Z" /></svg>
             {equipmentLabel}
           </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+          <span className="inline-flex items-center gap-[5px]">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></svg>
             {task.assigneeName}
           </span>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: priority.text, background: priority.bg, borderRadius: '99px', padding: '2px 9px' }}>{priority.label}</span>
+          <span className={`rounded-full px-[9px] py-0.5 text-[11px] font-semibold ${priority.className}`}>{priority.label}</span>
         </div>
       </div>
 
-      <span style={{ flex: 'none', fontSize: '12.5px', fontWeight: 700, color: due.text, background: due.bg, borderRadius: '99px', padding: '6px 13px', whiteSpace: 'nowrap' }}>{task.dueLabel}</span>
+      <span className={`flex-none whitespace-nowrap rounded-full px-[13px] py-1.5 text-[12.5px] font-bold ${due}`}>{task.dueLabel}</span>
 
       <MaintenanceRowActions task={task} />
     </div>

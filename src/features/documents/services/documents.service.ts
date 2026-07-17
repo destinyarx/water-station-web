@@ -31,7 +31,6 @@ export async function getActiveDocuments(client: SupabaseClient, filters: Docume
   if (search) query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,document_type.ilike.%${search}%`)
   if (filters.category !== 'all') query = query.eq('category', filters.category)
   if (filters.visibility === 'mine') query = query.eq('created_by', filters.currentUserId)
-  if (filters.visibility === 'private') query = query.eq('created_by', filters.currentUserId).eq('visibility', 'only_me')
 
   const from = (filters.page - 1) * filters.perPage
   const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, from + filters.perPage - 1)
@@ -136,17 +135,43 @@ export async function updateDocument(
   return toDocument(documentRowSchema.parse(data))
 }
 
-export async function softDeleteDocument(
+export async function deleteDocument(
   client: SupabaseClient,
-  id: number,
+  doc: Document,
 ): Promise<void> {
-  const { error } = await client
+  // Prove row-level update permission before deleting the irreversible object.
+  // Keep file_path linked during Storage DELETE because its policy authorizes
+  // through the matching documents row.
+  const { data: permittedRows, error: permissionError } = await client
     .from(DOCUMENTS_TABLE)
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
+    .update({ file_path: doc.filePath })
+    .eq('id', doc.id)
     .is('deleted_at', null)
+    .select('id')
 
-  if (error) throw new Error(DOCUMENT_DELETE_ERROR)
+  if (permissionError || !permittedRows?.length) throw new Error(DOCUMENT_DELETE_ERROR)
+
+  if (doc.filePath) {
+    const { error: storageError } = await client.storage
+      .from(DOCUMENTS_BUCKET)
+      .remove([doc.filePath])
+
+    if (storageError) throw new Error(DOCUMENT_DELETE_ERROR)
+  }
+
+  const { data: deletedRows, error: deleteError } = await client
+    .from(DOCUMENTS_TABLE)
+    .update({ file_path: null, deleted_at: new Date().toISOString() })
+    .eq('id', doc.id)
+    .is('deleted_at', null)
+    .select('id')
+
+  if (deleteError || !deletedRows?.length) {
+    // The object is already gone; best-effort unlink prevents a live record
+    // from retaining a broken Storage connection if a concurrent write won.
+    await client.from(DOCUMENTS_TABLE).update({ file_path: null }).eq('id', doc.id)
+    throw new Error(DOCUMENT_DELETE_ERROR)
+  }
 }
 
 export async function setDocumentApproval(

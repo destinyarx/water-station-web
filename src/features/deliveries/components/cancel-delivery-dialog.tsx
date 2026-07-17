@@ -58,6 +58,8 @@ export function CancelDeliveryDialog({
             value={remarks}
             onChange={(event) => setRemarks(event.target.value)}
             rows={3}
+            maxLength={500}
+            required
             placeholder="e.g. Customer cancelled the order."
             style={TEXTAREA_STYLE}
           />

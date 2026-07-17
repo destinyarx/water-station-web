@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   createProduct,
   getActiveProducts,
+  setProductStatus,
   softDeleteProduct,
   updateProduct,
 } from '../services/products.service'
@@ -80,6 +81,16 @@ function createDeleteClient(result: Pick<QueryResult, 'error'>) {
   const from = vi.fn(() => ({ update, delete: del }))
   const client = { from } as unknown as SupabaseClient
   return { client, update, del, eq, is }
+}
+
+function createStatusClient(result: QueryResult) {
+  const select = vi.fn(() => Promise.resolve(result))
+  const is = vi.fn(() => ({ select }))
+  const eq = vi.fn(() => ({ is }))
+  const update = vi.fn(() => ({ eq }))
+  const from = vi.fn(() => ({ update }))
+  const client = { from } as unknown as SupabaseClient
+  return { client, update, eq, is, select }
 }
 
 describe('getActiveProducts', () => {
@@ -159,5 +170,40 @@ describe('softDeleteProduct', () => {
     )
     expect(eq).toHaveBeenCalledWith('id', 42)
     expect(is).toHaveBeenCalledWith('deleted_at', null)
+  })
+})
+
+describe('setProductStatus', () => {
+  it('discontinues an active product and requires the updated row to be returned', async () => {
+    const { client, update, eq, is, select } = createStatusClient({
+      data: [{ id: 42 }],
+      error: null,
+    })
+
+    await setProductStatus(client, 42, false)
+
+    expect(update).toHaveBeenCalledWith({ is_active: false })
+    expect(eq).toHaveBeenCalledWith('id', 42)
+    expect(is).toHaveBeenCalledWith('deleted_at', null)
+    expect(select).toHaveBeenCalledWith('id')
+  })
+
+  it('reports a safe save error when Supabase rejects the status update', async () => {
+    const { client } = createStatusClient({
+      data: null,
+      error: { message: 'permission denied for schema private' },
+    })
+
+    await expect(setProductStatus(client, 42, false)).rejects.toThrow(
+      'Unable to save product. Please try again.',
+    )
+  })
+
+  it('does not report success when no permitted product was updated', async () => {
+    const { client } = createStatusClient({ data: [], error: null })
+
+    await expect(setProductStatus(client, 42, false)).rejects.toThrow(
+      'Nothing was changed. This product may have been archived, or you may only change products you created.',
+    )
   })
 })

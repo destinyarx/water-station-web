@@ -2,6 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { productKeys } from '../products.keys'
 import type { Product, ProductFormValues } from '../products.types'
 import { updateProduct } from '../services/products.service'
@@ -21,6 +23,7 @@ export function useUpdateProduct() {
     mutationFn: ({ id, values }) => updateProduct(client, id, values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
       toast.success('Product updated.')
     },
     onError: (error) => {

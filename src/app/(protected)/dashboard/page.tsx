@@ -1,6 +1,5 @@
+import { DashboardPage } from '@/features/dashboard'
 
-import { DashboardPreview } from "@/features/landing"
-
-export default function DashboardPage() {
-  return <DashboardPreview />
+export default function DashboardRoute() {
+  return <DashboardPage />
 }

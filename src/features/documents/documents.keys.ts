@@ -2,7 +2,7 @@ export interface DocumentFilters {
   active: boolean
   search: string
   category: string
-  visibility: 'all' | 'mine' | 'private'
+  visibility: 'all' | 'mine'
   currentUserId: string
   page: number
   perPage: number

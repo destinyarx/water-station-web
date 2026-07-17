@@ -68,8 +68,10 @@ _Avoid_: confusing a schedule with an individual delivery run.
 **Delivery** (a.k.a. delivery occurrence) — a single dated delivery event that
 staff actually prepares and carries out. It is the thing that moves through the
 status lifecycle (`pending` → `for_delivery` → `completed`/`failed`) on a
-specific date. A one-time schedule has exactly one Delivery; a recurring
-schedule has many.
+specific date. `cancelled` is a terminal side exit from `pending` or
+`for_delivery` and requires a cancellation reason. Cancelling an occurrence
+never cancels its parent schedule or future sibling occurrences. A one-time
+schedule has exactly one Delivery; a recurring schedule has many.
 _Avoid_: "delivery" meaning the recurrence rule.
 
 **Delivery Item** — a product line on a Delivery (or schedule template),
@@ -141,10 +143,12 @@ done; recurring schedules are never "completed"). Inactive is distinct from
 schedule; only an owner may archive one (ADR 0015). _Avoid_: equating inactive
 with archived/completed.
 
-**Maintenance History** — the modal datatable of completed occurrences only
+**Maintenance History** — the modal datatable of completed and cancelled occurrences
 (mirrors **Delivery History**). Server-paginated, opened from a *History* button
 beside *Schedule Task*. Completed tasks live here and **not** in the main board:
-the board's *All* filter shows live work only — neither inactive nor completed.
+the board's *All* filter shows live work only — neither inactive nor terminal
+(`completed`/`cancelled`) occurrences. Cancelling one recurring occurrence rolls
+the schedule forward; it does not pause or archive the schedule.
 _Avoid_: a "Completed" tab on the board, or expecting All to mean literally all.
 
 ## Record Status Vocabulary

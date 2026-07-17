@@ -162,6 +162,7 @@ export function toScheduleItemInsertRows(
     // ponytail: snapshot the form price as the override; null-fallback path lives
     // in the materializer for schedules created elsewhere.
     unit_price: item.unitPrice,
+    is_stock_tracked: item.isStockTracked,
     org_id: owner.orgId,
   }))
 }
@@ -226,6 +227,7 @@ export function toDeliveryItemInsertRows(
     product_name: item.productName.trim(),
     unit_price: item.unitPrice,
     quantity: item.quantity,
+    is_stock_tracked: item.isStockTracked,
     org_id: owner.orgId,
   }))
 }
@@ -240,6 +242,7 @@ export function toDeliveryItem(row: DeliveryItemRow): DeliveryItem {
     productName: row.product_name,
     unitPrice: row.unit_price,
     quantity: row.quantity,
+    isStockTracked: row.is_stock_tracked,
     lineTotal,
     orgId: row.org_id,
     createdAt: row.created_at,

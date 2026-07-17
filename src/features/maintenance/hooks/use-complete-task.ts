@@ -2,6 +2,8 @@
 
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { completeTask } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
 import type { MaintenanceTaskView } from '../maintenance.types'
@@ -24,6 +26,7 @@ export function useCompleteTask(): UseMutationResult<void, Error, MaintenanceTas
     },
     onSuccess: (_data, task) => {
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
       toast.success(task.displayStatus === 'completed' ? 'Task reopened.' : 'Task marked complete.')
     },
     onError: (error) => {

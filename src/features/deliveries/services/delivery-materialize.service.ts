@@ -19,12 +19,14 @@ interface TemplateItemRow {
   product_id: number
   quantity: number
   unit_price: number | null
+  is_stock_tracked: boolean
 }
 
 interface ProductRow {
   id: number
   product_name: string
   price: number
+  is_stock_tracked: boolean
 }
 
 /**
@@ -64,7 +66,7 @@ export async function materializeRecurringSchedule(
   // Resolve the template lines once; each occurrence snapshots name + price.
   const { data: templateItems, error: templateError } = await client
     .from(DELIVERY_SCHEDULE_ITEMS_TABLE)
-    .select('product_id, quantity, unit_price')
+    .select('product_id, quantity, unit_price, is_stock_tracked')
     .eq('schedule_id', schedule.id)
 
   if (templateError) throw new Error(DELIVERY_SAVE_ERROR)
@@ -76,7 +78,7 @@ export async function materializeRecurringSchedule(
   if (productIds.length > 0) {
     const { data: productRows, error: productsError } = await client
       .from(PRODUCTS_TABLE)
-      .select('id, product_name, price')
+      .select('id, product_name, price, is_stock_tracked')
       .in('id', productIds)
 
     if (productsError) throw new Error(DELIVERY_SAVE_ERROR)
@@ -115,6 +117,11 @@ export async function materializeRecurringSchedule(
         quantity: line.quantity,
         // ponytail: template override wins; fall back to current product price.
         unit_price: line.unit_price ?? product?.price ?? 0,
+        // The database trigger remains authoritative and re-resolves this from
+        // the schedule snapshot. Carrying it here keeps materialization intent
+        // explicit and protects non-triggered test doubles.
+        is_stock_tracked:
+          line.is_stock_tracked ?? product?.is_stock_tracked ?? false,
         org_id: owner.orgId,
       })
     }

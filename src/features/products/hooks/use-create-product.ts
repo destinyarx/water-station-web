@@ -2,6 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { productKeys } from '../products.keys'
 import type { Product, ProductFormValues } from '../products.types'
 import { createProduct } from '../services/products.service'
@@ -24,6 +26,7 @@ export function useCreateProduct() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
       toast.success('Product added.')
     },
     onError: (error) => {

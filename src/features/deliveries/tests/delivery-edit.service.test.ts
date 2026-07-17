@@ -10,8 +10,8 @@ const editedRow = {
   cancellation_remarks: null, notes: 'Updated note.', assigned_to: null, delivered_by: null, completed_at: null,
   org_id: owner.orgId, created_by: owner.createdBy, created_at: '2026-06-16T00:00:00.000Z', updated_at: null, deleted_at: null,
 }
-const itemRow = { id: 5, delivery_id: 77, product_id: 10, product_name: 'Bottle', unit_price: 30, quantity: 2, org_id: owner.orgId, created_at: '2026-06-18T00:00:00.000Z', updated_at: null }
-const values: DeliveryEditFormValues = { deliveryDate: '2026-06-20', items: [{ productId: 10, productName: 'Bottle', quantity: 2, unitPrice: 30 }], notes: 'Updated note.' }
+const itemRow = { id: 5, delivery_id: 77, product_id: 10, product_name: 'Bottle', unit_price: 30, quantity: 2, is_stock_tracked: true, org_id: owner.orgId, created_at: '2026-06-18T00:00:00.000Z', updated_at: null }
+const values: DeliveryEditFormValues = { deliveryDate: '2026-06-20', items: [{ productId: 10, productName: 'Bottle', quantity: 2, unitPrice: 30, isStockTracked: true }], notes: 'Updated note.' }
 
 function createClient(rpcError = false) {
   const rpc = vi.fn(() => Promise.resolve({ data: null, error: rpcError ? { message: 'denied' } : null }))

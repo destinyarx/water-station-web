@@ -6,6 +6,7 @@ import { canArchiveSchedule } from '../maintenance.guards'
 import type { MaintenanceTaskView } from '../maintenance.types'
 import { useIsOwner } from '../hooks/use-maintenance-owner'
 import { useSetScheduleStatus } from '../hooks/use-set-schedule-status'
+import { useCancelTask } from '../hooks/use-cancel-task'
 import { EditScheduleDialog } from './edit-schedule-dialog'
 import { DeleteScheduleDialog } from './delete-schedule-dialog'
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
@@ -16,9 +17,11 @@ export function MaintenanceRowActions({ task }: { task: MaintenanceTaskView }) {
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmingInactive, setConfirmingInactive] = useState(false)
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const statusMutation = useSetScheduleStatus()
+  const cancelMutation = useCancelTask()
   const canDelete = canArchiveSchedule(useIsOwner())
 
   useEffect(() => {
@@ -54,39 +57,50 @@ export function MaintenanceRowActions({ task }: { task: MaintenanceTaskView }) {
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       <button
         ref={btnRef}
         type="button"
         aria-label="Task actions"
         onClick={() => setMenuOpen((open) => !open)}
-        style={{ flex: 'none', width: '34px', height: '34px', borderRadius: '9px', border: `1px solid ${menuOpen ? 'var(--app-brand-soft)' : 'var(--app-border-strong)'}`, background: menuOpen ? 'var(--app-chip-bg)' : 'var(--app-surface)', color: menuOpen ? 'var(--app-brand)' : 'var(--app-text-soft)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        className={menuOpen
+          ? 'flex h-[34px] w-[34px] flex-none cursor-pointer items-center justify-center rounded-[9px] border border-[var(--app-brand-soft)] bg-[var(--app-chip-bg)] text-[var(--app-brand)]'
+          : 'flex h-[34px] w-[34px] flex-none cursor-pointer items-center justify-center rounded-[9px] border border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text-soft)]'}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" /></svg>
       </button>
 
       {menuOpen ? (
-        <div ref={menuRef} style={{ position: 'absolute', right: 0, top: '40px', zIndex: 61, width: '208px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', borderRadius: '13px', boxShadow: '0 18px 44px rgba(7,40,70,0.22)', padding: '6px', animation: 'popIn .14s ease' }}>
+        <div ref={menuRef} className="absolute right-0 top-10 z-[61] w-52 animate-[popIn_.14s_ease] rounded-[13px] border border-[var(--app-border-strong)] bg-[var(--app-surface)] p-1.5 shadow-[0_18px_44px_rgba(7,40,70,0.22)]">
           <MenuBtn
-            icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" style={{ color: 'var(--app-brand)' }}><path d="M14.5 5.5l4 4M4 20l1-4.2L16 4.8a1.6 1.6 0 0 1 2.2 0l1 1a1.6 1.6 0 0 1 0 2.2L8.2 19 4 20Z" /></svg>}
+            icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="text-[var(--app-brand)]"><path d="M14.5 5.5l4 4M4 20l1-4.2L16 4.8a1.6 1.6 0 0 1 2.2 0l1 1a1.6 1.6 0 0 1 0 2.2L8.2 19 4 20Z" /></svg>}
             label="Edit task"
             onClick={() => { setMenuOpen(false); setEditing(true) }}
           />
           <MenuBtn
             icon={
               task.isScheduleActive ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ color: 'var(--app-text-soft)' }}><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5v5M14.5 9.5v5" /></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="text-[var(--app-text-soft)]"><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5v5M14.5 9.5v5" /></svg>
               ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--app-chip-green-text)' }}><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--app-chip-green-text)]"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>
               )
             }
             label={task.isScheduleActive ? 'Set schedule inactive' : 'Set schedule active'}
             disabled={statusMutation.isPending}
             onClick={toggleStatus}
           />
+          {task.status === 'pending' ? (
+            <MenuBtn
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6M15 9l-6 6" /></svg>}
+              label="Cancel occurrence"
+              disabled={cancelMutation.isPending}
+              onClick={() => { setMenuOpen(false); setConfirmingCancel(true) }}
+              danger
+            />
+          ) : null}
           {canDelete ? (
             <>
-              <div style={{ height: '1px', background: 'var(--app-border)', margin: '5px 4px' }} />
+              <div className="mx-1 my-[5px] h-px bg-[var(--app-border)]" />
               <MenuBtn
                 icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /></svg>}
                 label="Delete task"
@@ -101,6 +115,28 @@ export function MaintenanceRowActions({ task }: { task: MaintenanceTaskView }) {
       <EditScheduleDialog task={task} open={editing} onOpenChange={setEditing} />
       <DeleteScheduleDialog task={task} open={deleting} onOpenChange={setDeleting} />
       <ConfirmDialog
+        open={confirmingCancel}
+        onOpenChange={(next) => {
+          if (!next) {
+            setConfirmingCancel(false)
+            cancelMutation.reset()
+          }
+        }}
+        variant="destructive"
+        title="Cancel this occurrence?"
+        description={
+          <>
+            <strong className="text-[var(--app-text)]">{task.title}</strong> will move to Maintenance history.
+            {task.isRecurring ? ' Its recurring schedule will continue with the next occurrence.' : ''}
+          </>
+        }
+        confirmLabel="Cancel occurrence"
+        pendingLabel="Cancelling..."
+        onConfirm={() => cancelMutation.mutate(task, { onSuccess: () => setConfirmingCancel(false) })}
+        isPending={cancelMutation.isPending}
+        errorMessage={cancelMutation.isError ? cancelMutation.error.message : undefined}
+      />
+      <ConfirmDialog
         open={confirmingInactive}
         onOpenChange={(next) => {
           if (!next) {
@@ -111,7 +147,7 @@ export function MaintenanceRowActions({ task }: { task: MaintenanceTaskView }) {
         title="Set schedule inactive"
         description={
           <>
-            Mark <strong style={{ color: 'var(--app-text)' }}>{task.title}</strong> as inactive?
+            Mark <strong className="text-[var(--app-text)]">{task.title}</strong> as inactive?
             It will stop generating upcoming maintenance tasks until reactivated.
           </>
         }
@@ -126,15 +162,14 @@ export function MaintenanceRowActions({ task }: { task: MaintenanceTaskView }) {
 }
 
 function MenuBtn({ icon, label, onClick, danger, disabled }: { icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean; disabled?: boolean }) {
-  const [hovered, setHovered] = useState(false)
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ display: 'flex', alignItems: 'center', gap: '11px', width: '100%', padding: '10px 11px', border: 'none', background: hovered && !disabled ? (danger ? 'rgba(220,38,38,0.09)' : 'var(--app-surface-2)') : 'transparent', borderRadius: '9px', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1, fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 500, color: danger ? '#dc2626' : 'var(--app-text)', textAlign: 'left' }}
+      className={danger
+        ? 'flex w-full items-center gap-[11px] rounded-[9px] border-0 bg-transparent px-[11px] py-2.5 text-left text-[13.5px] font-medium text-red-600 hover:bg-red-600/9 disabled:cursor-not-allowed disabled:opacity-50'
+        : 'flex w-full items-center gap-[11px] rounded-[9px] border-0 bg-transparent px-[11px] py-2.5 text-left text-[13.5px] font-medium text-[var(--app-text)] hover:bg-[var(--app-surface-2)] disabled:cursor-not-allowed disabled:opacity-50'}
     >
       {icon}
       {label}

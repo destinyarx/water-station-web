@@ -14,6 +14,7 @@ const filters: CustomerFilters = {
   archived: false,
   search: '',
   type: 'all',
+  status: 'active',
   page: 1,
   perPage: 20,
 }
@@ -95,9 +96,18 @@ describe('getActiveCustomers', () => {
     })
 
     expect(is).toHaveBeenCalledWith('deleted_at', null)
+    expect(eq).toHaveBeenCalledWith('is_active', true)
     expect(ilike).toHaveBeenCalledWith('name', '%Spring%')
     expect(eq).toHaveBeenCalledWith('is_business', true)
     expect(range).toHaveBeenCalledWith(20, 39)
+  })
+
+  it('loads only inactive customers for the Inactive directory filter', async () => {
+    const { client, eq } = createMockClient({ data: [], error: null, count: 0 })
+
+    await getActiveCustomers(client, { ...filters, status: 'inactive' })
+
+    expect(eq).toHaveBeenCalledWith('is_active', false)
   })
 
   it('returns an empty page when there are no customers', async () => {

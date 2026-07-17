@@ -3,6 +3,7 @@ export interface CustomerFilters {
   archived: false
   search: string
   type: 'all' | 'business' | 'household'
+  status: 'active' | 'inactive'
   page: number
   perPage: number
 }

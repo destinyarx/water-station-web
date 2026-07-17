@@ -5,5 +5,9 @@
 - Another organization cannot read the metadata, storage object, or signed URL.
 - Other staff cannot read an `only_me` document; its creator and organization owner can.
 - Open file uses a short-lived signed URL from the private bucket.
+- Delete removes the Storage object, clears `file_path`, and removes the metadata
+  row from active lists.
+- The ownership filter offers only `All` and `Only Me`, and `Only Me` returns
+  documents created by the authenticated user.
 - Upload failure leaves no active metadata row and no orphaned uploaded object.
 - Loading, error, empty, no-result, and paginated-list states remain available.

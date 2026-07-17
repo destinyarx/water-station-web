@@ -6,6 +6,8 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { expenseKeys } from '../expenses.keys'
 import { softDeleteExpense } from '../services/expenses.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
@@ -19,6 +21,7 @@ export function useSoftDeleteExpense(): UseMutationResult<void, Error, number> {
     mutationFn: (id) => softDeleteExpense(client, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.financialsAll() })
       toast.success('Expense deleted.')
     },
     onError: (error) => {

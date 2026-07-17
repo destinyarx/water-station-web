@@ -4,8 +4,8 @@ import { useState } from 'react'
 
 import { AppModal } from '@/components/app/app-modal'
 
-import type { MaintenanceHistoryEntry } from '../maintenance.types'
 import { useMaintenanceHistory } from '../hooks/use-maintenance-history'
+import type { MaintenanceHistoryEntry } from '../maintenance.types'
 import { formatDate } from '../maintenance.view'
 
 interface MaintenanceHistoryDialogProps {
@@ -20,18 +20,18 @@ const HISTORY_ICON = (
   </svg>
 )
 
-const PRIORITY_STYLE: Record<MaintenanceHistoryEntry['priority'], { bg: string; text: string; label: string }> = {
-  high: { bg: 'var(--app-chip-red-bg)', text: 'var(--app-chip-red-text)', label: 'High' },
-  medium: { bg: 'var(--app-chip-amber-bg)', text: 'var(--app-chip-amber-text)', label: 'Medium' },
-  low: { bg: 'var(--app-chip-bg)', text: 'var(--app-brand)', label: 'Low' },
+const PRIORITY_STYLE: Record<MaintenanceHistoryEntry['priority'], { className: string; label: string }> = {
+  high: { className: 'bg-[var(--app-chip-red-bg)] text-[var(--app-chip-red-text)]', label: 'High' },
+  medium: { className: 'bg-[var(--app-chip-amber-bg)] text-[var(--app-chip-amber-text)]', label: 'Medium' },
+  low: { className: 'bg-[var(--app-chip-bg)] text-[var(--app-brand)]', label: 'Low' },
 }
 
-/** Read-only log of completed upkeep, server-paginated. Mirrors delivery history. */
+/** Read-only log of completed and cancelled upkeep, server-paginated. */
 export function MaintenanceHistoryDialog({ open, onOpenChange }: MaintenanceHistoryDialogProps) {
   const [page, setPage] = useState(0)
   const history = useMaintenanceHistory(page, open)
 
-  function handleOpenChange(next: boolean) {
+  function handleOpenChange(next: boolean): void {
     if (!next) setPage(0)
     onOpenChange(next)
   }
@@ -41,37 +41,34 @@ export function MaintenanceHistoryDialog({ open, onOpenChange }: MaintenanceHist
       open={open}
       onOpenChange={handleOpenChange}
       title="Maintenance history"
-      description="Upkeep that has been completed."
+      description="Completed and cancelled maintenance occurrences."
       icon={HISTORY_ICON}
-      maxWidth="640px"
+      maxWidth="1200px"
       bodyPadding="20px 26px 0"
     >
-      <div style={{ maxHeight: '58vh', overflowY: 'auto', paddingBottom: '16px' }}>
+      <div className="max-h-[58vh] overflow-y-auto pb-4 pr-[26px]">
         {history.isPending ? (
           <HistorySkeleton />
         ) : history.isError ? (
-          <p role="alert" style={{ borderRadius: '11px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '10px 13px', fontSize: '13.5px', color: '#dc2626' }}>
+          <p role="alert" className="rounded-[11px] border border-red-600/30 bg-red-600/6 px-[13px] py-2.5 text-[13.5px] text-red-600">
             {history.error?.message ?? 'Something went wrong.'}
           </p>
         ) : history.entries.length === 0 ? (
-          <p style={{ padding: '38px 0', textAlign: 'center', fontSize: '14px', color: 'var(--app-text-muted)' }}>
-            No completed maintenance yet.
+          <p className="py-[38px] text-center text-sm text-[var(--app-text-muted)]">
+            No maintenance history yet.
           </p>
         ) : (
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: '8px', listStyle: 'none', margin: 0, padding: 0 }}>
-            {history.entries.map((entry) => (
-              <HistoryRow key={entry.id} entry={entry} />
-            ))}
+          <ul className="m-0 flex list-none flex-col gap-2 p-0">
+            {history.entries.map((entry) => <HistoryRow key={entry.id} entry={entry} />)}
           </ul>
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 0', borderTop: '1px solid var(--app-border)' }}>
-        <span style={{ fontSize: '13px', color: 'var(--app-text-soft)' }}>
-          Page {page + 1}
-          {history.isFetching ? ' · updating…' : ''}
+      <div className="flex items-center justify-between gap-3 border-t border-[var(--app-border)] py-3.5">
+        <span className="text-[13px] text-[var(--app-text-soft)]">
+          Page {page + 1}{history.isFetching ? ' · updating…' : ''}
         </span>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="flex gap-2">
           <PagBtn onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={page === 0 || history.isFetching}>← Prev</PagBtn>
           <PagBtn onClick={() => setPage((current) => current + 1)} disabled={!history.hasNext || history.isFetching}>Next →</PagBtn>
         </div>
@@ -82,28 +79,45 @@ export function MaintenanceHistoryDialog({ open, onOpenChange }: MaintenanceHist
 
 function HistoryRow({ entry }: { entry: MaintenanceHistoryEntry }) {
   const priority = PRIORITY_STYLE[entry.priority]
+  const cancelled = entry.status === 'cancelled'
+
   return (
-    <li style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', borderRadius: '14px', border: '1px solid var(--app-border)', background: 'var(--app-surface)', padding: '12px' }}>
-      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '8px', background: 'var(--app-chip-green-bg)', color: 'var(--app-chip-green-text)', padding: '4px 10px', fontSize: '11.5px', fontWeight: 700 }}>
-            Completed
+    <li className="grid gap-4 rounded-[14px] border border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(190px,0.8fr)_auto] sm:items-center">
+      <div className="min-w-0">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className={cancelled
+            ? 'inline-flex items-center rounded-lg bg-[var(--app-chip-gray-bg)] px-2.5 py-1 text-[11.5px] font-bold text-[var(--app-chip-gray-text)]'
+            : 'inline-flex items-center rounded-lg bg-[var(--app-chip-green-bg)] px-2.5 py-1 text-[11.5px] font-bold text-[var(--app-chip-green-text)]'}>
+            {cancelled ? 'Cancelled' : 'Completed'}
           </span>
-          <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)' }}>{entry.title}</span>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: priority.text, background: priority.bg, borderRadius: '99px', padding: '2px 9px' }}>
+          <span className={`rounded-full px-[9px] py-0.5 text-[11px] font-semibold ${priority.className}`}>
             {priority.label}
           </span>
         </div>
-        <p style={{ fontSize: '13px', color: 'var(--app-text-soft)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {entry.equipmentLabel} · by {entry.completedByName}
-        </p>
-        <p style={{ fontSize: '12.5px', color: 'var(--app-text-faint)', margin: 0 }}>
-          Due {formatDate(entry.dueDate)}
-        </p>
+        <h3 className="truncate text-[14.5px] font-bold text-[var(--app-text)]">{entry.title}</h3>
+        <p className="mt-1 truncate text-[12.5px] text-[var(--app-text-soft)]">{entry.equipmentLabel}</p>
       </div>
-      <span style={{ flex: 'none', fontSize: '12.5px', fontWeight: 600, color: 'var(--app-text-soft)', whiteSpace: 'nowrap' }}>
-        {entry.completedLabel}
-      </span>
+
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-[12.5px] sm:grid-cols-1">
+        <div className="flex min-w-0 gap-1.5">
+          <dt className="text-[var(--app-text-faint)]">Assigned to</dt>
+          <dd className="truncate font-medium text-[var(--app-text-soft)]">{entry.assigneeName}</dd>
+        </div>
+        {!cancelled ? (
+          <div className="flex min-w-0 gap-1.5">
+            <dt className="text-[var(--app-text-faint)]">Completed by</dt>
+            <dd className="truncate font-medium text-[var(--app-text-soft)]">{entry.completedByName}</dd>
+          </div>
+        ) : null}
+      </dl>
+
+      <div className="text-left sm:text-right">
+        <p className="text-[11px] font-bold uppercase tracking-[0.05em] text-[var(--app-text-faint)]">
+          {cancelled ? 'Cancelled on' : 'Completed on'}
+        </p>
+        <p className="mt-1 whitespace-nowrap text-[13px] font-semibold text-[var(--app-text)]">{entry.actionLabel}</p>
+        <p className="mt-1 whitespace-nowrap text-xs text-[var(--app-text-faint)]">Scheduled {formatDate(entry.dueDate)}</p>
+      </div>
     </li>
   )
 }
@@ -114,7 +128,7 @@ function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled
       type="button"
       onClick={onClick}
       disabled={disabled}
-      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--app-border-strong)', background: disabled ? 'var(--app-surface-2)' : 'var(--app-surface)', color: disabled ? 'var(--app-text-faint)' : 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: disabled ? 'default' : 'pointer' }}
+      className="rounded-[10px] border border-[var(--app-border-strong)] bg-[var(--app-surface)] px-3.5 py-2 text-[13px] font-semibold text-[var(--app-text-muted)] disabled:cursor-default disabled:bg-[var(--app-surface-2)] disabled:text-[var(--app-text-faint)]"
     >
       {children}
     </button>
@@ -123,9 +137,9 @@ function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled
 
 function HistorySkeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-2">
       {Array.from({ length: 4 }, (_, index) => (
-        <div key={index} style={{ height: '78px', borderRadius: '14px', background: 'var(--app-surface-2)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+        <div key={index} className="h-[92px] animate-pulse rounded-[14px] bg-[var(--app-surface-2)]" />
       ))}
     </div>
   )

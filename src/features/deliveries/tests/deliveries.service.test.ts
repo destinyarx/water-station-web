@@ -35,6 +35,7 @@ const itemRow = {
   product_name: '5 Gallon Water Refill',
   unit_price: 30,
   quantity: 3,
+  is_stock_tracked: false,
   org_id: '00000000-0000-4000-8000-000000000321',
   created_at: '2026-06-16T00:00:00.000Z',
   updated_at: null,
@@ -54,6 +55,7 @@ const values: DeliveryFormValues = {
       productName: '5 Gallon Water Refill',
       quantity: 3,
       unitPrice: 30,
+      isStockTracked: false,
     },
   ],
   notes: 'Call before leaving.',
@@ -206,6 +208,7 @@ describe('createOneTimeDelivery', () => {
         delivery_id: 77,
         product_name: '5 Gallon Water Refill',
         unit_price: 30,
+        is_stock_tracked: false,
         org_id: '00000000-0000-4000-8000-000000000321',
       }),
     ])

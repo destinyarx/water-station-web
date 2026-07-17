@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { UserRound } from 'lucide-react'
+import { CalendarDays, ChevronDown, UserRound } from 'lucide-react'
+import { Popover as PopoverPrimitive } from 'radix-ui'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import type { Customer } from '@/features/customers/customers.types'
@@ -114,7 +115,13 @@ export function UnifiedDeliveryForm({
   function addProduct(productId: number) {
     const product = products.find((p) => p.id === productId)
     if (!product) return
-    append({ productId: product.id, productName: product.productName, quantity: 1, unitPrice: product.price })
+    append({
+      productId: product.id,
+      productName: product.productName,
+      quantity: 1,
+      unitPrice: product.price,
+      isStockTracked: product.isStockTracked,
+    })
   }
 
   function changeQuantity(index: number, next: number) {
@@ -319,6 +326,13 @@ export function UnifiedDeliveryForm({
                 <input type="hidden" {...register(`items.${index}.productId`)} />
                 <input type="hidden" {...register(`items.${index}.productName`)} />
                 <input type="hidden" {...register(`items.${index}.unitPrice`, { setValueAs: (v) => optionalNumber(v) as number })} />
+                <input
+                  type="hidden"
+                  value={String(items[index]?.isStockTracked ?? false)}
+                  {...register(`items.${index}.isStockTracked`, {
+                    setValueAs: (value) => value === true || value === 'true',
+                  })}
+                />
               </div>
               {/* qty stepper */}
               <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', borderRadius: '9px', padding: '3px' }}>
@@ -501,9 +515,40 @@ function MultiDateCalendar({
   }
 
   const selectedSet = new Set(selected)
+  const selectedLabel = `${selected.length} date${selected.length === 1 ? '' : 's'} selected`
 
   return (
-    <div style={{ background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '14px', padding: '18px' }}>
+    <PopoverPrimitive.Root>
+      <PopoverPrimitive.Trigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className="flex w-full items-center gap-3 rounded-xl border border-(--app-border-strong) bg-(--app-surface-2) px-3.5 py-3 text-left outline-none transition-colors hover:border-(--app-brand) focus-visible:border-(--app-brand) focus-visible:shadow-[0_0_0_3px_var(--app-chip-bg)] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-(--app-chip-bg) text-(--app-brand)">
+            <CalendarDays className="size-4.5" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-bold text-(--app-text)">
+              Pick delivery dates
+            </span>
+            <span className="mt-0.5 block text-[11px] text-(--app-text-soft)">
+              {selectedLabel}
+            </span>
+          </span>
+          <ChevronDown
+            className="size-4 shrink-0 text-(--app-text-soft)"
+            aria-hidden="true"
+          />
+        </button>
+      </PopoverPrimitive.Trigger>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          align="start"
+          sideOffset={8}
+          collisionPadding={16}
+          className="z-100 w-[min(360px,calc(100vw-32px))] rounded-[14px] border border-(--app-border) bg-(--app-surface) p-4 shadow-[0_22px_50px_rgba(7,40,70,0.24)] outline-none"
+        >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div style={{ fontSize: '11.5px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--app-brand)' }}>
           Pick delivery dates
@@ -567,9 +612,11 @@ function MultiDateCalendar({
       {/* summary */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '14px', padding: '10px 13px', background: selected.length > 0 ? 'var(--app-chip-bg)' : 'var(--app-surface-3)', borderRadius: '10px', fontSize: '12.5px', fontWeight: 600, color: selected.length > 0 ? 'var(--app-brand)' : 'var(--app-text-faint)' }}>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></svg>
-        {selected.length === 0 ? 'No dates selected' : `${selected.length} date${selected.length === 1 ? '' : 's'} selected`}
+        {selectedLabel}
       </div>
-    </div>
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
   )
 }
 

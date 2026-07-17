@@ -143,16 +143,22 @@ export function buildHistoryEntries(
   users: OrgUser[],
 ): MaintenanceHistoryEntry[] {
   const userById = new Map(users.map((u) => [u.clerkId, u]))
-  return rows.map((row) => ({
-    id: row.id,
-    title: row.schedule.title,
-    equipmentLabel: row.schedule.equipment_other ?? row.schedule.equipment,
-    priority: row.schedule.priority,
-    dueDate: row.due_date,
-    completedLabel: row.completed_at
-      ? formatDate(row.completed_at.slice(0, 10))
-      : formatDate(row.due_date),
-    completedByName: assigneeName(row.completed_by, userById, 'Unknown'),
-    assigneeName: assigneeName(row.assigned_to, userById),
-  }))
+  return rows.map((row) => {
+    const status = row.status === 'cancelled' ? 'cancelled' : 'completed'
+    const actionDate = status === 'completed' ? row.completed_at : row.updated_at
+
+    return {
+      id: row.id,
+      title: row.schedule.title,
+      equipmentLabel: row.schedule.equipment_other ?? row.schedule.equipment,
+      priority: row.schedule.priority,
+      dueDate: row.due_date,
+      status,
+      actionLabel: actionDate
+        ? formatDate(actionDate.slice(0, 10))
+        : formatDate(row.due_date),
+      completedByName: assigneeName(row.completed_by, userById, 'Unknown'),
+      assigneeName: assigneeName(row.assigned_to, userById),
+    }
+  })
 }

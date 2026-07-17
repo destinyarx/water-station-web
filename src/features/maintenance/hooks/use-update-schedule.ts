@@ -2,6 +2,8 @@
 
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { updateSchedule } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
 import type { EditMaintenanceValues } from '../maintenance.types'
@@ -24,6 +26,7 @@ export function useUpdateSchedule(): UseMutationResult<void, Error, UpdateSchedu
       updateSchedule(client, scheduleId, taskId, values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
       toast.success('Task updated.')
     },
     onError: (error) => {

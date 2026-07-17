@@ -20,6 +20,7 @@ describe('deliveryFormSchema', () => {
           productName: '5 Gallon Water Refill',
           quantity: 2,
           unitPrice: 35,
+          isStockTracked: false,
         },
       ],
       notes: 'Bring extra caps.',

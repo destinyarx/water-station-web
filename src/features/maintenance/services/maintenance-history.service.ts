@@ -18,7 +18,7 @@ export interface MaintenanceHistoryPage {
 }
 
 /**
- * Reads one page of completed occurrences, most recently completed first.
+ * Reads one page of terminal occurrences, most recently changed first.
  * Server-paginated with the same limit-plus-one probe the delivery history
  * uses, so the board never has to hold finished work in memory. Org-scoped by
  * RLS; soft-deleted rows excluded.
@@ -32,9 +32,9 @@ export async function getMaintenanceHistory(
   const { data, error } = await client
     .from(MAINTENANCE_TASKS_TABLE)
     .select(MAINTENANCE_HISTORY_COLUMNS)
-    .eq('status', 'completed')
+    .in('status', ['completed', 'cancelled'])
     .is('deleted_at', null)
-    .order('completed_at', { ascending: false, nullsFirst: false })
+    .order('updated_at', { ascending: false, nullsFirst: false })
     .order('due_date', { ascending: false })
     .range(offset, offset + pageSize)
 

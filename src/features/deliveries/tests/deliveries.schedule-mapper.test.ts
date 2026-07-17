@@ -22,8 +22,8 @@ function baseValues(
     startDate: '2026-06-01',
     endDate: null,
     items: [
-      { productId: 10, productName: 'Bottle', quantity: 3, unitPrice: 30 },
-      { productId: 11, productName: 'Delivery Fee', quantity: 1, unitPrice: 25 },
+      { productId: 10, productName: 'Bottle', quantity: 3, unitPrice: 30, isStockTracked: true },
+      { productId: 11, productName: 'Delivery Fee', quantity: 1, unitPrice: 25, isStockTracked: false },
     ],
     notes: 'Standing order.',
     assignedTo: '',
@@ -78,8 +78,8 @@ describe('toWeeklyScheduleInsertRow', () => {
 describe('toScheduleItemInsertRows', () => {
   it('maps form items to template lines with unit_price overrides', () => {
     expect(toScheduleItemInsertRows(99, baseValues(), owner)).toEqual([
-      { schedule_id: 99, product_id: 10, quantity: 3, unit_price: 30, org_id: '00000000-0000-4000-8000-000000000321' },
-      { schedule_id: 99, product_id: 11, quantity: 1, unit_price: 25, org_id: '00000000-0000-4000-8000-000000000321' },
+      { schedule_id: 99, product_id: 10, quantity: 3, unit_price: 30, is_stock_tracked: true, org_id: '00000000-0000-4000-8000-000000000321' },
+      { schedule_id: 99, product_id: 11, quantity: 1, unit_price: 25, is_stock_tracked: false, org_id: '00000000-0000-4000-8000-000000000321' },
     ])
   })
 })

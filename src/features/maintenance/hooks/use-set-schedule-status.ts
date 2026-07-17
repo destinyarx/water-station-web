@@ -2,6 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { setScheduleStatus } from '../services/maintenance.service'
 import { maintenanceKeys } from '../maintenance.keys'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
@@ -21,6 +23,7 @@ export function useSetScheduleStatus() {
     mutationFn: ({ scheduleId, isActive }) => setScheduleStatus(client, scheduleId, isActive),
     onSuccess: (_data, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
       toast.success(isActive ? 'Schedule set as active.' : 'Schedule set as inactive.')
     },
     onError: (error) => {

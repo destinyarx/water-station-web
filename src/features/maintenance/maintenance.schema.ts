@@ -8,7 +8,7 @@ function isDateOnOrAfterToday(value: string): boolean {
 
 export const maintenancePrioritySchema = z.enum(['low', 'medium', 'high'])
 export const maintenanceRecurrenceSchema = z.enum(['one_time', 'everyday', 'weekly'])
-export const maintenanceTaskStatusSchema = z.enum(['pending', 'completed'])
+export const maintenanceTaskStatusSchema = z.enum(['pending', 'completed', 'cancelled'])
 
 /** A row from `maintenance_schedules`. */
 export const maintenanceScheduleRowSchema = z.object({
@@ -52,9 +52,11 @@ export const maintenanceTaskRowSchema = z.object({
 export const maintenanceHistoryRowSchema = z.object({
   id: z.number().int(),
   due_date: z.string(),
+  status: maintenanceTaskStatusSchema,
   completed_at: z.string().nullable(),
   completed_by: z.string().max(255).nullable(),
   assigned_to: z.string().max(255).nullable(),
+  updated_at: z.string().nullable(),
   schedule: z.object({
     title: z.string().max(120),
     equipment: z.string().max(60),

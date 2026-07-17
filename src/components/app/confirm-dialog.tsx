@@ -82,7 +82,6 @@ export function ConfirmDialog({
 
   if (!open) return null
 
-  const resolvedDescription = description ?? body
   const isDestructive = variant === 'destructive'
   const resolvedIcon = icon ?? (isDestructive ? destructiveIcon : primaryIcon)
   const resolvedIconColor = iconColor ?? (isDestructive ? '#dc2626' : 'var(--app-brand)')
@@ -117,8 +116,11 @@ export function ConfirmDialog({
           {resolvedIcon}
         </div>
         <div style={{ fontSize: '19px', fontWeight: 700, color: 'var(--app-text)', marginBottom: '8px' }}>{title}</div>
-        {resolvedDescription ? (
-          <div style={{ fontSize: '14px', color: 'var(--app-text-muted)', lineHeight: 1.6, margin: '0 0 22px' }}>{resolvedDescription}</div>
+        {description ? (
+          <div style={{ fontSize: '14px', color: 'var(--app-text-muted)', lineHeight: 1.6, margin: body ? '0 0 16px' : '0 0 22px' }}>{description}</div>
+        ) : null}
+        {body ? (
+          <div style={{ margin: '0 0 22px' }}>{body}</div>
         ) : null}
 
         {errorMessage ? (

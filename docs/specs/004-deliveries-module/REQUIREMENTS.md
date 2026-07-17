@@ -46,7 +46,7 @@ issues.
 - **R-14** When an occurrence is materialized, the system shall copy the
   schedule's template items into `delivery_items`, snapshotting `product_name`
   and the `unit_price` (template override if present, otherwise the product's
-  current price) and `quantity`.
+  current price), `quantity`, and `is_stock_tracked` classification.
 - **R-15** While a schedule's `status` is `paused` or `ended`, the system shall
   not materialize new occurrences for it.
 - **R-16** When a schedule's recurrence or template is edited, the system shall
@@ -63,6 +63,9 @@ issues.
   status to `completed`.
 - **R-20** When a user marks a delivery `failed`, the system shall require
   non-empty `failure_remarks` before saving (form validation + DB CHECK).
+- **R-20a** When a user cancels a `pending` or `for_delivery` occurrence, the
+  system shall require non-empty `cancellation_remarks`, update only that
+  occurrence, and leave its parent schedule and future occurrences unchanged.
 - **R-21** Where a delivery is `completed` or `failed`, the system shall treat
   that status as terminal and shall not offer a transition back to an earlier
   status.
@@ -79,6 +82,12 @@ issues.
 - **R-25** When a user selects "Mark as failed", the system shall open a dialog
   with a required failure-remarks field and keep submit disabled until it is
   filled.
+- **R-25a** When a user selects "Cancel delivery", the system shall open a
+  dialog with a required cancellation-reason field and Keep delivery / Cancel
+  delivery actions.
+- **R-25b** When a user selects an ordinary forward status transition, the
+  system shall show status-specific confirmation copy and concise recipient
+  details before saving.
 
 ## Products & totals
 
@@ -89,7 +98,7 @@ issues.
   persisting derived totals.
 - **R-28** Where a product is later renamed, repriced, or soft-deleted, the system
   shall still display past `delivery_items` using their snapshot
-  `product_name` and `unit_price`.
+  `product_name`, `unit_price`, and `is_stock_tracked` classification.
 
 ## Security & multi-tenancy
 

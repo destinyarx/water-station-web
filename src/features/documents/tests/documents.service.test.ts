@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-import { createDocument, createDocumentSignedUrl, getActiveDocuments } from '../services/documents.service'
+import { createDocument, createDocumentSignedUrl, deleteDocument, getActiveDocuments } from '../services/documents.service'
 import { documentRowSchema } from '../documents.schema'
 import { toDocument } from '../documents.mapper'
 
@@ -40,5 +40,50 @@ describe('documents service', () => {
     const url = await createDocumentSignedUrl(client, toDocument(documentRowSchema.parse(row)))
     expect(createSignedUrl).toHaveBeenCalledWith('org/1/permit.pdf', 60)
     expect(url).toBe('https://signed.example')
+  })
+
+  it('deletes the stored object, unlinks file_path, and soft-deletes metadata', async () => {
+    const results = [
+      { data: [{ id: 1 }], error: null },
+      { data: [{ id: 1 }], error: null },
+    ]
+    const select = vi.fn(() => Promise.resolve(results.shift()))
+    const is = vi.fn(() => ({ select }))
+    const eq = vi.fn(() => ({ is }))
+    const update = vi.fn((payload: Record<string, unknown>) => {
+      void payload
+      return { eq }
+    })
+    const remove = vi.fn(() => Promise.resolve({ error: null }))
+    const client = {
+      from: vi.fn(() => ({ update })),
+      storage: { from: vi.fn(() => ({ remove })) },
+    } as unknown as SupabaseClient
+
+    await deleteDocument(client, toDocument(documentRowSchema.parse(row)))
+
+    expect(remove).toHaveBeenCalledWith(['org/1/permit.pdf'])
+    expect(update).toHaveBeenNthCalledWith(1, { file_path: 'org/1/permit.pdf' })
+    expect(update.mock.calls[1][0]).toMatchObject({ file_path: null })
+    expect(update.mock.calls[1][0].deleted_at).toBeTruthy()
+  })
+
+  it('keeps metadata linked when Storage deletion fails', async () => {
+    const select = vi.fn(() => Promise.resolve({ data: [{ id: 1 }], error: null }))
+    const is = vi.fn(() => ({ select }))
+    const eq = vi.fn(() => ({ is }))
+    const update = vi.fn((payload: Record<string, unknown>) => {
+      void payload
+      return { eq }
+    })
+    const remove = vi.fn(() => Promise.resolve({ error: { message: 'storage denied' } }))
+    const client = {
+      from: vi.fn(() => ({ update })),
+      storage: { from: vi.fn(() => ({ remove })) },
+    } as unknown as SupabaseClient
+
+    await expect(deleteDocument(client, toDocument(documentRowSchema.parse(row))))
+      .rejects.toThrow('Unable to delete document. Please try again.')
+    expect(update).toHaveBeenCalledTimes(1)
   })
 })

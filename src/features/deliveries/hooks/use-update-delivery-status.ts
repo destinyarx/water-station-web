@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
 import { productKeys } from '@/features/products/products.keys'
 
 import { deliveryKeys } from '../deliveries.keys'
@@ -34,6 +35,8 @@ export function useUpdateDeliveryStatus() {
       queryClient.invalidateQueries({ queryKey: deliveryKeys.all })
       // Stock moved — refresh the product catalog too.
       queryClient.invalidateQueries({ queryKey: productKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.financialsAll() })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
     },
   })
 }

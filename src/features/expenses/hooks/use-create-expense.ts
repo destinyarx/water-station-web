@@ -6,6 +6,8 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { expenseKeys } from '../expenses.keys'
 import type { Expense, ExpenseFormValues } from '../expenses.types'
 import { createExpense } from '../services/expenses.service'
@@ -33,6 +35,7 @@ export function useCreateExpense(): UseMutationResult<
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.financialsAll() })
       toast.success('Expense recorded.')
     },
     onError: (error) => {

@@ -37,7 +37,7 @@ begin
   end if;
 
   if not exists (select 1 from pg_type where typname = 'delivery_status') then
-    create type delivery_status as enum ('pending', 'for_delivery', 'completed', 'failed');
+    create type delivery_status as enum ('pending', 'for_delivery', 'completed', 'failed', 'cancelled');
   end if;
 end$$;
 ```
@@ -137,6 +137,7 @@ create table if not exists public.delivery_schedule_items (
   product_id           integer not null references public.products(id),
   quantity             numeric(10,2) not null check (quantity > 0),
   unit_price           numeric(12,2),           -- optional override; null = use product price
+  is_stock_tracked     boolean not null,         -- product classification snapshot
   org_id               integer not null references public.organizations(organization_code),
   created_at           timestamp not null default now(),
   updated_at           timestamp
@@ -150,8 +151,8 @@ create index if not exists delivery_schedule_items_schedule_idx
 
 ## 4. `deliveries` (occurrences)
 
-The actionable, dated delivery run. Carries the operational status and failure
-remarks. Unique per `(schedule_id, delivery_date)` so the rolling top-up is
+The actionable, dated delivery run. Carries the operational status and terminal
+failure/cancellation remarks. Unique per `(schedule_id, delivery_date)` so the rolling top-up is
 idempotent.
 
 ```sql
@@ -162,6 +163,7 @@ create table if not exists public.deliveries (
 
   status           delivery_status not null default 'pending',
   failure_remarks  varchar(500),
+  cancellation_remarks varchar(500),
   notes            varchar(500),
   delivered_by     varchar(255) references public.users(clerk_id), -- auto-stamped on for_delivery
 
@@ -175,6 +177,12 @@ create table if not exists public.deliveries (
   constraint deliveries_failure_remarks_check check (
     (status = 'failed' and failure_remarks is not null and length(trim(failure_remarks)) > 0)
     or (status <> 'failed')
+  ),
+
+  -- Cancellation remarks required iff cancelled.
+  constraint deliveries_cancelled_requires_remarks check (
+    status <> 'cancelled'
+    or nullif(btrim(cancellation_remarks), '') is not null
   )
 );
 
@@ -188,13 +196,19 @@ create index if not exists deliveries_status_idx
   on public.deliveries (status) where deleted_at is null;
 ```
 
+> Current canonical follow-up migrations add the `cancelled` enum value,
+> `cancellation_remarks`, its required-when-cancelled CHECK, and atomic
+> `pending|for_delivery -> cancelled` transitions. Cancellation updates only
+> the selected occurrence and does not change its parent schedule.
+
 ---
 
 ## 5. `delivery_items` (per-occurrence snapshot)
 
-Line snapshot for each occurrence. `product_name` and `unit_price` are captured
+Line snapshot for each occurrence. `product_name`, `unit_price`, and
+`is_stock_tracked` are captured
 at materialization time so historical deliveries are self-contained even if the
-product is renamed, repriced, or soft-deleted.
+product is renamed, repriced, reclassified, or soft-deleted.
 
 ```sql
 create table if not exists public.delivery_items (
@@ -204,6 +218,7 @@ create table if not exists public.delivery_items (
   product_name     varchar(255) not null,    -- snapshot
   unit_price       numeric(12,2) not null,    -- snapshot
   quantity         numeric(10,2) not null check (quantity > 0),
+  is_stock_tracked boolean not null,          -- snapshot
   org_id           integer not null references public.organizations(organization_code),
   created_at       timestamp not null default now(),
   updated_at       timestamp
@@ -212,6 +227,15 @@ create table if not exists public.delivery_items (
 create index if not exists delivery_items_delivery_idx
   on public.delivery_items (delivery_id);
 ```
+
+> **Dashboard V1 upgrade:** Existing installations add/backfill these snapshot
+> columns and protect all write paths through canonical migration
+> `20260717090000_dashboard_v1_aggregates.sql` in the
+> `water-station-supabase` repository. Its prerequisite
+> `20260717080000_repair_delivery_parent_relations_and_users_rls.sql` repairs the
+> original self-referencing `schedule_id` foreign keys before the backfill. The
+> schema block above is retained for feature history; the canonical migrations
+> are authoritative for the upgrade and current UUID tenant contract.
 
 ---
 
@@ -265,7 +289,7 @@ create policy "update schedules in org"
       deleted_at is null
       or (auth.jwt() -> 'user_metadata' ->> 'is_owner')::boolean = true
     )
-  );
+);
 ```
 
 > **Owner-only schedule soft-delete:** the normal UI archives a schedule by

@@ -14,6 +14,10 @@ import { legalNextStatuses } from '../deliveries.transitions'
 import type { Delivery, DeliveryStatus } from '../deliveries.types'
 import { useUpdateDeliveryStatus } from '../hooks/use-update-delivery-status'
 import { CancelDeliveryDialog } from './cancel-delivery-dialog'
+import {
+  DeliveryStatusConfirmationDialog,
+  type ConfirmableDeliveryStatus,
+} from './delivery-status-confirmation-dialog'
 import { FailDeliveryDialog } from './fail-delivery-dialog'
 
 const STATUS_ACTION_LABEL: Record<DeliveryStatus, string> = {
@@ -26,6 +30,9 @@ const STATUS_ACTION_LABEL: Record<DeliveryStatus, string> = {
 
 interface DeliveryStatusMenuProps {
   delivery: Delivery
+  recipientName?: string
+  recipientSource?: 'record' | 'guest'
+  recipientAddress?: string | null
   onChanged?: (message: string) => void
   onError?: (message: string) => void
   onEdit?: (delivery: Delivery) => void
@@ -33,6 +40,9 @@ interface DeliveryStatusMenuProps {
 
 export function DeliveryStatusMenu({
   delivery,
+  recipientName = 'Unknown recipient',
+  recipientSource = 'guest',
+  recipientAddress,
   onChanged,
   onError,
   onEdit,
@@ -40,6 +50,8 @@ export function DeliveryStatusMenu({
   const mutation = useUpdateDeliveryStatus()
   const [failOpen, setFailOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
+  const [confirmStatus, setConfirmStatus] =
+    useState<ConfirmableDeliveryStatus | null>(null)
   const nextStatuses = legalNextStatuses(delivery.status)
 
   function changeTo(
@@ -52,7 +64,8 @@ export function DeliveryStatusMenu({
         onSuccess: () => {
           setFailOpen(false)
           setCancelOpen(false)
-          onChanged?.(`Delivery marked ${to.replace('_', ' ')}.`)
+          setConfirmStatus(null)
+          onChanged?.(successMessageFor(to))
         },
         onError: (error) => onError?.(error.message),
       },
@@ -90,8 +103,11 @@ export function DeliveryStatusMenu({
                   setFailOpen(true)
                 } else if (status === 'cancelled') {
                   setCancelOpen(true)
-                } else {
-                  changeTo(status)
+                } else if (
+                  status === 'for_delivery' ||
+                  status === 'completed'
+                ) {
+                  setConfirmStatus(status)
                 }
               }}
             >
@@ -117,6 +133,39 @@ export function DeliveryStatusMenu({
           changeTo('cancelled', { cancellationRemarks: remarks })
         }
       />
+      {confirmStatus ? (
+        <DeliveryStatusConfirmationDialog
+          open
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) setConfirmStatus(null)
+          }}
+          delivery={delivery}
+          recipient={{
+            name: recipientName,
+            source: recipientSource,
+            address: recipientAddress,
+          }}
+          status={confirmStatus}
+          isPending={mutation.isPending}
+          errorMessage={mutation.isError ? mutation.error.message : undefined}
+          onConfirm={() => changeTo(confirmStatus)}
+        />
+      ) : null}
     </>
   )
+}
+
+function successMessageFor(status: DeliveryStatus): string {
+  switch (status) {
+    case 'for_delivery':
+      return 'Delivery is now in progress.'
+    case 'completed':
+      return 'Delivery completed successfully.'
+    case 'failed':
+      return 'Delivery marked as failed.'
+    case 'cancelled':
+      return 'Delivery cancelled.'
+    case 'pending':
+      return 'Delivery moved back to pending.'
+  }
 }

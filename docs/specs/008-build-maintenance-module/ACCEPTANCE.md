@@ -20,6 +20,10 @@
 - [ ] Setting a schedule inactive hides its occurrences from the list.
 - [ ] Enabling "Show inactive" reveals them, visually de-emphasised.
 - [ ] Staff cannot archive a schedule (action hidden / RLS rejects); owner can.
+- [ ] Cancelling a one-time occurrence moves only that occurrence to History.
+- [ ] Cancelling a recurring occurrence moves it to History and leaves the next
+      calculated occurrence pending on the active schedule.
+- [ ] History clearly distinguishes completed and cancelled occurrences.
 
 ## Assignee
 - [ ] The assignee picker lists only org staff + "Unassigned".

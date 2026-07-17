@@ -2,6 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { productKeys } from '../products.keys'
 import { softDeleteProduct } from '../services/products.service'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
@@ -15,6 +17,7 @@ export function useSoftDeleteProduct() {
     mutationFn: (id) => softDeleteProduct(client, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
       toast.success('Product deleted.')
     },
     onError: (error) => {

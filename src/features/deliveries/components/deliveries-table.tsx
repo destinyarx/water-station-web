@@ -242,6 +242,9 @@ function DeliveryRow({
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <DeliveryStatusMenu
             delivery={delivery}
+            recipientName={recipientName}
+            recipientSource={isGuest ? 'guest' : 'record'}
+            recipientAddress={recipientAddress}
             onChanged={onStatusChanged}
             onError={onStatusError}
             onEdit={onEdit}
@@ -287,7 +290,19 @@ function DeliveryMobileCard({
           </div>
           <div style={{ fontSize: '12.5px', color: 'var(--app-text-soft)', marginTop: '3px' }}>{formatDate(delivery.deliveryDate)}</div>
         </div>
-        <DeliveryStatusMenu delivery={delivery} onChanged={onStatusChanged} onError={onStatusError} onEdit={onEdit} />
+        <DeliveryStatusMenu
+          delivery={delivery}
+          recipientName={recipientName}
+          recipientSource={isGuest ? 'guest' : 'record'}
+          recipientAddress={
+            info?.customerId
+              ? customerById.get(info.customerId)?.fullAddress
+              : info?.guestAddress
+          }
+          onChanged={onStatusChanged}
+          onError={onStatusError}
+          onEdit={onEdit}
+        />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px', flexWrap: 'wrap' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '12.5px', fontWeight: 700, padding: '5px 10px', borderRadius: '999px', background: statusStyle.bg, color: statusStyle.text }}>

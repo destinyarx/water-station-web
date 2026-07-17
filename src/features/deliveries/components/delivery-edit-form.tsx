@@ -83,6 +83,7 @@ export function DeliveryEditForm({
         productName: item.productName,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
+        isStockTracked: item.isStockTracked,
       })),
     },
   })
@@ -106,6 +107,7 @@ export function DeliveryEditForm({
       productName: product.productName,
       quantity: 1,
       unitPrice: product.price,
+      isStockTracked: product.isStockTracked,
     })
     setSelectedProductId('')
   }
@@ -183,6 +185,13 @@ export function DeliveryEditForm({
                 </p>
                 <input type="hidden" {...register(`items.${index}.productId`)} />
                 <input type="hidden" {...register(`items.${index}.productName`)} />
+                <input
+                  type="hidden"
+                  value={String(items[index]?.isStockTracked ?? false)}
+                  {...register(`items.${index}.isStockTracked`, {
+                    setValueAs: (value) => value === true || value === 'true',
+                  })}
+                />
               </div>
 
               <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', borderRadius: '9px', padding: '3px' }}>

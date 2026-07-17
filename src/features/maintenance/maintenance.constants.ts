@@ -18,7 +18,7 @@ export const MAINTENANCE_TASK_COLUMNS =
  * board.
  */
 export const MAINTENANCE_HISTORY_COLUMNS =
-  'id, due_date, completed_at, completed_by, assigned_to, schedule:maintenance_schedules!inner(title, equipment, equipment_other, priority)'
+  'id, due_date, status, completed_at, completed_by, assigned_to, updated_at, schedule:maintenance_schedules!inner(title, equipment, equipment_other, priority)'
 
 /** Completed occurrences per page in the history modal. */
 export const MAINTENANCE_HISTORY_PAGE_SIZE = 10
@@ -37,6 +37,8 @@ export const MAINTENANCE_STATUS_ERROR =
   'Unable to update this schedule. Please try again.'
 export const MAINTENANCE_COMPLETE_ERROR =
   'Unable to complete this task. Please try again.'
+export const MAINTENANCE_CANCEL_ERROR =
+  'Unable to cancel this task. Please try again.'
 /** A write that matched no rows: RLS refused it, or the row was archived. */
 export const MAINTENANCE_NOT_PERMITTED_ERROR =
   'Nothing was changed. This schedule may have been archived, or you may not have permission to change it.'

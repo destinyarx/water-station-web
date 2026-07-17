@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 import { deliveryKeys } from '../deliveries.keys'
 import type {
@@ -26,6 +27,8 @@ export function useCreateUnifiedDelivery() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: deliveryKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.financialsAll() })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
     },
   })
 }

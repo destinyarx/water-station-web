@@ -2,6 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { deliveryKeys } from '../deliveries.keys'
 import type { Delivery, DeliveryEditFormValues } from '../deliveries.types'
 import { updateDeliveryOccurrence } from '../services/delivery-edit.service'
@@ -20,6 +22,8 @@ export function useUpdateDelivery() {
     mutationFn: ({ deliveryId, values }) => updateDeliveryOccurrence(client, deliveryId, values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: deliveryKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.financialsAll() })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
     },
   })
 }

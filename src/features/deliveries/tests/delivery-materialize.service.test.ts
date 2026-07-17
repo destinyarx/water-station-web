@@ -31,13 +31,13 @@ const schedule: DeliveryScheduleRow = {
 }
 
 const templateItems = [
-  { product_id: 10, quantity: 3, unit_price: null },
-  { product_id: 11, quantity: 1, unit_price: 25 },
+  { product_id: 10, quantity: 3, unit_price: null, is_stock_tracked: true },
+  { product_id: 11, quantity: 1, unit_price: 25, is_stock_tracked: false },
 ]
 
 const products = [
-  { id: 10, product_name: 'Bottle', price: 30 },
-  { id: 11, product_name: 'Delivery Fee', price: 20 },
+  { id: 10, product_name: 'Bottle', price: 30, is_stock_tracked: true },
+  { id: 11, product_name: 'Delivery Fee', price: 20, is_stock_tracked: false },
 ]
 
 function createClient(existingDates: string[]) {
@@ -95,10 +95,10 @@ describe('materializeRecurringSchedule', () => {
     // Two occurrences (Jun 8 -> id 101, Jun 15 -> id 102), two template lines each.
     expect(insertItems).toHaveBeenCalledTimes(1)
     expect(insertItems).toHaveBeenCalledWith([
-      { delivery_id: 101, product_id: 10, product_name: 'Bottle', quantity: 3, unit_price: 30, org_id: '00000000-0000-4000-8000-000000000321' },
-      { delivery_id: 101, product_id: 11, product_name: 'Delivery Fee', quantity: 1, unit_price: 25, org_id: '00000000-0000-4000-8000-000000000321' },
-      { delivery_id: 102, product_id: 10, product_name: 'Bottle', quantity: 3, unit_price: 30, org_id: '00000000-0000-4000-8000-000000000321' },
-      { delivery_id: 102, product_id: 11, product_name: 'Delivery Fee', quantity: 1, unit_price: 25, org_id: '00000000-0000-4000-8000-000000000321' },
+      { delivery_id: 101, product_id: 10, product_name: 'Bottle', quantity: 3, unit_price: 30, is_stock_tracked: true, org_id: '00000000-0000-4000-8000-000000000321' },
+      { delivery_id: 101, product_id: 11, product_name: 'Delivery Fee', quantity: 1, unit_price: 25, is_stock_tracked: false, org_id: '00000000-0000-4000-8000-000000000321' },
+      { delivery_id: 102, product_id: 10, product_name: 'Bottle', quantity: 3, unit_price: 30, is_stock_tracked: true, org_id: '00000000-0000-4000-8000-000000000321' },
+      { delivery_id: 102, product_id: 11, product_name: 'Delivery Fee', quantity: 1, unit_price: 25, is_stock_tracked: false, org_id: '00000000-0000-4000-8000-000000000321' },
     ])
   })
 

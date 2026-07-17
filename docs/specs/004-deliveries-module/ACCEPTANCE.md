@@ -62,6 +62,12 @@ Each scenario is a manual/automated acceptance check. References map to
       materialization. (R-22)
 - [ ] **A-18** Editing a single occurrence's items/notes/date does not affect the
       template or sibling occurrences. (R-23)
+- [ ] **A-18a** Cancelling a pending or in-progress occurrence requires and
+      saves a reason, restores stock when applicable, and leaves the parent
+      schedule and future occurrences unchanged. (R-20a, R-25a)
+- [ ] **A-18b** Starting or completing a delivery requires a status-specific
+      confirmation showing the From records/Guest recipient and concise
+      delivery details. (R-25b)
 
 ## Products & totals
 

@@ -65,9 +65,11 @@ describe('buildHistoryEntries', () => {
   const row: MaintenanceHistoryRow = {
     id: 7,
     due_date: '2026-07-01',
+    status: 'completed',
     completed_at: '2026-07-03T02:00:00.000Z',
     completed_by: 'user_staff',
     assigned_to: 'user_staff',
+    updated_at: '2026-07-03T02:00:00.000Z',
     schedule: {
       title: 'Sanitize tank',
       equipment: 'Others',
@@ -81,7 +83,8 @@ describe('buildHistoryEntries', () => {
     expect(entry.completedByName).toBe('Ana')
     expect(entry.assigneeName).toBe('Ana')
     expect(entry.equipmentLabel).toBe('Backwash valve')
-    expect(entry.completedLabel).toBe('Jul 3, 2026')
+    expect(entry.status).toBe('completed')
+    expect(entry.actionLabel).toBe('Jul 3, 2026')
   })
 
   it('labels an unknown completer as Unknown, not Unassigned', () => {
@@ -92,6 +95,19 @@ describe('buildHistoryEntries', () => {
 
   it('falls back to the due date when completed_at is missing', () => {
     const [entry] = buildHistoryEntries([{ ...row, completed_at: null }], [])
-    expect(entry.completedLabel).toBe('Jul 1, 2026')
+    expect(entry.actionLabel).toBe('Jul 1, 2026')
+  })
+
+  it('uses the cancellation update date for cancelled history', () => {
+    const [entry] = buildHistoryEntries([{
+      ...row,
+      status: 'cancelled',
+      completed_at: null,
+      completed_by: null,
+      updated_at: '2026-07-04T02:00:00.000Z',
+    }], [])
+
+    expect(entry.status).toBe('cancelled')
+    expect(entry.actionLabel).toBe('Jul 4, 2026')
   })
 })

@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
+  MAINTENANCE_CANCEL_ERROR,
   MAINTENANCE_COMPLETE_ERROR,
   MAINTENANCE_DELETE_ERROR,
   MAINTENANCE_LOAD_ERROR,
@@ -68,6 +69,7 @@ export async function getMaintenanceBoard(
       .from(MAINTENANCE_TASKS_TABLE)
       .select(MAINTENANCE_TASK_COLUMNS)
       .is('deleted_at', null)
+      .neq('status', 'cancelled')
       .order('due_date', { ascending: true }),
   ])
 
@@ -192,6 +194,30 @@ export async function setScheduleStatus(
   if (!data?.length) throw new Error(MAINTENANCE_NOT_PERMITTED_ERROR)
 }
 
+async function rollForwardRecurringTask(
+  client: SupabaseClient,
+  task: MaintenanceTaskView,
+  owner: MaintenanceOwner,
+  errorMessage: string,
+): Promise<void> {
+  if (!task.isRecurring) return
+
+  const next = nextDueDate(task.recurrenceType, task.dueDate, task.weekdays ?? [])
+  if (!next) return
+
+  const { error } = await client.from(MAINTENANCE_TASKS_TABLE).insert({
+    schedule_id: task.scheduleId,
+    due_date: next,
+    status: 'pending',
+    assigned_to: task.assignedTo,
+    org_id: owner.orgId,
+    created_by: owner.createdBy,
+  })
+
+  // A concurrent terminal action may have already created the next occurrence.
+  if (error && error.code !== UNIQUE_VIOLATION) throw new Error(errorMessage)
+}
+
 /**
  * Completes (or, for one-time tasks, re-opens) an occurrence. Completing a
  * recurring occurrence stamps it done and inserts the next `pending` occurrence
@@ -231,22 +257,31 @@ export async function completeTask(
   // next occurrence would leave two pending tasks and break ADR 0006's invariant.
   if (!data?.length) throw new Error(MAINTENANCE_NOT_PERMITTED_ERROR)
 
-  if (!task.isRecurring) return
+  await rollForwardRecurringTask(client, task, owner, MAINTENANCE_COMPLETE_ERROR)
+}
 
-  const next = nextDueDate(task.recurrenceType, task.dueDate, task.weekdays ?? [])
-  if (!next) return
+/**
+ * Cancels only this pending occurrence. A recurring schedule stays active and
+ * immediately rolls forward its next pending occurrence.
+ */
+export async function cancelTask(
+  client: SupabaseClient,
+  task: MaintenanceTaskView,
+  owner: MaintenanceOwner,
+): Promise<void> {
+  if (task.status !== 'pending') return
 
-  const { error: insertError } = await client.from(MAINTENANCE_TASKS_TABLE).insert({
-    schedule_id: task.scheduleId,
-    due_date: next,
-    status: 'pending',
-    assigned_to: task.assignedTo,
-    org_id: owner.orgId,
-    created_by: owner.createdBy,
-  })
+  const now = new Date().toISOString()
+  const { data, error } = await client
+    .from(MAINTENANCE_TASKS_TABLE)
+    .update({ status: 'cancelled', updated_at: now })
+    .eq('id', task.id)
+    .eq('status', 'pending')
+    .is('deleted_at', null)
+    .select('id')
 
-  // A concurrent complete may have already created the next occurrence.
-  if (insertError && insertError.code !== UNIQUE_VIOLATION) {
-    throw new Error(MAINTENANCE_COMPLETE_ERROR)
-  }
+  if (error) throw new Error(MAINTENANCE_CANCEL_ERROR)
+  if (!data?.length) throw new Error(MAINTENANCE_NOT_PERMITTED_ERROR)
+
+  await rollForwardRecurringTask(client, task, owner, MAINTENANCE_CANCEL_ERROR)
 }

@@ -70,9 +70,11 @@ export interface MaintenanceTaskView {
 export interface MaintenanceHistoryRow {
   id: number
   due_date: string
+  status: MaintenanceTaskStatus
   completed_at: string | null
   completed_by: string | null
   assigned_to: string | null
+  updated_at: string | null
   schedule: {
     title: string
     equipment: string
@@ -88,7 +90,8 @@ export interface MaintenanceHistoryEntry {
   equipmentLabel: string
   priority: MaintenancePriority
   dueDate: string
-  completedLabel: string
+  status: Extract<MaintenanceTaskStatus, 'completed' | 'cancelled'>
+  actionLabel: string
   completedByName: string
   assigneeName: string
 }

@@ -2,6 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { deliveryKeys } from '../deliveries.keys'
 import type { DeliveryScheduleRow } from '../deliveries.types'
 import {
@@ -37,6 +39,8 @@ export function useScheduleStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: deliveryKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.financialsAll() })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.operationsAll() })
     },
   })
 }

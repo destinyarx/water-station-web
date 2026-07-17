@@ -15,6 +15,7 @@ describe('customerKeys', () => {
       archived: false as const,
       search: 'Juan',
       type: 'household' as const,
+      status: 'active' as const,
       page: 2,
       perPage: 20,
     }

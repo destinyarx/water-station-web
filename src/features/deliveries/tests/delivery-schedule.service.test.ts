@@ -24,7 +24,7 @@ const values: DeliveryScheduleFormValues = {
   intervalWeeks: 1,
   startDate: '2026-06-01',
   endDate: null,
-  items: [{ productId: 10, productName: 'Bottle', quantity: 3, unitPrice: 30 }],
+  items: [{ productId: 10, productName: 'Bottle', quantity: 3, unitPrice: 30, isStockTracked: true }],
   notes: 'Standing order.',
   assignedTo: '',
 }
@@ -87,7 +87,7 @@ describe('createWeeklySchedule', () => {
     expect(insertSchedule).toHaveBeenCalledTimes(1)
     expect(insertScheduleItems).toHaveBeenCalledTimes(1)
     expect(insertScheduleItems).toHaveBeenCalledWith([
-      { schedule_id: 99, product_id: 10, quantity: 3, unit_price: 30, org_id: '00000000-0000-4000-8000-000000000321' },
+      { schedule_id: 99, product_id: 10, quantity: 3, unit_price: 30, is_stock_tracked: true, org_id: '00000000-0000-4000-8000-000000000321' },
     ])
     expect(materialize).toHaveBeenCalledTimes(1)
     expect(result).toEqual(scheduleRow)

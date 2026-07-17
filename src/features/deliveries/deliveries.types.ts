@@ -101,6 +101,7 @@ export interface DeliveryScheduleItemInsert {
   product_id: number
   quantity: number
   unit_price: number | null
+  is_stock_tracked: boolean
   org_id: string
 }
 
@@ -120,6 +121,7 @@ export interface DeliveryItemInsert {
   product_name: string
   unit_price: number
   quantity: number
+  is_stock_tracked: boolean
   org_id: string
 }
 
@@ -130,6 +132,7 @@ export interface DeliveryItem {
   productName: string
   unitPrice: number
   quantity: number
+  isStockTracked: boolean
   lineTotal: number
   orgId: string
   createdAt: string

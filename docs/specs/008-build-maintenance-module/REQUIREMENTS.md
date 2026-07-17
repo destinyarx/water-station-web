@@ -56,6 +56,10 @@ EARS-style, testable. "System" = the maintenance feature.
   "Overdue Nd" if past; "Due today" if today; "Tomorrow" if +1 day;
   "In N days" only when 2 ≤ N ≤ 3; otherwise the formatted date only.
 - R16. For a completed occurrence the system shall label it "Completed".
+- R17. When an organization member cancels a pending occurrence, the system
+  shall set that occurrence to `cancelled` and display it in Maintenance History.
+- R18. When a recurring occurrence is cancelled, the system shall create its
+  next pending occurrence without pausing or archiving the parent schedule.
 
 ## Stats
 

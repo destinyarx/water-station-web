@@ -3,20 +3,9 @@
 import type { Customer } from '../customers.types'
 import { CustomerRowActions } from './customer-row-actions'
 
-// Every row is its own grid, so `max-content` here resolved per-row and the
-// columns drifted out of line whenever a cell was short or empty. All tracks
-// must be definite (or fr) for rows to agree on the same column edges.
-const GRID = 'minmax(200px,1.4fr) 160px 170px minmax(160px,2fr) 64px'
+const GRID = 'grid-cols-[minmax(200px,1.4fr)_160px_170px_minmax(160px,2fr)_64px]'
+const TH = 'text-[11px] font-bold tracking-[0.05em] uppercase text-[var(--app-text-faint)]'
 
-const TH: React.CSSProperties = {
-  fontSize: '11px',
-  fontWeight: 700,
-  letterSpacing: '0.05em',
-  textTransform: 'uppercase',
-  color: 'var(--app-text-faint)',
-}
-
-/** Formats a customer id into a stable display code, e.g. `#000123`. */
 function customerNo(id: number): string {
   return `#${String(id).padStart(6, '0')}`
 }
@@ -30,79 +19,74 @@ const HomeIcon = (
 
 export function CustomersTable({ customers }: { customers: Customer[] }) {
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <div style={{ minWidth: '820px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: GRID, alignItems: 'center', background: 'var(--app-surface-3)' }}>
-          <div style={{ ...TH, padding: '12px 22px' }}>Customer</div>
-          <div style={{ ...TH, padding: '12px 16px' }}>Type &amp; status</div>
-          <div style={{ ...TH, padding: '12px 16px' }}>Contact</div>
-          <div style={{ ...TH, padding: '12px 16px' }}>Delivery address</div>
-          <div style={{ padding: '12px 22px' }} />
+    <div className="overflow-x-auto">
+      <div className="min-w-[820px]">
+        <div className={`grid items-center bg-[var(--app-surface-3)] ${GRID}`}>
+          <div className={`${TH} px-[22px] py-3`}>Customer</div>
+          <div className={`${TH} px-4 py-3`}>Type &amp; status</div>
+          <div className={`${TH} px-4 py-3`}>Contact</div>
+          <div className={`${TH} px-4 py-3`}>Delivery address</div>
+          <div className="px-[22px] py-3" />
         </div>
 
         {customers.map((customer) => {
           const isBiz = customer.isBusiness
-          const typeBg = isBiz ? 'var(--app-chip-bg)' : 'var(--app-chip-green-bg)'
-          const typeText = isBiz ? 'var(--app-brand)' : 'var(--app-chip-green-text)'
-          const statusDot = customer.isActive ? '#22c55e' : '#94a3b8'
           const contact = customer.contactNumber?.trim() || '—'
           const address = customer.fullAddress?.trim() || '—'
 
           return (
             <div
               key={customer.id}
-              style={{ display: 'grid', gridTemplateColumns: GRID, alignItems: 'center', borderTop: '1px solid var(--app-border)', opacity: customer.isActive ? 1 : 0.6 }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--app-row-hover)' }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '' }}
+              className={`${GRID} ${customer.isActive
+                ? 'grid items-center border-t border-[var(--app-border)] transition-colors hover:bg-[var(--app-row-hover)]'
+                : 'grid items-center border-l-[3px] border-t border-l-[var(--app-text-faint)] border-t-[var(--app-border)] bg-[var(--app-surface-2)] opacity-75 transition-colors hover:opacity-90'}`}
             >
-              {/* Customer */}
-              <div style={{ padding: '13px 22px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '13px' }}>
-                  <div style={{ position: 'relative', flex: 'none', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--app-chip-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-brand)' }}>
+              <div className="px-[22px] py-[13px]">
+                <div className="flex items-center gap-[13px]">
+                  <div className="relative flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[var(--app-chip-bg)] text-[var(--app-brand)]">
                     {isBiz ? BusinessIcon : HomeIcon}
-                    <span style={{ position: 'absolute', right: '-1px', bottom: '-1px', width: '12px', height: '12px', borderRadius: '50%', background: statusDot, border: '2px solid var(--app-surface)' }} />
+                    <span className={`absolute -bottom-px -right-px h-3 w-3 rounded-full border-2 border-[var(--app-surface)] ${customer.isActive ? 'bg-green-500' : 'bg-slate-400'}`} />
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--app-text)' }}>{customer.name}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--app-text-soft)' }}>{customerNo(customer.id)}</div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-[14.5px] font-semibold text-[var(--app-text)]">
+                      {customer.isActive ? null : (
+                        <svg aria-label="Inactive customer" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-none text-[var(--app-text-faint)]"><circle cx="12" cy="12" r="9" /><path d="M9.5 9v6M14.5 9v6" /></svg>
+                      )}
+                      <span className="truncate">{customer.name}</span>
+                    </div>
+                    <div className="text-xs text-[var(--app-text-soft)]">{customerNo(customer.id)}</div>
                   </div>
                 </div>
               </div>
 
-              {/* Type & status */}
-              <div style={{ padding: '13px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flexWrap: 'wrap' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 600, padding: '5px 11px', borderRadius: '999px', background: typeBg, color: typeText }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
+              <div className="px-4 py-[13px]">
+                <div className="flex flex-wrap items-center gap-[7px]">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-[11px] py-[5px] text-[12.5px] font-semibold ${isBiz ? 'bg-[var(--app-chip-bg)] text-[var(--app-brand)]' : 'bg-[var(--app-chip-green-bg)] text-[var(--app-chip-green-text)]'}`}>
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     {isBiz ? 'Business' : 'Household'}
                   </span>
                   {customer.isActive ? null : (
-                    <span style={{ fontSize: '12px', fontWeight: 600, padding: '5px 10px', borderRadius: '999px', background: 'var(--app-chip-gray-bg)', color: 'var(--app-chip-gray-text)' }}>Inactive</span>
+                    <span className="rounded-full bg-[var(--app-chip-gray-bg)] px-2.5 py-[5px] text-xs font-semibold text-[var(--app-chip-gray-text)]">Inactive</span>
                   )}
                 </div>
               </div>
 
-              {/* Contact */}
-              <div style={{ padding: '13px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, fontSize: '13.5px', color: contact === '—' ? 'var(--app-text-faint)' : 'var(--app-text-muted)' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" style={{ flex: 'none', opacity: 0.7 }}><path d="M5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5v3a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2Z" /></svg>
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{contact}</span>
+              <div className="px-4 py-[13px]">
+                <div className={`flex min-w-0 items-center gap-2 text-[13.5px] ${contact === '—' ? 'text-[var(--app-text-faint)]' : 'text-[var(--app-text-muted)]'}`}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" className="flex-none opacity-70"><path d="M5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5v3a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2Z" /></svg>
+                  <span className="truncate whitespace-nowrap">{contact}</span>
                 </div>
               </div>
 
-              {/* Address */}
-              <div style={{ padding: '13px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px', color: address === '—' ? 'var(--app-text-faint)' : 'var(--app-text-muted)', maxWidth: '250px' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" style={{ flex: 'none', opacity: 0.7 }}><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" /><circle cx="12" cy="10" r="2.4" /></svg>
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{address}</span>
+              <div className="px-4 py-[13px]">
+                <div className={`flex max-w-[250px] items-center gap-2 text-[13.5px] ${address === '—' ? 'text-[var(--app-text-faint)]' : 'text-[var(--app-text-muted)]'}`}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" className="flex-none opacity-70"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" /><circle cx="12" cy="10" r="2.4" /></svg>
+                  <span className="truncate whitespace-nowrap">{address}</span>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div style={{ padding: '13px 22px' }}>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <CustomerRowActions customer={customer} />
-                </div>
+              <div className="px-[22px] py-[13px]">
+                <div className="flex justify-end"><CustomerRowActions customer={customer} /></div>
               </div>
             </div>
           )

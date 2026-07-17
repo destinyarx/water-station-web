@@ -6,6 +6,8 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query'
 
+import { dashboardKeys } from '@/features/dashboard'
+
 import { expenseKeys } from '../expenses.keys'
 import type { Expense, ExpenseFormValues } from '../expenses.types'
 import { updateExpense } from '../services/expenses.service'
@@ -30,6 +32,7 @@ export function useUpdateExpense(): UseMutationResult<
     onSuccess: (_expense, { id }) => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: expenseKeys.detail(id) })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.financialsAll() })
       toast.success('Expense updated.')
     },
     onError: (error) => {

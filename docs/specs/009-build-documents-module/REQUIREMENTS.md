@@ -5,4 +5,8 @@
 - If metadata, path persistence, or file upload fails, the system shall show a friendly error and shall not leave active metadata that claims a usable file.
 - When an authorized user opens a document, the system shall issue a signed URL valid for 60 seconds.
 - While a document has `visibility = only_me`, the system shall allow only its creator and an organization owner/admin to read its row or file.
-- When metadata is soft-deleted, the system shall exclude it from active lists and retain the file until a separate purge workflow is specified.
+- When a permitted user deletes a document, the system shall remove its Storage
+  object, set `file_path` to null, soft-delete its metadata, and exclude it from
+  active lists.
+- Where document list ownership filters are shown, the system shall provide
+  `All` and `Only Me`; `Only Me` shall filter by the authenticated creator ID.

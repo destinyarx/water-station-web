@@ -14,8 +14,9 @@ import { EditDocumentDialog } from './edit-document-dialog'
 import { DeleteDocumentDialog } from './delete-document-dialog'
 import { DocumentRowActions } from './document-row-actions'
 
-type VisFilter = 'all' | 'mine' | 'private'
+type VisFilter = 'all' | 'mine'
 type DocStatus = 'expired' | 'expiring' | 'approved' | 'uploaded'
+const DOCUMENT_GRID = 'grid-cols-[2fr_2.2fr_1.5fr_120px_96px_52px]'
 
 const CATEGORY_OPTIONS = [
   'Business Permits',
@@ -36,12 +37,12 @@ function getFileExt(originalName: string | null): string {
   return parts.length > 1 ? parts[parts.length - 1].toUpperCase().slice(0, 4) : '—'
 }
 
-function getFileIconColors(ext: string): { bg: string; color: string } {
-  if (ext === 'PDF') return { bg: 'rgba(220,38,38,0.1)', color: '#dc2626' }
-  if (ext === 'JPG' || ext === 'PNG' || ext === 'GIF') return { bg: 'rgba(34,197,94,0.1)', color: '#15803d' }
-  if (ext === 'XLSX' || ext === 'CSV') return { bg: 'rgba(34,197,94,0.12)', color: '#166534' }
-  if (ext === 'DOCX' || ext === 'DOC') return { bg: 'rgba(59,130,246,0.1)', color: '#1d4ed8' }
-  return { bg: 'var(--app-chip-bg)', color: 'var(--app-brand)' }
+function getFileIconClass(ext: string): string {
+  if (ext === 'PDF') return 'bg-red-600/10 text-red-600'
+  if (ext === 'JPG' || ext === 'PNG' || ext === 'GIF') return 'bg-green-500/10 text-green-700 dark:text-green-300'
+  if (ext === 'XLSX' || ext === 'CSV') return 'bg-green-500/12 text-green-800 dark:text-green-300'
+  if (ext === 'DOCX' || ext === 'DOC') return 'bg-blue-500/10 text-blue-700 dark:text-blue-300'
+  return 'bg-[var(--app-chip-bg)] text-[var(--app-brand)]'
 }
 
 function getDocStatus(doc: Document, today: Date): DocStatus {
@@ -56,17 +57,16 @@ function getDocStatus(doc: Document, today: Date): DocStatus {
 }
 
 function StatusBadge({ status }: { status: DocStatus }) {
-  const styles: Record<DocStatus, { bg: string; color: string; label: string }> = {
-    expired:  { bg: 'var(--app-chip-red-bg)',   color: 'var(--app-chip-red-text)',   label: 'Expired' },
-    expiring: { bg: 'var(--app-chip-amber-bg)', color: 'var(--app-chip-amber-text)', label: 'Expiring' },
-    approved: { bg: 'var(--app-chip-green-bg)', color: 'var(--app-chip-green-text)', label: 'Approved' },
-    uploaded: { bg: 'var(--app-chip-bg)',       color: 'var(--app-brand)',            label: 'Uploaded' },
+  const styles: Record<DocStatus, { className: string; label: string }> = {
+    expired:  { className: 'bg-[var(--app-chip-red-bg)] text-[var(--app-chip-red-text)]', label: 'Expired' },
+    expiring: { className: 'bg-[var(--app-chip-amber-bg)] text-[var(--app-chip-amber-text)]', label: 'Expiring' },
+    approved: { className: 'bg-[var(--app-chip-green-bg)] text-[var(--app-chip-green-text)]', label: 'Approved' },
+    uploaded: { className: 'bg-[var(--app-chip-bg)] text-[var(--app-brand)]', label: 'Uploaded' },
   }
   const s = styles[status]
   return (
     <span
-      className="inline-flex items-center px-2.5 py-0.5 rounded-[7px] text-[12px] font-semibold"
-      style={{ background: s.bg, color: s.color }}
+      className={`inline-flex items-center rounded-[7px] px-2.5 py-0.5 text-xs font-semibold ${s.className}`}
     >
       {s.label}
     </span>
@@ -77,28 +77,21 @@ interface StatChipProps {
   label: string
   value: number
   helper: string
-  accentColor: string
-  chipBg?: string
-  chipColor?: string
+  accentClass: string
+  chipClass: string
   isLoading?: boolean
   icon: React.ReactNode
 }
 
 /** Matches the deliveries board's stat card. */
-function StatChip({ label, value, helper, accentColor, chipBg, chipColor, isLoading, icon }: StatChipProps) {
+function StatChip({ label, value, helper, accentClass, chipClass, isLoading, icon }: StatChipProps) {
   return (
-    <article
-      className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-[16px] px-4 py-[15px]"
-      style={{ borderLeft: `3px solid ${accentColor}`, boxShadow: 'var(--app-shadow-card)' }}
-    >
+    <article className={`rounded-[16px] border border-l-[3px] border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-[15px] shadow-[var(--app-shadow-card)] ${accentClass}`}>
       <div className="flex items-center justify-between mb-2.5">
         <p className="text-[10.5px] font-bold tracking-[0.08em] uppercase text-[var(--app-text-faint)]">
           {label}
         </p>
-        <div
-          className="w-7 h-7 rounded-[9px] flex items-center justify-center"
-          style={{ background: chipBg ?? 'var(--app-chip-bg)', color: chipColor ?? 'var(--app-brand)' }}
-        >
+        <div className={`flex h-7 w-7 items-center justify-center rounded-[9px] ${chipClass}`}>
           {icon}
         </div>
       </div>
@@ -113,10 +106,7 @@ function StatChip({ label, value, helper, accentColor, chipBg, chipColor, isLoad
 /** The lead gradient card, mirroring the deliveries board's featured stat. */
 function FeaturedStat({ label, value, helper, isLoading, icon }: { label: string; value: number; helper: string; isLoading: boolean; icon: React.ReactNode }) {
   return (
-    <article
-      className="relative overflow-hidden rounded-[16px] px-4 py-[15px]"
-      style={{ background: 'linear-gradient(150deg,#0b73c8,#075098)', boxShadow: '0 14px 30px rgba(14,108,196,0.26)' }}
-    >
+    <article className="relative overflow-hidden rounded-[16px] bg-[linear-gradient(150deg,#0b73c8,#075098)] px-4 py-[15px] shadow-[0_14px_30px_rgba(14,108,196,0.26)]">
       <div className="absolute -right-4 -bottom-[22px] leading-none opacity-[0.22]">
         <svg width="150" height="80" viewBox="0 0 150 80" preserveAspectRatio="none">
           <path d="M0 44 C30 26 55 56 85 42 C115 28 135 50 150 40 L150 80 L0 80 Z" fill="#fff" />
@@ -125,7 +115,7 @@ function FeaturedStat({ label, value, helper, isLoading, icon }: { label: string
       <div className="relative">
         <div className="flex items-center justify-between mb-2.5">
           <p className="text-[10.5px] font-bold tracking-[0.08em] uppercase text-[#bfe2ff]">{label}</p>
-          <div className="w-7 h-7 rounded-[9px] flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.18)' }}>
+          <div className="flex h-7 w-7 items-center justify-center rounded-[9px] bg-white/18 text-white">
             {icon}
           </div>
         </div>
@@ -171,8 +161,7 @@ export function DocumentsPage() {
 
   const visFilters: { key: VisFilter; label: string }[] = [
     { key: 'all', label: 'All' },
-    { key: 'mine', label: 'Mine' },
-    { key: 'private', label: 'Private' },
+    { key: 'mine', label: 'Only Me' },
   ]
 
   return (
@@ -189,8 +178,7 @@ export function DocumentsPage() {
           </div>
           <Button
             onClick={() => setUploadOpen(true)}
-            className="flex-none gap-2 px-5"
-            style={{ background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', boxShadow: '0 10px 22px rgba(14,108,196,0.3)' }}
+            className="flex-none gap-2 bg-[linear-gradient(150deg,#3fb0f0,#0a6cc4)] px-5 shadow-[0_10px_22px_rgba(14,108,196,0.3)]"
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -202,7 +190,7 @@ export function DocumentsPage() {
         </div>
 
         {/* Stat cards */}
-        <div className="grid gap-3.5 mb-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))' }}>
+        <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-3.5">
           <FeaturedStat
             label="Total Documents"
             value={stats.total}
@@ -220,9 +208,8 @@ export function DocumentsPage() {
             label="Private"
             value={stats.privateCount}
             helper="Visible to uploader only"
-            accentColor="#f59e0b"
-            chipBg="var(--app-chip-amber-bg)"
-            chipColor="var(--app-chip-amber-text)"
+            accentClass="border-l-amber-500"
+            chipClass="bg-[var(--app-chip-amber-bg)] text-[var(--app-chip-amber-text)]"
             isLoading={statsQuery.isPending}
             icon={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -235,9 +222,8 @@ export function DocumentsPage() {
             label="Expiring Soon"
             value={stats.expiringSoon}
             helper="Expiring within 30 days"
-            accentColor={stats.expiringSoon > 0 ? '#ef4444' : 'var(--app-border)'}
-            chipBg={stats.expiringSoon > 0 ? 'var(--app-chip-red-bg)' : 'var(--app-chip-gray-bg)'}
-            chipColor={stats.expiringSoon > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text-faint)'}
+            accentClass={stats.expiringSoon > 0 ? 'border-l-red-500' : 'border-l-[var(--app-border)]'}
+            chipClass={stats.expiringSoon > 0 ? 'bg-[var(--app-chip-red-bg)] text-[var(--app-chip-red-text)]' : 'bg-[var(--app-chip-gray-bg)] text-[var(--app-text-faint)]'}
             isLoading={statsQuery.isPending}
             icon={
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -250,9 +236,8 @@ export function DocumentsPage() {
             label="Shared"
             value={stats.sharedCount}
             helper="Visible to all staff"
-            accentColor="#22c55e"
-            chipBg="var(--app-chip-green-bg)"
-            chipColor="var(--app-chip-green-text)"
+            accentClass="border-l-green-500"
+            chipClass="bg-[var(--app-chip-green-bg)] text-[var(--app-chip-green-text)]"
             isLoading={statsQuery.isPending}
             icon={
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -313,15 +298,9 @@ export function DocumentsPage() {
         </div>
 
         {/* Table */}
-        <div
-          className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-[18px] overflow-hidden"
-          style={{ boxShadow: '0 6px 22px rgba(20,100,180,0.06)' }}
-        >
+        <div className="overflow-hidden rounded-[18px] border border-[var(--app-border)] bg-[var(--app-surface)] shadow-[0_6px_22px_rgba(20,100,180,0.06)]">
           {/* Head */}
-          <div
-            className="grid border-b border-[var(--app-border)] bg-[var(--app-surface-2)] px-[18px]"
-            style={{ gridTemplateColumns: '2fr 2.2fr 1.5fr 120px 96px 52px' }}
-          >
+          <div className={`grid border-b border-[var(--app-border)] bg-[var(--app-surface-2)] px-[18px] ${DOCUMENT_GRID}`}>
             {['Title', 'Description', 'Category / Type', 'Date', 'Status', ''].map((col) => (
               <div
                 key={col}
@@ -336,11 +315,7 @@ export function DocumentsPage() {
           {(documentsQuery.isLoading || statsQuery.isLoading) && (
             <div className="divide-y divide-[var(--app-border)]">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="grid px-[18px] py-4 animate-pulse"
-                  style={{ gridTemplateColumns: '2fr 2.2fr 1.5fr 120px 96px 52px' }}
-                >
+                <div key={i} className={`grid animate-pulse px-[18px] py-4 ${DOCUMENT_GRID}`}>
                   <div className="flex items-center gap-2.5 px-2.5">
                     <div className="w-8 h-8 rounded-[9px] bg-[var(--app-border)]" />
                     <div className="flex-1 h-3 rounded bg-[var(--app-border)]" />
@@ -386,21 +361,14 @@ export function DocumentsPage() {
             <div className="divide-y divide-[var(--app-border)]">
               {documents.map((doc) => {
                 const ext = getFileExt(doc.originalName)
-                const { bg: iconBg, color: iconColor } = getFileIconColors(ext)
+                const iconClass = getFileIconClass(ext)
                 const status = getDocStatus(doc, today)
 
                 return (
-                  <div
-                    key={doc.id}
-                    className="grid px-[18px] items-center hover:bg-[var(--app-surface-2)] transition-colors"
-                    style={{ gridTemplateColumns: '2fr 2.2fr 1.5fr 120px 96px 52px' }}
-                  >
+                  <div key={doc.id} className={`grid items-center px-[18px] transition-colors hover:bg-[var(--app-surface-2)] ${DOCUMENT_GRID}`}>
                     {/* Title */}
                     <div className="px-2.5 py-3.5 flex items-center gap-2.5 min-w-0">
-                      <div
-                        className="flex-none w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-[9px] font-extrabold tracking-[0.03em]"
-                        style={{ background: iconBg, color: iconColor }}
-                      >
+                      <div className={`flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] text-[9px] font-extrabold tracking-[0.03em] ${iconClass}`}>
                         {ext}
                       </div>
                       <div className="min-w-0">

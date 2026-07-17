@@ -3,7 +3,7 @@
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
 
 import type { Document } from '../documents.types'
-import { useSoftDeleteDocument } from '../hooks/use-soft-delete-document'
+import { useDeleteDocument } from '../hooks/use-soft-delete-document'
 
 interface DeleteDocumentDialogProps {
   doc: Document | null
@@ -11,7 +11,7 @@ interface DeleteDocumentDialogProps {
 }
 
 export function DeleteDocumentDialog({ doc, onClose }: DeleteDocumentDialogProps) {
-  const { mutate, isPending, isError, error, reset } = useSoftDeleteDocument()
+  const { mutate, isPending, isError, error, reset } = useDeleteDocument()
 
   if (!doc) return null
 
@@ -22,7 +22,7 @@ export function DeleteDocumentDialog({ doc, onClose }: DeleteDocumentDialogProps
 
   function handleDelete(): void {
     if (!doc) return
-    mutate(doc.id, { onSuccess: handleClose })
+    mutate(doc, { onSuccess: handleClose })
   }
 
   return (
@@ -32,14 +32,14 @@ export function DeleteDocumentDialog({ doc, onClose }: DeleteDocumentDialogProps
         if (!next) handleClose()
       }}
       variant="destructive"
-      title="Archive this document?"
+      title="Delete this document?"
       description={
         <>
-          &ldquo;{doc.title}&rdquo; will be removed from your records.
+          &ldquo;{doc.title}&rdquo; and its stored file will be permanently deleted. This cannot be undone.
         </>
       }
-      confirmLabel="Yes, archive"
-      pendingLabel="Archiving..."
+      confirmLabel="Delete document"
+      pendingLabel="Deleting..."
       onConfirm={handleDelete}
       isPending={isPending}
       errorMessage={isError ? error.message : undefined}

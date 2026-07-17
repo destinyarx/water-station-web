@@ -43,6 +43,7 @@ export async function getActiveCustomers(
     .from(CUSTOMERS_TABLE)
     .select(CUSTOMER_COLUMNS, { count: 'exact' })
     .is('deleted_at', null)
+    .eq('is_active', filters.status === 'active')
 
   const search = filters.search.trim()
   if (search !== '') {
@@ -73,6 +74,7 @@ export async function getCustomerOptions(
     .from(CUSTOMERS_TABLE)
     .select(CUSTOMER_COLUMNS)
     .is('deleted_at', null)
+    .eq('is_active', true)
     .order('name', { ascending: true })
     .limit(500)
 
@@ -91,6 +93,7 @@ export async function getCustomerStats(
       .from(CUSTOMERS_TABLE)
       .select('id', countOptions)
       .is('deleted_at', null)
+      .eq('is_active', true)
 
   const [totalResult, businessResult, householdResult] = await Promise.all([
     base(),

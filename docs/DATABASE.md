@@ -141,6 +141,12 @@ On create, the service writes `org_id`/`created_by` from the resolved Clerk
 identity, never from form input. RLS independently rejects cross-organization
 access and invalid ownership/role combinations.
 
+Product update policies and trigger guards call functions stored in the
+non-exposed `private` schema. The `authenticated` role therefore has `USAGE` on
+that schema so PostgreSQL can resolve those database-internal functions; this
+does not expose the schema through the Data API. Follow-up migration:
+`supabase/migrations/20260716001701_grant_authenticated_private_schema_usage.sql`.
+
 ### Policies
 
 | Policy                                             | Cmd    | Rule                                                                 |
@@ -161,7 +167,7 @@ list, while `product_name`, `price`, `is_stock_tracked`, `descriptions`,
 `is_active`, `org_id`, `created_by` and `deleted_at` stay owner-or-creator. The
 guard **raises** rather than filtering, so a refusal reaches the client as a real
 error instead of a zero-row no-op. See ADR 0015 and
-`supabase/migrations/20260715000000_shared_operational_queue_rls.sql`.
+`supabase/migrations/20260715053252_shared_operation_queue_rls.sql`.
 
 ### Manual RLS verification
 
@@ -177,6 +183,9 @@ error instead of a zero-row no-op. See ADR 0015 and
    confirm owner override succeeds.
 6. Attempt to update or soft-delete an org B product id directly as either
    staff or owner; RLS must block it.
+7. Confirm `has_schema_privilege('authenticated', 'private', 'usage')` returns
+   `true`; then discontinue a staff-created product as that staff user and
+   confirm the update succeeds without SQLSTATE `42501`.
 
 ## `public.expenses`
 
@@ -214,10 +223,9 @@ snapshot). Rationale and trade-offs:
 `docs/adr/0002-deliveries-two-entity-rolling-materialization.md`. Feature spec:
 `docs/specs/004-deliveries-module/`.
 
-Migration to run in the Supabase dashboard (no `supabase/` folder in repo):
-`docs/specs/004-deliveries-module/004-deliveries-schema.md`. That file is the
-authoritative source for columns, enums, constraints, indexes, and policies;
-keep it and this section synchronized with the live tables.
+Canonical migrations live in the sibling `water-station-supabase` repository.
+Keep them, `docs/specs/004-deliveries-module/004-deliveries-schema.md`, and this
+section synchronized with the live tables.
 
 ### `public.delivery_schedules`
 
@@ -237,16 +245,38 @@ label (CHECK: exactly one). Holds the recurrence rule:
 
 A single dated occurrence carrying the operational lifecycle. `status` enum
 (`pending` | `for_delivery` | `completed` | `failed` | `cancelled`); `failure_remarks`
-required iff `failed` (CHECK). `delivered_by` is auto-stamped with the Clerk user
+is required iff `failed`, and `cancellation_remarks` is required iff
+`cancelled` (CHECK). `delivered_by` is auto-stamped with the Clerk user
 who moves it to `for_delivery`. Unique `(schedule_id, delivery_date)` (active
 rows) makes the rolling 14-day client-triggered materialization idempotent.
 Standard tenant/audit/soft-delete columns.
+
+> **Parent-FK repair verification (2026-07-17).** The
+> original migration accidentally constrained `deliveries.schedule_id` and
+> `delivery_schedule_items.schedule_id` to their own tables. Canonical migration
+> `20260717080000_repair_delivery_parent_relations_and_users_rls.sql` aborts on
+> orphan rows and repairs both references to `delivery_schedules(id)` before the
+> Dashboard V1 backfill. It now appears in remote history and read-only
+> PostgREST relationship probes resolve both intended parents; authenticated SQL
+> verification remains required.
 
 ### `public.delivery_schedule_items` / `public.delivery_items`
 
 Template lines vs. per-occurrence snapshot. Snapshot rows store `product_name`
 and `unit_price` captured at materialization so historical deliveries are
 unaffected by later product changes. Totals are computed in app, not persisted.
+
+> **Dashboard V1 snapshot migration (applied 2026-07-17).**
+> Canonical migration `20260717090000_dashboard_v1_aggregates.sql` in the
+> `water-station-supabase` repository adds a
+> non-null `is_stock_tracked` snapshot to both item tables, backfills existing
+> rows with the best available schedule/product value, and guards every future
+> item insert path. Earlier product reclassification cannot be reconstructed
+> perfectly. Follow-up migration
+> `20260717100000_fix_dashboard_helper_volatility.sql` aligns private helper
+> planner metadata with live lint. Linked history is synchronized, the dry run
+> is empty, and linked database lint is clean; authenticated role/tenant and
+> SQL metadata checks remain recorded in `docs/specs/014-dashboard-v1/MIGRATION.md`.
 
 ### `public.delivery_schedule_dates`
 
@@ -258,6 +288,38 @@ Custom-date schedules store one row per selected date with `schedule_id`, `deliv
 - `replace_delivery_items_atomic(integer, date, text, jsonb)` locks a pending occurrence and replaces its date, notes, and item snapshots in one transaction.
 
 Both functions are `SECURITY INVOKER`, executable only by `authenticated`, and rely on table RLS. Definitions are in handoff migration `005-atomic-delivery-writes.sql`.
+
+Cancellation uses the same atomic status function. It permits only
+`pending -> cancelled` or `for_delivery -> cancelled`, requires a trimmed
+reason, restores stock when leaving `for_delivery`, and updates only the chosen
+occurrence. It does not update `delivery_schedules` or future occurrences.
+
+The Dashboard V1 migration replaces `replace_delivery_items_atomic` with the
+same public signature and adds classification snapshot preservation. It does
+not change delivery transition policies or status semantics.
+
+### Dashboard V1 aggregate functions
+
+Dashboard V1 uses two bounded JSON functions:
+
+| Function | Access | Contents |
+| --- | --- | --- |
+| `get_dashboard_financials(p_period text, p_reference_date date)` | Organization owner only; database-enforced with `private.org_role` | Activity flag, delivery sales/trends, expenses/trends, daily chart buckets, sales mix, top five products |
+| `get_dashboard_operations(p_period text, p_reference_date date)` | Authenticated organization members under source-table RLS | Activity flag, pending/completed delivery and refill-unit metrics, today's delivery queue, low stock, maintenance due |
+
+Both are `STABLE`, `SECURITY INVOKER`, accept no organization/user/role
+parameter, validate the four dashboard periods, and are granted to
+`authenticated` only. The operational payload deliberately has no price,
+revenue, sales, expense, mix, or top-product-revenue fields. Source RLS and
+active-row filters remain in force. Both functions also validate the active
+top-level Clerk `organization` claim and explicitly constrain every source query
+to that UUID, preventing multi-membership results from combining stations.
+
+Manual verification after application: an owner can call both functions; staff
+can call operations but financials raises SQLSTATE `42501`; anon cannot execute
+either; org A sees no org B values; unsupported periods fail; function metadata
+shows `prosecdef = false` and volatility `stable`. Full commands/checks are in
+`docs/specs/014-dashboard-v1/MIGRATION.md`.
 
 ### Identity / org resolution
 
@@ -305,7 +367,7 @@ array_length(weekdays,1)`. `equipment_other` is required iff `equipment =
 
 ### `public.maintenance_tasks`
 
-A single dated occurrence carrying `status` (`pending|completed`), `assigned_to`
+A single dated occurrence carrying `status` (`pending|completed|cancelled`), `assigned_to`
 (nullable FK `users(clerk_id)` — the per-occurrence assignee), `completed_at`,
 `completed_by`. Unique `(schedule_id, due_date) where deleted_at is null` makes
 roll-forward idempotent. Standard tenant/audit/soft-delete columns.
@@ -328,11 +390,10 @@ manage schedules regardless of `created_by`; only archiving a schedule is
 owner-restricted.
 
 > **Assignee picker prerequisite.** The form lists org staff from
-> `public.users` (`clerk_id`, `name`, `org_id`). The migration adds a
-> `users_select_org_members` SELECT policy if absent so members can read
-> co-members within their org. Verify the `users` table actually has an `org_id`
-> column scoped to `organizations(organization_code)`; adjust the policy if your
-> column name differs.
+> `public.users` (`clerk_id`, `name`, `org_id`). Canonical migration
+> `20260717080000_repair_delivery_parent_relations_and_users_rls.sql` replaces
+> only the existing users SELECT policy so it uses the documented top-level
+> Clerk `organization` UUID and verifies `private.is_org_member(org_id)`.
 
 ### Manual RLS verification
 
@@ -366,9 +427,9 @@ Organization permits, receipts, compliance records, and related private files. S
 | `updated_at` | timestamp | server trigger-owned |
 | `deleted_at` | timestamp | nullable soft-delete marker |
 
-RLS: organization members may insert; active shared documents are visible to members; private documents are visible only to their creator and organization admins/owners; update/archive requires creator or admin/owner. The private `documents` Storage bucket accepts PDF, PNG, JPEG, and WEBP up to 10 MiB. Object access is linked back to a visible document row and organization-prefixed path. Files are retained when metadata is soft-deleted unless an explicit purge workflow is added.
+RLS: organization members may insert; active shared documents are visible to members; private documents are visible only to their creator and organization admins/owners; update/delete requires creator or admin/owner. The private `documents` Storage bucket accepts PDF, PNG, JPEG, and WEBP up to 10 MiB. Object access is linked back to a visible document row and organization-prefixed path. The application Delete flow verifies metadata update permission, removes the linked Storage object, clears `file_path`, and soft-deletes the metadata row.
 
-Manual verification: test shared/private reads as creator, other staff, owner, and another organization; confirm invalid MIME/oversized uploads fail; confirm signed URLs expire; confirm archive removes metadata from active lists without exposing the object.
+Manual verification: test shared/private reads as creator, other staff, owner, and another organization; confirm invalid MIME/oversized uploads fail; confirm signed URLs expire; confirm Delete removes the object and clears `file_path`; confirm staff can delete their own document, owners can delete same-organization documents, and cross-organization deletes fail.
 
 ## `public.notifications` (feature 013-realtime-notifications-features)
 
