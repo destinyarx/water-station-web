@@ -65,9 +65,6 @@ export function CustomersTable({ customers }: { customers: Customer[] }) {
                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     {isBiz ? 'Business' : 'Household'}
                   </span>
-                  {customer.isActive ? null : (
-                    <span className="rounded-full bg-[var(--app-chip-gray-bg)] px-2.5 py-[5px] text-xs font-semibold text-[var(--app-chip-gray-text)]">Inactive</span>
-                  )}
                 </div>
               </div>
 
