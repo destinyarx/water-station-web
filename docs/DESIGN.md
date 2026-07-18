@@ -348,6 +348,28 @@ Violet-accented panel with One-time / Everyday / Weekly pills. One-time reveals 
 
 ---
 
+## Delivery schedule and history dialogs (feature 016)
+
+The Recurring Schedules and Delivery History dialogs use the wide operational
+modal pattern (`max-width: 1080–1120px`) so recipient, timing, outcome, and
+action hierarchy remain readable without a cramped table. Their scroll regions
+reserve a stable gutter and additional right padding so content does not touch
+the scrollbar.
+
+- **Schedules** — responsive filter row (customer search, Active/Inactive,
+  Business/Household) above stacked surface cards. Each card shows recipient
+  and type first, then recurrence and a single timing callout: Current due work
+  takes priority; otherwise show Next. Template items live in a collapsed
+  disclosure and Stop/Resume remains the only action.
+- **History** — outcome filter pills above stacked surface cards ordered by the
+  recorded terminal time. Recipient and outcome lead; scheduled date and total
+  are secondary. Failure/cancellation reason uses the red chip treatment.
+  Product names, quantities in neutral `unit`/`units`, and line totals live in a
+  collapsed disclosure.
+- Both surfaces use Tailwind utilities with `--app-*` tokens, the shared
+  `AppModal`, limit-plus-one Previous/Next pagination, and dedicated
+  loading/error/empty/no-result states.
+
 ## Module Patterns (feature 011 — AquaFlow AI Assistant)
 
 The owner-only **AI Assistant** page (`/ai-assistant`) is a full-height, two-pane chat

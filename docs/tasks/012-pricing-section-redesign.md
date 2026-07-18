@@ -1,3 +1,5 @@
+## Status: Done
+
 Redesign the existing Pricing section while retaining the current three-card structure:
 
 1. Starter

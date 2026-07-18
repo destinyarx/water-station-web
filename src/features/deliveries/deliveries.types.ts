@@ -141,11 +141,29 @@ export interface DeliveryItem {
 
 export interface DeliveryScheduleInfo {
   customerId: number | null
+  customerName?: string | null
+  customerIsBusiness?: boolean | null
   guestName: string | null
   guestAddress: string | null
   recurrenceType: DeliveryRecurrenceType
   weekdays: number[] | null
   intervalWeeks: number | null
+}
+
+export interface DeliveryScheduleItemSummary {
+  productId: number
+  productName: string
+  quantity: number
+  isStockTracked: boolean
+}
+
+export interface DeliveryScheduleListItem {
+  schedule: DeliveryScheduleRow
+  customerName: string | null
+  customerIsBusiness: boolean | null
+  items: DeliveryScheduleItemSummary[]
+  currentDeliveryDate: string | null
+  nextDeliveryDate: string | null
 }
 
 export interface Delivery {

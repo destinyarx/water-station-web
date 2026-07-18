@@ -1,5 +1,9 @@
 import { dueDatesFor, toRecurrenceRule } from './deliveries.recurrence'
-import type { DeliveryScheduleRow } from './deliveries.types'
+import type {
+  Delivery,
+  DeliveryScheduleListItem,
+  DeliveryScheduleRow,
+} from './deliveries.types'
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -51,4 +55,31 @@ export function nextUpcomingDate(
     addDays(today, horizonDays),
   )
   return dates[0] ?? null
+}
+
+export type ScheduleTiming =
+  | { kind: 'current'; date: string }
+  | { kind: 'next'; date: string }
+  | { kind: 'empty'; date: null }
+
+/** Current due work takes priority; otherwise show the nearest future run. */
+export function scheduleTiming(item: DeliveryScheduleListItem): ScheduleTiming {
+  if (item.currentDeliveryDate != null) {
+    return { kind: 'current', date: item.currentDeliveryDate }
+  }
+
+  if (item.nextDeliveryDate != null) {
+    return { kind: 'next', date: item.nextDeliveryDate }
+  }
+
+  return { kind: 'empty', date: null }
+}
+
+/** Cross-status terminal event timestamp used by the history presentation. */
+export function deliveryTerminalTimestamp(delivery: Delivery): string {
+  return (
+    delivery.updatedAt ??
+    delivery.completedAt ??
+    `${delivery.deliveryDate}T00:00:00`
+  )
 }

@@ -262,7 +262,7 @@ export function DeliveriesPage() {
         onSaved={() => setToastMessage('Delivery updated successfully.')}
       />
       <DeliveryHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} />
-      <ScheduleListDialog open={schedulesOpen} onOpenChange={setSchedulesOpen} customers={customersQuery.data ?? []} />
+      <ScheduleListDialog open={schedulesOpen} onOpenChange={setSchedulesOpen} />
     </div>
   )
 }

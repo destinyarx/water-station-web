@@ -4,6 +4,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { UseQueryResult } from '@tanstack/react-query'
 
 import { deliveryKeys } from '../deliveries.keys'
+import type { DeliveryHistoryFilters } from '../deliveries.keys'
 import {
   getDeliveryHistory,
   type DeliveryHistoryPage,
@@ -11,14 +12,14 @@ import {
 import { useClerkSupabase } from '@/hooks/use-clerk-supabase'
 
 export function useDeliveryHistory(
-  page: number,
+  filters: DeliveryHistoryFilters,
   enabled: boolean,
 ): UseQueryResult<DeliveryHistoryPage, Error> {
   const client = useClerkSupabase()
 
   return useQuery<DeliveryHistoryPage, Error>({
-    queryKey: deliveryKeys.historyPage(page),
-    queryFn: () => getDeliveryHistory(client, page),
+    queryKey: deliveryKeys.historyPage(filters),
+    queryFn: () => getDeliveryHistory(client, filters),
     enabled,
     placeholderData: keepPreviousData,
   })

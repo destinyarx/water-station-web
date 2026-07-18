@@ -53,7 +53,7 @@ function updateReturning(rows: Array<{ id: number }>) {
 }
 
 describe('pauseSchedule', () => {
-  it('pauses the schedule and soft-deletes only pending occurrences dated >= today', async () => {
+  it('pauses the schedule and targets only pending occurrences dated today or later', async () => {
     const scheduleUpdate = updateReturning([{ id: 99 }])
 
     const occurrenceFilters: Array<[string, unknown]> = []
@@ -94,6 +94,11 @@ describe('pauseSchedule', () => {
       ['status', 'pending'],
       ['delivery_date', '2026-06-23'],
       ['deleted_at', null],
+    ])
+    // The exact status predicate protects in-flight and terminal occurrences:
+    // for_delivery, completed, cancelled, and failed are not mutation targets.
+    expect(occurrenceFilters.filter(([column]) => column === 'status')).toEqual([
+      ['status', 'pending'],
     ])
   })
 

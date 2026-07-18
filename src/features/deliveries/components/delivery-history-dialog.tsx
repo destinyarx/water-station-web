@@ -1,10 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import {
+  Box,
+  CalendarDays,
+  ChevronDown,
+  CircleX,
+  Clock3,
+  History,
+  PackageOpen,
+  UserRound,
+} from 'lucide-react'
 
 import { AppModal } from '@/components/app/app-modal'
+import { cn } from '@/lib/utils'
 import { pesoFormatter } from '../deliveries.constants'
-import type { Delivery } from '../deliveries.types'
+import type { DeliveryHistoryStatusFilter } from '../deliveries.keys'
+import { deliveryTerminalTimestamp } from '../deliveries.schedule-view'
+import type { Delivery, DeliveryStatus } from '../deliveries.types'
 import { useDeliveryHistory } from '../hooks/use-delivery-history'
 import { DeliveryStatusMenu } from './delivery-status-menu'
 
@@ -13,30 +26,43 @@ interface DeliveryHistoryDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-const HISTORY_ICON = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7v5l3.5 2" />
-  </svg>
-)
+const HISTORY_ICON = <History className="size-5 text-white" />
+
+const statusFilters: Array<{
+  value: DeliveryHistoryStatusFilter
+  label: string
+}> = [
+  { value: 'all', label: 'All outcomes' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'failed', label: 'Failed' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
 
 export function DeliveryHistoryDialog({
   open,
   onOpenChange,
 }: DeliveryHistoryDialogProps) {
   const [page, setPage] = useState(0)
+  const [status, setStatus] = useState<DeliveryHistoryStatusFilter>('all')
   const [message, setMessage] = useState<string | null>(null)
-  const query = useDeliveryHistory(page, open)
+  const filters = useMemo(() => ({ page, status }), [page, status])
+  const query = useDeliveryHistory(filters, open)
 
   const deliveries = query.data?.deliveries ?? []
   const hasNext = query.data?.hasNext ?? false
 
-  function handleOpenChange(next: boolean) {
+  function handleOpenChange(next: boolean): void {
     if (!next) {
       setPage(0)
+      setStatus('all')
       setMessage(null)
     }
     onOpenChange(next)
+  }
+
+  function selectStatus(next: DeliveryHistoryStatusFilter): void {
+    setStatus(next)
+    setPage(0)
   }
 
   return (
@@ -44,14 +70,39 @@ export function DeliveryHistoryDialog({
       open={open}
       onOpenChange={handleOpenChange}
       title="Delivery history"
-      description="Completed, failed, and cancelled delivery runs."
+      description="Completed, failed, and cancelled delivery runs in chronological order."
       icon={HISTORY_ICON}
-      maxWidth="640px"
-      bodyPadding="20px 26px 0"
+      maxWidth="1080px"
+      bodyPadding="0"
     >
-      <div style={{ maxHeight: '58vh', overflowY: 'auto', paddingBottom: '16px' }}>
+      <div className="max-h-[72vh] overflow-y-auto px-5 py-5 pr-8 [scrollbar-gutter:stable] sm:px-6 sm:pr-9">
+        <div
+          className="mb-5 flex flex-wrap gap-2"
+          aria-label="Filter delivery history by status"
+        >
+          {statusFilters.map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              aria-pressed={status === filter.value}
+              onClick={() => selectStatus(filter.value)}
+              className={cn(
+                'rounded-xl border px-3.5 py-2 text-sm font-semibold transition',
+                status === filter.value
+                  ? 'border-(--app-brand) bg-(--app-brand) text-white shadow-sm'
+                  : 'border-(--app-border-strong) bg-(--app-surface) text-(--app-text-soft) hover:bg-(--app-surface-2)',
+              )}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
         {message ? (
-          <p role="status" style={{ borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-chip-bg)', color: 'var(--app-brand)', padding: '9px 12px', fontSize: '13.5px', fontWeight: 600, margin: '0 0 14px' }}>
+          <p
+            role="status"
+            className="mb-4 rounded-xl border border-(--app-border-strong) bg-(--app-chip-bg) px-3.5 py-2.5 text-sm font-semibold text-(--app-brand)"
+          >
             {message}
           </p>
         ) : null}
@@ -59,51 +110,36 @@ export function DeliveryHistoryDialog({
         {query.isPending ? (
           <HistorySkeleton />
         ) : query.isError ? (
-          <p role="alert" style={{ borderRadius: '11px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '10px 13px', fontSize: '13.5px', color: '#dc2626' }}>
+          <p
+            role="alert"
+            className="rounded-xl border border-red-500/30 bg-red-500/6 px-4 py-3 text-sm text-red-600"
+          >
             {query.error.message}
           </p>
         ) : deliveries.length === 0 ? (
-          <p style={{ padding: '38px 0', textAlign: 'center', fontSize: '14px', color: 'var(--app-text-muted)' }}>
-            No completed, failed, or cancelled deliveries yet.
-          </p>
+          <EmptyHistory filtered={status !== 'all'} />
         ) : (
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: '8px', listStyle: 'none', margin: 0, padding: 0 }}>
+          <ul className="m-0 grid list-none gap-3 p-0">
             {deliveries.map((delivery) => (
               <HistoryRow
                 key={delivery.id}
                 delivery={delivery}
-                onReverted={(text) => setMessage(text)}
-                onError={(text) => setMessage(text)}
+                onReverted={setMessage}
+                onError={setMessage}
               />
             ))}
           </ul>
         )}
-      </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 0', borderTop: '1px solid var(--app-border)' }}>
-        <span style={{ fontSize: '13px', color: 'var(--app-text-soft)' }}>
-          Page {page + 1}
-          {query.isFetching ? ' · updating…' : ''}
-        </span>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <PagBtn onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={page === 0 || query.isFetching}>← Prev</PagBtn>
-          <PagBtn onClick={() => setPage((current) => current + 1)} disabled={!hasNext || query.isFetching}>Next →</PagBtn>
-        </div>
+        <PaginationFooter
+          page={page}
+          hasNext={hasNext}
+          isFetching={query.isFetching}
+          onPrevious={() => setPage((current) => Math.max(0, current - 1))}
+          onNext={() => setPage((current) => current + 1)}
+        />
       </div>
     </AppModal>
-  )
-}
-
-function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--app-border-strong)', background: disabled ? 'var(--app-surface-2)' : 'var(--app-surface)', color: disabled ? 'var(--app-text-faint)' : 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: disabled ? 'default' : 'pointer' }}
-    >
-      {children}
-    </button>
   )
 }
 
@@ -116,55 +152,240 @@ function HistoryRow({
   onReverted: (message: string) => void
   onError: (message: string) => void
 }) {
-  const isFailed = delivery.status === 'failed'
-  const isCancelled = delivery.status === 'cancelled'
+  const reason =
+    delivery.status === 'failed'
+      ? delivery.failureRemarks
+      : delivery.status === 'cancelled'
+        ? delivery.cancellationRemarks
+        : null
+  const recipient =
+    delivery.scheduleInfo?.customerName ??
+    delivery.scheduleInfo?.guestName ??
+    'Unknown recipient'
+  const customerType = delivery.scheduleInfo?.customerIsBusiness
+  const quantity = delivery.items.reduce((total, item) => total + item.quantity, 0)
 
   return (
-    <li style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', borderRadius: '14px', border: '1px solid var(--app-border)', background: 'var(--app-surface)', padding: '12px' }}>
-      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <HistoryStatusBadge status={delivery.status} />
-          <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)' }}>
-            {formatDate(delivery.deliveryDate)}
-          </span>
-          <span style={{ fontSize: '13.5px', color: 'var(--app-text-soft)' }}>
-            {pesoFormatter.format(delivery.total)}
-          </span>
+    <li className="rounded-2xl border border-(--app-border) bg-(--app-surface) p-4 shadow-(--app-shadow-card) sm:p-5">
+      <div className="grid gap-4 md:grid-cols-[minmax(190px,1.2fr)_minmax(190px,1fr)_minmax(130px,auto)_auto] md:items-start">
+        <div className="min-w-0">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <HistoryStatusBadge status={delivery.status} />
+            <RecipientTypeBadge
+              isBusiness={customerType ?? null}
+              isGuest={delivery.scheduleInfo?.customerId == null}
+            />
+          </div>
+          <p className="truncate text-base font-bold text-(--app-text)">
+            {recipient}
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-(--app-text-soft)">
+            <UserRound className="size-3.5" />
+            Delivery #{delivery.id}
+          </p>
         </div>
-        <p style={{ fontSize: '13px', color: 'var(--app-text-soft)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {delivery.items.map((item) => item.productName).join(', ') || 'No items'}
-        </p>
-        {isFailed && delivery.failureRemarks ? (
-          <p style={{ fontSize: '13px', color: '#dc2626', margin: 0 }}>Reason: {delivery.failureRemarks}</p>
-        ) : null}
-        {isCancelled && delivery.cancellationRemarks ? (
-          <p style={{ fontSize: '13px', color: '#dc2626', margin: 0 }}>Reason: {delivery.cancellationRemarks}</p>
-        ) : null}
+
+        <div className="rounded-xl bg-(--app-surface-2) px-3.5 py-3">
+          <p className="flex items-center gap-1.5 text-[10px] font-bold tracking-[0.08em] text-(--app-text-faint) uppercase">
+            <Clock3 className="size-3.5" /> Outcome recorded
+          </p>
+          <p className="mt-1.5 text-sm font-semibold text-(--app-text)">
+            {formatDateTime(deliveryTerminalTimestamp(delivery))}
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-(--app-text-soft)">
+            <CalendarDays className="size-3.5" /> Scheduled{' '}
+            {formatDate(delivery.deliveryDate)}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-(--app-border) px-3.5 py-3">
+          <p className="text-[10px] font-bold tracking-[0.08em] text-(--app-text-faint) uppercase">
+            Delivery total
+          </p>
+          <p className="mt-1.5 text-base font-extrabold text-(--app-text)">
+            {pesoFormatter.format(delivery.total)}
+          </p>
+          <p className="mt-1 text-xs text-(--app-text-soft)">
+            {formatQuantity(quantity)}
+          </p>
+        </div>
+
+        <div className="justify-self-start md:justify-self-end">
+          <DeliveryStatusMenu
+            delivery={delivery}
+            onChanged={onReverted}
+            onError={onError}
+          />
+        </div>
       </div>
-      <DeliveryStatusMenu delivery={delivery} onChanged={onReverted} onError={onError} />
+
+      {reason ? (
+        <div className="mt-4 flex items-start gap-2 rounded-xl bg-(--app-chip-red-bg) px-3.5 py-3 text-sm text-(--app-chip-red-text)">
+          <CircleX className="mt-0.5 size-4 shrink-0" />
+          <p>
+            <span className="font-bold">Reason:</span> {reason}
+          </p>
+        </div>
+      ) : null}
+
+      <details className="group mt-4 border-t border-(--app-border) pt-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg py-1 text-sm font-semibold text-(--app-text-soft) outline-none focus-visible:ring-2 focus-visible:ring-(--app-brand)">
+          <span className="flex items-center gap-2">
+            <PackageOpen className="size-4 text-(--app-brand)" />
+            {delivery.items.length === 0
+              ? 'No recorded items'
+              : `${delivery.items.length} ${delivery.items.length === 1 ? 'item' : 'items'} · ${formatQuantity(quantity)}`}
+          </span>
+          <ChevronDown className="size-4 transition group-open:rotate-180" />
+        </summary>
+
+        {delivery.items.length > 0 ? (
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {delivery.items.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center gap-3 rounded-xl bg-(--app-surface-2) px-3 py-2.5"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--app-chip-bg) text-(--app-brand)">
+                  {item.isStockTracked ? (
+                    <Box className="size-4" />
+                  ) : (
+                    <PackageOpen className="size-4" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-(--app-text)">
+                    {item.productName}
+                  </span>
+                  <span className="block text-xs text-(--app-text-soft)">
+                    {formatQuantity(item.quantity)}
+                  </span>
+                </span>
+                <span className="shrink-0 text-xs font-bold text-(--app-text)">
+                  {pesoFormatter.format(item.lineTotal)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </details>
     </li>
   )
 }
 
-function HistoryStatusBadge({ status }: { status: Delivery['status'] }) {
-  const isFailed = status === 'failed'
-  const isCancelled = status === 'cancelled'
-  const bg = isFailed || isCancelled ? 'var(--app-chip-red-bg)' : 'var(--app-chip-green-bg)'
-  const text = isFailed || isCancelled ? 'var(--app-chip-red-text)' : 'var(--app-chip-green-text)'
+function RecipientTypeBadge({
+  isBusiness,
+  isGuest,
+}: {
+  isBusiness: boolean | null
+  isGuest: boolean
+}) {
+  const label = isGuest ? 'Guest' : isBusiness ? 'Business' : 'Household'
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '8px', background: bg, color: text, padding: '4px 10px', fontSize: '11.5px', fontWeight: 700, textTransform: 'capitalize' }}>
+    <span className="rounded-lg bg-(--app-chip-bg) px-2.5 py-1 text-[11px] font-bold text-(--app-brand)">
+      {label}
+    </span>
+  )
+}
+
+function HistoryStatusBadge({ status }: { status: DeliveryStatus }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-bold capitalize',
+        status === 'completed'
+          ? 'bg-(--app-chip-green-bg) text-(--app-chip-green-text)'
+          : status === 'failed'
+            ? 'bg-(--app-chip-red-bg) text-(--app-chip-red-text)'
+            : 'bg-(--app-chip-gray-bg) text-(--app-chip-gray-text)',
+      )}
+    >
       {status.replace('_', ' ')}
     </span>
   )
 }
 
+function EmptyHistory({ filtered }: { filtered: boolean }) {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-(--app-border-strong) bg-(--app-surface-2) px-6 py-12 text-center">
+      <History className="mb-3 size-8 text-(--app-text-faint)" />
+      <p className="font-semibold text-(--app-text)">
+        {filtered ? 'No deliveries match this outcome' : 'No delivery history yet'}
+      </p>
+      <p className="mt-1 max-w-md text-sm text-(--app-text-soft)">
+        {filtered
+          ? 'Choose another outcome to review a different part of the history.'
+          : 'Completed, failed, and cancelled delivery runs will appear here.'}
+      </p>
+    </div>
+  )
+}
+
 function HistorySkeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="grid gap-3">
       {Array.from({ length: 4 }, (_, index) => (
-        <div key={index} style={{ height: '64px', borderRadius: '14px', background: 'var(--app-surface-2)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+        <div
+          key={index}
+          className="h-42 animate-pulse rounded-2xl bg-(--app-surface-2)"
+        />
       ))}
     </div>
+  )
+}
+
+function PaginationFooter({
+  page,
+  hasNext,
+  isFetching,
+  onPrevious,
+  onNext,
+}: {
+  page: number
+  hasNext: boolean
+  isFetching: boolean
+  onPrevious: () => void
+  onNext: () => void
+}) {
+  return (
+    <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-(--app-border) pt-4">
+      <span className="text-sm text-(--app-text-soft)" aria-live="polite">
+        Page {page + 1}
+        {isFetching ? ' · Updating...' : ''}
+      </span>
+      <div className="flex gap-2">
+        <PaginationButton
+          onClick={onPrevious}
+          disabled={page === 0 || isFetching}
+        >
+          Previous
+        </PaginationButton>
+        <PaginationButton onClick={onNext} disabled={!hasNext || isFetching}>
+          Next
+        </PaginationButton>
+      </div>
+    </div>
+  )
+}
+
+function PaginationButton({
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick: () => void
+  disabled: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="rounded-xl border border-(--app-border-strong) bg-(--app-surface) px-4 py-2 text-sm font-semibold text-(--app-text-soft) transition hover:bg-(--app-surface-2) disabled:cursor-not-allowed disabled:bg-(--app-surface-2) disabled:text-(--app-text-faint)"
+    >
+      {children}
+    </button>
   )
 }
 
@@ -174,4 +395,19 @@ function formatDate(value: string): string {
     month: 'short',
     day: 'numeric',
   }).format(new Date(`${value}T00:00:00`))
+}
+
+function formatDateTime(value: string): string {
+  return new Intl.DateTimeFormat('en-PH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'Asia/Manila',
+  }).format(new Date(value))
+}
+
+function formatQuantity(quantity: number): string {
+  return `${quantity} ${quantity === 1 ? 'unit' : 'units'}`
 }

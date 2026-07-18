@@ -1,60 +1,101 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  Box,
+  BriefcaseBusiness,
+  CalendarClock,
+  ChevronDown,
+  CirclePause,
+  CirclePlay,
+  Clock3,
+  House,
+  PackageOpen,
+  Search,
+  UserRound,
+} from 'lucide-react'
 
 import { AppModal } from '@/components/app/app-modal'
-import type { Customer } from '@/features/customers/customers.types'
-import { MATERIALIZE_HORIZON_DAYS } from '../deliveries.constants'
+import { cn } from '@/lib/utils'
+import type {
+  DeliveryScheduleCustomerTypeFilter,
+  DeliveryScheduleStatusFilter,
+} from '../deliveries.keys'
 import {
-  nextUpcomingDate,
   recurrenceSummary,
   scheduleRecipient,
+  scheduleTiming,
 } from '../deliveries.schedule-view'
-import type { DeliveryScheduleRow } from '../deliveries.types'
+import type {
+  DeliveryScheduleListItem,
+  DeliveryScheduleRow,
+} from '../deliveries.types'
 import { useScheduleStatus } from '../hooks/use-schedule-status'
 import { useSchedules } from '../hooks/use-schedules'
 
 interface ScheduleListDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  customers: Customer[]
 }
 
-const SCHEDULE_ICON = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round">
-    <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
-    <path d="M3 9h18M8 2.5v4M16 2.5v4" />
-  </svg>
-)
+const SCHEDULE_ICON = <CalendarClock className="size-5 text-white" />
 
 export function ScheduleListDialog({
   open,
   onOpenChange,
-  customers,
 }: ScheduleListDialogProps) {
   const [page, setPage] = useState(0)
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState<DeliveryScheduleStatusFilter>('all')
+  const [customerType, setCustomerType] =
+    useState<DeliveryScheduleCustomerTypeFilter>('all')
   const [message, setMessage] = useState<string | null>(null)
-  const query = useSchedules(page, open)
-  const mutation = useScheduleStatus()
 
-  const customerNames = useMemo(
-    () => new Map(customers.map((customer) => [customer.id, customer.name])),
-    [customers],
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSearch(searchInput.trim())
+      setPage(0)
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [searchInput])
+
+  const filters = useMemo(
+    () => ({ page, search, status, customerType }),
+    [customerType, page, search, status],
   )
-
+  const query = useSchedules(filters, open)
+  const mutation = useScheduleStatus()
   const schedules = query.data?.schedules ?? []
   const hasNext = query.data?.hasNext ?? false
-  const today = new Date().toISOString().slice(0, 10)
+  const isFiltered = search !== '' || status !== 'all' || customerType !== 'all'
 
-  function handleOpenChange(next: boolean) {
+  function handleOpenChange(next: boolean): void {
     if (!next) {
       setPage(0)
+      setSearchInput('')
+      setSearch('')
+      setStatus('all')
+      setCustomerType('all')
       setMessage(null)
     }
     onOpenChange(next)
   }
 
-  function toggle(schedule: DeliveryScheduleRow) {
+  function selectStatus(next: DeliveryScheduleStatusFilter): void {
+    setStatus(next)
+    setPage(0)
+  }
+
+  function selectCustomerType(
+    next: DeliveryScheduleCustomerTypeFilter,
+  ): void {
+    setCustomerType(next)
+    setPage(0)
+  }
+
+  function toggle(schedule: DeliveryScheduleRow): void {
     const action = schedule.status === 'active' ? 'pause' : 'resume'
     mutation.mutate(
       { schedule, action },
@@ -62,8 +103,8 @@ export function ScheduleListDialog({
         onSuccess: () =>
           setMessage(
             action === 'pause'
-              ? 'Schedule stopped. Upcoming runs were removed.'
-              : 'Schedule resumed. New runs will be generated.',
+              ? 'Schedule stopped. Future pending runs were removed.'
+              : 'Schedule resumed. Upcoming runs will continue on its original cadence.',
           ),
         onError: (error) => setMessage(error.message),
       },
@@ -75,14 +116,57 @@ export function ScheduleListDialog({
       open={open}
       onOpenChange={handleOpenChange}
       title="Recurring schedules"
-      description="Standing orders that generate deliveries automatically. Stop to pause future runs; resume to continue."
+      description="Review standing customer routes, their delivery items, and the next work due."
       icon={SCHEDULE_ICON}
-      maxWidth="640px"
-      bodyPadding="20px 26px 0"
+      maxWidth="1120px"
+      bodyPadding="0"
     >
-      <div style={{ maxHeight: '58vh', overflowY: 'auto', paddingBottom: '16px' }}>
+      <div className="max-h-[72vh] overflow-y-auto px-5 py-5 pr-8 [scrollbar-gutter:stable] sm:px-6 sm:pr-9">
+        <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(260px,1fr)_190px_210px]">
+          <label className="relative block">
+            <span className="sr-only">Search customer schedules</span>
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-(--app-text-faint)" />
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Search customer name..."
+              className="h-11 w-full rounded-xl border border-(--app-border-strong) bg-(--app-surface) pr-4 pl-10 text-sm text-(--app-text) outline-none transition placeholder:text-(--app-text-faint) focus:border-(--app-brand) focus:shadow-[0_0_0_3px_var(--app-chip-bg)]"
+            />
+          </label>
+
+          <FilterSelect
+            label="Schedule status"
+            value={status}
+            onChange={(value) =>
+              selectStatus(value as DeliveryScheduleStatusFilter)
+            }
+            options={[
+              ['all', 'All statuses'],
+              ['active', 'Active'],
+              ['inactive', 'Inactive'],
+            ]}
+          />
+
+          <FilterSelect
+            label="Customer type"
+            value={customerType}
+            onChange={(value) =>
+              selectCustomerType(value as DeliveryScheduleCustomerTypeFilter)
+            }
+            options={[
+              ['all', 'All customer types'],
+              ['business', 'Business'],
+              ['household', 'Household'],
+            ]}
+          />
+        </div>
+
         {message ? (
-          <p role="status" style={{ borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-chip-bg)', color: 'var(--app-brand)', padding: '9px 12px', fontSize: '13.5px', fontWeight: 600, margin: '0 0 14px' }}>
+          <p
+            role="status"
+            className="mb-4 rounded-xl border border-(--app-border-strong) bg-(--app-chip-bg) px-3.5 py-2.5 text-sm font-semibold text-(--app-brand)"
+          >
             {message}
           </p>
         ) : null}
@@ -90,91 +174,224 @@ export function ScheduleListDialog({
         {query.isPending ? (
           <ScheduleSkeleton />
         ) : query.isError ? (
-          <p role="alert" style={{ borderRadius: '11px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '10px 13px', fontSize: '13.5px', color: '#dc2626' }}>
+          <p
+            role="alert"
+            className="rounded-xl border border-red-500/30 bg-red-500/6 px-4 py-3 text-sm text-red-600"
+          >
             {query.error.message}
           </p>
         ) : schedules.length === 0 ? (
-          <p style={{ padding: '38px 0', textAlign: 'center', fontSize: '14px', color: 'var(--app-text-muted)' }}>
-            No recurring schedules yet.
-          </p>
+          <EmptySchedules filtered={isFiltered} />
         ) : (
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: '8px', listStyle: 'none', margin: 0, padding: 0 }}>
-            {schedules.map((schedule) => (
-              <li
-                key={schedule.id}
-                style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', borderRadius: '14px', border: '1px solid var(--app-border)', background: 'var(--app-surface)', padding: '12px' }}
-              >
-                <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ScheduleStatusBadge status={schedule.status} />
-                    <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {scheduleRecipient(
-                        schedule,
-                        schedule.customer_id != null
-                          ? customerNames.get(schedule.customer_id) ?? null
-                          : null,
-                      )}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '13px', color: 'var(--app-text-soft)', margin: 0 }}>
-                    {recurrenceSummary(schedule)}
-                  </p>
-                  <p style={{ fontSize: '13px', color: 'var(--app-text-soft)', margin: 0 }}>
-                    Next:{' '}
-                    {formatNext(
-                      nextUpcomingDate(schedule, today, MATERIALIZE_HORIZON_DAYS),
-                      schedule.status,
-                    )}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  disabled={mutation.isPending}
-                  onClick={() => toggle(schedule)}
-                  style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '9px 16px', borderRadius: '10px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: mutation.isPending ? 'default' : 'pointer' }}
-                >
-                  {schedule.status === 'active' ? (
-                    <>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
-                      Stop
-                    </>
-                  ) : (
-                    <>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7Z" /></svg>
-                      Resume
-                    </>
-                  )}
-                </button>
-              </li>
+          <ul className="m-0 grid list-none gap-3 p-0">
+            {schedules.map((item) => (
+              <ScheduleCard
+                key={item.schedule.id}
+                item={item}
+                isPending={
+                  mutation.isPending &&
+                  mutation.variables?.schedule.id === item.schedule.id
+                }
+                onToggle={() => toggle(item.schedule)}
+              />
             ))}
           </ul>
         )}
-      </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 0', borderTop: '1px solid var(--app-border)' }}>
-        <span style={{ fontSize: '13px', color: 'var(--app-text-soft)' }}>
-          Page {page + 1}
-          {query.isFetching ? ' · updating…' : ''}
-        </span>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <PagBtn onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={page === 0 || query.isFetching}>← Prev</PagBtn>
-          <PagBtn onClick={() => setPage((current) => current + 1)} disabled={!hasNext || query.isFetching}>Next →</PagBtn>
-        </div>
+        <PaginationFooter
+          page={page}
+          hasNext={hasNext}
+          isFetching={query.isFetching}
+          onPrevious={() => setPage((current) => Math.max(0, current - 1))}
+          onNext={() => setPage((current) => current + 1)}
+        />
       </div>
     </AppModal>
   )
 }
 
-function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: Array<[string, string]>
+  onChange: (value: string) => void
+}) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--app-border-strong)', background: disabled ? 'var(--app-surface-2)' : 'var(--app-surface)', color: disabled ? 'var(--app-text-faint)' : 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: disabled ? 'default' : 'pointer' }}
-    >
-      {children}
-    </button>
+    <label className="relative block">
+      <span className="sr-only">{label}</span>
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-11 w-full appearance-none rounded-xl border border-(--app-border-strong) bg-(--app-surface) px-3.5 pr-10 text-sm font-medium text-(--app-text) outline-none transition focus:border-(--app-brand) focus:shadow-[0_0_0_3px_var(--app-chip-bg)]"
+      >
+        {options.map(([optionValue, optionLabel]) => (
+          <option key={optionValue} value={optionValue}>
+            {optionLabel}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-(--app-text-faint)" />
+    </label>
+  )
+}
+
+function ScheduleCard({
+  item,
+  isPending,
+  onToggle,
+}: {
+  item: DeliveryScheduleListItem
+  isPending: boolean
+  onToggle: () => void
+}) {
+  const { schedule } = item
+  const timing = scheduleTiming(item)
+  const recipient = scheduleRecipient(schedule, item.customerName)
+  const quantity = item.items.reduce((total, product) => total + product.quantity, 0)
+
+  return (
+    <li className="rounded-2xl border border-(--app-border) bg-(--app-surface) p-4 shadow-(--app-shadow-card) transition hover:border-(--app-border-strong) sm:p-5">
+      <div className="grid gap-4 lg:grid-cols-[minmax(210px,1.2fr)_minmax(180px,1fr)_minmax(210px,1fr)_auto] lg:items-start">
+        <div className="min-w-0">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <ScheduleStatusBadge status={schedule.status} />
+            <CustomerTypeBadge isBusiness={item.customerIsBusiness} />
+          </div>
+          <p className="truncate text-base font-bold text-(--app-text)">
+            {recipient}
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-(--app-text-soft)">
+            <UserRound className="size-3.5" />
+            {schedule.customer_id == null ? 'Guest delivery plan' : 'Customer record'}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-(--app-surface-2) px-3.5 py-3">
+          <p className="text-[10px] font-bold tracking-[0.08em] text-(--app-text-faint) uppercase">
+            Recurrence
+          </p>
+          <p className="mt-1.5 text-sm font-semibold text-(--app-text)">
+            {recurrenceSummary(schedule)}
+          </p>
+        </div>
+
+        <div
+          className={cn(
+            'rounded-xl border px-3.5 py-3',
+            timing.kind === 'current'
+              ? 'border-amber-500/25 bg-(--app-chip-amber-bg)'
+              : timing.kind === 'next'
+                ? 'border-sky-500/20 bg-(--app-chip-bg)'
+                : 'border-(--app-border) bg-(--app-surface-2)',
+          )}
+        >
+          <p className="flex items-center gap-1.5 text-[10px] font-bold tracking-[0.08em] text-(--app-text-faint) uppercase">
+            <Clock3 className="size-3.5" />
+            {timing.kind === 'current'
+              ? 'Current delivery'
+              : timing.kind === 'next'
+                ? 'Next delivery'
+                : 'Delivery timing'}
+          </p>
+          <p className="mt-1.5 text-sm font-semibold text-(--app-text)">
+            {timing.date == null ? 'No pending delivery' : formatDate(timing.date)}
+          </p>
+          {timing.kind === 'current' ? (
+            <p className="mt-1 text-xs text-(--app-chip-amber-text)">
+              Due today or overdue
+            </p>
+          ) : null}
+        </div>
+
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={onToggle}
+          className={cn(
+            'inline-flex h-10 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60',
+            schedule.status === 'active'
+              ? 'border-amber-500/25 bg-(--app-chip-amber-bg) text-(--app-chip-amber-text) hover:border-amber-500/40'
+              : 'border-emerald-500/25 bg-(--app-chip-green-bg) text-(--app-chip-green-text) hover:border-emerald-500/40',
+          )}
+        >
+          {schedule.status === 'active' ? (
+            <CirclePause className="size-4" />
+          ) : (
+            <CirclePlay className="size-4" />
+          )}
+          {isPending
+            ? 'Updating...'
+            : schedule.status === 'active'
+              ? 'Stop'
+              : 'Resume'}
+        </button>
+      </div>
+
+      <details className="group mt-4 border-t border-(--app-border) pt-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg py-1 text-sm font-semibold text-(--app-text-soft) outline-none focus-visible:ring-2 focus-visible:ring-(--app-brand)">
+          <span className="flex items-center gap-2">
+            <PackageOpen className="size-4 text-(--app-brand)" />
+            {item.items.length === 0
+              ? 'No delivery items'
+              : `${item.items.length} ${item.items.length === 1 ? 'item' : 'items'} · ${formatQuantity(quantity)}`}
+          </span>
+          <ChevronDown className="size-4 transition group-open:rotate-180" />
+        </summary>
+        {item.items.length > 0 ? (
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {item.items.map((product) => (
+              <li
+                key={product.productId}
+                className="flex items-center gap-3 rounded-xl bg-(--app-surface-2) px-3 py-2.5"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--app-chip-bg) text-(--app-brand)">
+                  {product.isStockTracked ? (
+                    <Box className="size-4" />
+                  ) : (
+                    <PackageOpen className="size-4" />
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-(--app-text)">
+                    {product.productName}
+                  </span>
+                  <span className="block text-xs text-(--app-text-soft)">
+                    {formatQuantity(product.quantity)}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </details>
+    </li>
+  )
+}
+
+function CustomerTypeBadge({ isBusiness }: { isBusiness: boolean | null }) {
+  if (isBusiness == null) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-lg bg-(--app-chip-violet-bg) px-2.5 py-1 text-[11px] font-bold text-(--app-chip-violet-text)">
+        <UserRound className="size-3" /> Guest
+      </span>
+    )
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded-lg bg-(--app-chip-bg) px-2.5 py-1 text-[11px] font-bold text-(--app-brand)">
+      {isBusiness ? (
+        <BriefcaseBusiness className="size-3" />
+      ) : (
+        <House className="size-3" />
+      )}
+      {isBusiness ? 'Business' : 'Household'}
+    </span>
   )
 }
 
@@ -183,45 +400,113 @@ function ScheduleStatusBadge({
 }: {
   status: DeliveryScheduleRow['status']
 }) {
-  const bg =
-    status === 'active'
-      ? 'var(--app-chip-green-bg)'
-      : status === 'paused'
-        ? 'var(--app-chip-amber-bg)'
-        : 'var(--app-chip-gray-bg)'
-  const text =
-    status === 'active'
-      ? 'var(--app-chip-green-text)'
-      : status === 'paused'
-        ? 'var(--app-chip-amber-text)'
-        : 'var(--app-chip-gray-text)'
-
+  const isActive = status === 'active'
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '8px', background: bg, color: text, padding: '4px 10px', fontSize: '11.5px', fontWeight: 700, textTransform: 'capitalize' }}>
-      {status}
+    <span
+      className={cn(
+        'inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-bold',
+        isActive
+          ? 'bg-(--app-chip-green-bg) text-(--app-chip-green-text)'
+          : 'bg-(--app-chip-gray-bg) text-(--app-chip-gray-text)',
+      )}
+    >
+      {isActive ? 'Active' : 'Inactive'}
     </span>
+  )
+}
+
+function EmptySchedules({ filtered }: { filtered: boolean }) {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-(--app-border-strong) bg-(--app-surface-2) px-6 py-12 text-center">
+      <CalendarClock className="mb-3 size-8 text-(--app-text-faint)" />
+      <p className="font-semibold text-(--app-text)">
+        {filtered ? 'No matching schedules' : 'No recurring schedules yet'}
+      </p>
+      <p className="mt-1 max-w-md text-sm text-(--app-text-soft)">
+        {filtered
+          ? 'Try a different customer name or clear one of the filters.'
+          : 'Recurring and custom-date delivery plans will appear here.'}
+      </p>
+    </div>
   )
 }
 
 function ScheduleSkeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="grid gap-3">
       {Array.from({ length: 4 }, (_, index) => (
-        <div key={index} style={{ height: '80px', borderRadius: '14px', background: 'var(--app-surface-2)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+        <div
+          key={index}
+          className="h-42 animate-pulse rounded-2xl bg-(--app-surface-2)"
+        />
       ))}
     </div>
   )
 }
 
-function formatNext(
-  value: string | null,
-  status: DeliveryScheduleRow['status'],
-): string {
-  if (status !== 'active') return 'Paused'
-  if (!value) return 'None scheduled'
+function PaginationFooter({
+  page,
+  hasNext,
+  isFetching,
+  onPrevious,
+  onNext,
+}: {
+  page: number
+  hasNext: boolean
+  isFetching: boolean
+  onPrevious: () => void
+  onNext: () => void
+}) {
+  return (
+    <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-(--app-border) pt-4">
+      <span className="text-sm text-(--app-text-soft)" aria-live="polite">
+        Page {page + 1}
+        {isFetching ? ' · Updating...' : ''}
+      </span>
+      <div className="flex gap-2">
+        <PaginationButton
+          onClick={onPrevious}
+          disabled={page === 0 || isFetching}
+        >
+          Previous
+        </PaginationButton>
+        <PaginationButton onClick={onNext} disabled={!hasNext || isFetching}>
+          Next
+        </PaginationButton>
+      </div>
+    </div>
+  )
+}
+
+function PaginationButton({
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick: () => void
+  disabled: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="rounded-xl border border-(--app-border-strong) bg-(--app-surface) px-4 py-2 text-sm font-semibold text-(--app-text-soft) transition hover:bg-(--app-surface-2) disabled:cursor-not-allowed disabled:bg-(--app-surface-2) disabled:text-(--app-text-faint)"
+    >
+      {children}
+    </button>
+  )
+}
+
+function formatDate(value: string): string {
   return new Intl.DateTimeFormat('en-PH', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   }).format(new Date(`${value}T00:00:00`))
+}
+
+function formatQuantity(quantity: number): string {
+  return `${quantity} ${quantity === 1 ? 'unit' : 'units'}`
 }

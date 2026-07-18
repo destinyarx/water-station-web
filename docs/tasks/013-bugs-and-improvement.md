@@ -1,3 +1,5 @@
+## Status: Done
+
 # 013 — Bugs and improvements
 
 Sharpened 2026-07-15 via a grilling session. Decisions recorded in

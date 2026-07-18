@@ -103,7 +103,7 @@ where this already happened.
 | `public.ai_conversations` | 011-aquaflow-ai-feature | `id` bigint identity | **none** — hard delete, cascades to messages | Personal-per-user, owner-only (ADR 0007, 0008). |
 | `public.ai_messages` | 011-aquaflow-ai-feature | `id` bigint identity | **none** — hard delete via parent cascade | No denormalized `org_id`/`created_by`; ownership inherited via `conversation_id` FK + `exists` subquery in RLS. |
 | `public.notifications` | 013-realtime-notifications-features | `id` serial | **none** (no dismissal in v1) | Trigger-authored only (`SECURITY DEFINER`); client cannot INSERT; UPDATE is column-locked to `is_read` via `GRANT`, not a policy. In the `supabase_realtime` publication. |
-| `public.v_current_deliveries` | 005-deliveries-module-continuation | n/a (view) | n/a | `security_invoker = on` view over `deliveries`/`delivery_schedules`/`customers`; encapsulates the "current queue" selection rule (overdue/due-today + each schedule's next-upcoming row) so base-table RLS still applies to the caller. |
+| `public.v_current_deliveries` | 005-deliveries-module-continuation, 016-delivery-schedule-and-history-refinement | n/a (view) | n/a | `security_invoker = on` view over `deliveries`/`delivery_schedules`/`customers`; contains actionable rows only for `active` parent schedules (overdue/due-today + each schedule's next-upcoming row), so Stop hides and Resume restores eligible queue visibility while base-table RLS still applies. |
 
 Tables explicitly **stubbed/incomplete** in `docs/DATABASE.md` itself:
 `public.expenses` — the file states columns/RLS "must be kept synchronized ...

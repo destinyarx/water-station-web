@@ -1,3 +1,5 @@
+## Status: Done
+
 ## Goal
 - Fix the issues and improvements i listed below.
 - Make sure to test and ensure not to break functionalities.

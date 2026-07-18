@@ -237,8 +237,8 @@ label (CHECK: exactly one). Holds the recurrence rule:
   `interval_weeks`, anchored on `start_date`. `monthly`: `day_of_month` (clamped
   to month end) + `interval_months`, anchored on `start_date`. Optional
   `end_date`.
-- `status` enum (`active` | `paused` | `ended`) controls materialization only;
-  it is **not** an operational delivery status.
+- `status` enum (`active` | `paused` | `ended`) controls materialization and
+  main-queue visibility; it is **not** an operational delivery status.
 - Standard `org_id`, `created_by`, `created_at`, `updated_at`, `deleted_at`.
 
 ### `public.deliveries`
@@ -298,6 +298,22 @@ The Dashboard V1 migration replaces `replace_delivery_items_atomic` with the
 same public signature and adds classification snapshot preservation. It does
 not change delivery transition policies or status semantics.
 
+### `public.v_current_deliveries`
+
+Security-invoker view used by the main Deliveries table. It contains only
+non-deleted `pending`/`for_delivery` occurrences whose parent schedule is
+non-deleted and `active`: overdue and due-today rows, plus each schedule's
+nearest upcoming row. Completed, cancelled, and failed occurrences remain in
+`public.deliveries` for Delivery History and never enter this view.
+
+Migration `20260718170000_filter_current_deliveries_by_active_schedule.sql`
+adds the active-parent predicate. Stopping a recurring schedule therefore
+hides all of its rows from the main queue without changing in-flight or
+terminal records; resuming the schedule makes its otherwise-eligible rows
+visible again. The existing Stop bulk update still archives only `pending`
+occurrences dated today or later, and Resume materializes only from the resume
+date forward on the original recurrence anchor.
+
 ### Dashboard V1 aggregate functions
 
 Dashboard V1 uses two bounded JSON functions:
@@ -340,11 +356,30 @@ Deliveries are a **shared org queue**: any organization member may operate
 occurrences regardless of `created_by`. The only owner-restricted action is
 archiving (soft-deleting) a Delivery Schedule.
 
+> **Shared schedule lifecycle repair (2026-07-18).** Stop/Resume also remains
+> available to every organization member under ADR 0015. Canonical migration
+> `20260718143000_reassert_shared_delivery_schedule_rls.sql` reasserts the
+> `delivery_schedules` and `deliveries` UPDATE policies after a reported Stop
+> failure. The deliveries policy requires `deleted_at is null` in `USING` but
+> not in `WITH CHECK`, so Stop may soft-delete future pending occurrences
+> without allowing already archived rows to be edited or restored. The same
+> migration adds a partial terminal-history paging index on organization,
+> outcome, terminal update time, completion time, scheduled date, and id.
+
 ### Manual RLS verification
 
 See `docs/specs/004-deliveries-module/004-deliveries-schema.md` §7 for the full
 checklist (cross-org isolation, idempotent materialization, owner-only schedule
 archive, failure-remarks CHECK, failed-occurrence-does-not-pause-schedule).
+
+For the 2026-07-18 repair, additionally verify as owner and staff that Stop and
+Resume work on schedules created by another member in the same organization;
+Stop archives only pending occurrences dated today or later. Confirm an org A
+session still cannot update an org B schedule or occurrence. After applying
+`20260718170000_filter_current_deliveries_by_active_schedule.sql`, verify that a
+stopped schedule contributes no rows to `v_current_deliveries`, resuming it
+restores its eligible queue rows, and its completed/cancelled/failed row values
+and `deleted_at` timestamps are unchanged across both actions.
 
 ## Maintenance tables (feature 008-build-maintenance-module)
 

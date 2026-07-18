@@ -129,3 +129,28 @@ delete to re-derive what the triggers already report.
   the same latent bug class and wants its own migration.
 - Per project rule (ADR 0012), the migration is written but not applied by an
   agent. A human runs it.
+
+## Reaffirmation (2026-07-18)
+
+Task `docs/tasks/015-bugs-and-improvements.md` reported SQLSTATE `42501` while an
+owner stopped a recurring delivery schedule. The failing write was the
+schedule-driven soft-delete of future pending `deliveries`, not evidence that
+Stop/Resume should become owner- or creator-only. The owner clarified that this
+ADR remains authoritative: **any organization member may Stop/Resume any
+schedule in their station**.
+
+Migration
+`20260718143000_reassert_shared_delivery_schedule_rls.sql` restates the
+`delivery_schedules` and `deliveries` member UPDATE policies. In particular,
+`deliveries.deleted_at is null` remains in `USING` (the old row must be active)
+and remains absent from `WITH CHECK` (the new row may be soft-deleted). This is
+an idempotent repair for environments where the legacy policy or migration
+drift survived; it does not change the permission model decided here.
+
+Queue-visibility follow-up migration
+`20260718170000_filter_current_deliveries_by_active_schedule.sql` does not
+change RLS or the shared-member decision. It makes
+`v_current_deliveries` require an `active` parent schedule, so Stop hides the
+schedule's occurrences from the main table and Resume restores eligible queue
+visibility. The lifecycle writes still target only pending occurrences dated
+today or later; completed, cancelled, and failed rows are never mutated.

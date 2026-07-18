@@ -86,19 +86,30 @@ deliveries page: all `pending`/`for_delivery` occurrences that are overdue
 (`delivery_date < today`) or due today, **plus** each active schedule's single
 nearest upcoming occurrence. The full materialization horizon still exists in
 the database but is not part of the "current" queue until each row becomes the
-nearest upcoming one.
+nearest upcoming one. Occurrences whose parent schedule is paused or ended are
+excluded from this queue; resuming the parent makes its otherwise-eligible
+occurrences visible again.
 _Avoid_: equating "current queue" with "everything materialized".
 
-**Delivery History** — the modal datatable of terminal occurrences only
-(`completed` + `failed`). Not editable except to send a row back to
-`pending`/`for_delivery`, which returns it to the current queue.
+**Delivery History** — the modal list of terminal occurrences only
+(`completed` + `failed` + `cancelled`), ordered by the server-owned terminal
+update time. It is server-paginated and filterable by outcome. Delivery items
+stay collapsed until opened. Rows are not editable except for the supported
+revert action, which sends eligible work back to the current queue.
 
-**Recurring schedule list** — the modal datatable of parent `delivery_schedules`
-recurrence rules (not dated occurrences); its only action is stop/resume.
+**Recurring schedule list** — the server-paginated modal list of parent
+`delivery_schedules` recurrence rules (not dated occurrences). It supports
+customer-name, Active/Inactive, and Business/Household filters; shows template
+items; and prioritizes a pending occurrence due today/earlier as **Current**,
+otherwise the nearest future pending occurrence as **Next**. Its only action is
+Stop/Resume, available to any organization member under ADR 0015.
 
 **Stop / Resume (a schedule)** — _Stop_ sets a recurring schedule to `paused`
 and soft-deletes its pending occurrences dated today or later (in-flight
 `for_delivery` rows and terminal history are kept; overdue pending is kept).
+While the schedule is paused, all of its occurrences are hidden from the main
+delivery queue by the queue view. This visibility rule does not mutate
+`completed`, `cancelled`, or `failed` records.
 _Resume_ sets it back to `active` and materialization continues forward from the
 current date on the schedule's **original `start_date` anchor** — the paused gap
 is not back-filled. Distinct from archiving (owner-only soft delete of the

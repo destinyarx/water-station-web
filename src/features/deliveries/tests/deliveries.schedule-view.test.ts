@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  deliveryTerminalTimestamp,
   nextUpcomingDate,
   recurrenceSummary,
   scheduleRecipient,
+  scheduleTiming,
 } from '../deliveries.schedule-view'
-import type { DeliveryScheduleRow } from '../deliveries.types'
+import type {
+  Delivery,
+  DeliveryScheduleListItem,
+  DeliveryScheduleRow,
+} from '../deliveries.types'
 
 function schedule(
   overrides: Partial<DeliveryScheduleRow> = {},
@@ -67,5 +73,64 @@ describe('nextUpcomingDate', () => {
     expect(
       nextUpcomingDate(schedule({ end_date: '2026-06-10' }), '2026-06-23', 14),
     ).toBeNull()
+  })
+})
+
+describe('scheduleTiming', () => {
+  function item(
+    currentDeliveryDate: string | null,
+    nextDeliveryDate: string | null,
+  ): DeliveryScheduleListItem {
+    return {
+      schedule: schedule(),
+      customerName: null,
+      customerIsBusiness: null,
+      items: [],
+      currentDeliveryDate,
+      nextDeliveryDate,
+    }
+  }
+
+  it('prioritizes current due work over a future pending occurrence', () => {
+    expect(scheduleTiming(item('2026-07-18', '2026-07-21'))).toEqual({
+      kind: 'current',
+      date: '2026-07-18',
+    })
+  })
+
+  it('falls back to Next and then an empty state', () => {
+    expect(scheduleTiming(item(null, '2026-07-21'))).toEqual({
+      kind: 'next',
+      date: '2026-07-21',
+    })
+    expect(scheduleTiming(item(null, null))).toEqual({ kind: 'empty', date: null })
+  })
+})
+
+describe('deliveryTerminalTimestamp', () => {
+  it('uses updatedAt for cancelled rows whose completedAt is null', () => {
+    const delivery = {
+      id: 1,
+      scheduleId: 1,
+      deliveryDate: '2026-07-17',
+      status: 'cancelled',
+      failureRemarks: null,
+      cancellationRemarks: 'Customer unavailable',
+      notes: null,
+      assignedTo: null,
+      deliveredBy: null,
+      completedAt: null,
+      orgId: '00000000-0000-4000-8000-000000000321',
+      createdBy: 'user_123',
+      createdAt: '2026-07-10T00:00:00.000Z',
+      updatedAt: '2026-07-18T04:00:00.000Z',
+      deletedAt: null,
+      items: [],
+      total: 0,
+    } satisfies Delivery
+
+    expect(deliveryTerminalTimestamp(delivery)).toBe(
+      '2026-07-18T04:00:00.000Z',
+    )
   })
 })

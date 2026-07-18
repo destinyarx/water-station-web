@@ -295,17 +295,20 @@ product catalog populated (delivery items reference products).
 **Main flow (recurring schedule management):**
 8. **Recurring schedule list modal**: shows recipient, recurrence, derived
    next-upcoming date; only action is **Stop** (sets `paused`, soft-deletes
-   today+future `pending` occurrences, keeps in-flight/history) or
-   **Resume** (sets `active`, continues from today on the original
-   `start_date` anchor, does not back-fill the paused gap).
+   today+future `pending` occurrences, keeps in-flight/history, and hides every
+   occurrence of the paused schedule from the main queue) or **Resume** (sets
+   `active`, restores eligible main-queue visibility, continues from today on
+   the original `start_date` anchor, and does not back-fill the paused gap).
 
 **Main flow (history):**
-9. **History modal**: `completed` + `failed` occurrences, read-only except
-   status revert, most-recent first, failure remarks shown for failed rows.
+9. **History modal**: `completed` + `failed` + `cancelled` occurrences,
+   read-only except supported status reverts, most-recent first, with terminal
+   reasons shown where applicable.
 
 **Alternative flows:** Dispatch that would drive stock negative → blocked
-with a warning, no partial deduction. Stopping a schedule does not touch
-in-flight or historical rows. Dropping a weekday from an active recurring
+with a warning, no partial deduction. Stopping a schedule does not mutate
+in-flight or historical rows even though the paused schedule contributes no
+rows to the main queue. Dropping a weekday from an active recurring
 schedule (future spec, editing is out of scope for 005) does not retroactively
 change already-materialized pending rows.
 
