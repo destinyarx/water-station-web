@@ -134,3 +134,17 @@ for the ADR amendment.
     `UNIFIED_DELIVERY_FORM_DEFAULTS` (it was validated but not rendered) — no schema or
     mutation changes were needed, only re-adding the `<input type="date" {...register('endDate')}/>`
     field to the JSX.
+
+## Current queue detail refinement (2026-07-20)
+
+- The unified schedule modal shall expose a taller viewport-bound form region
+  without allowing the dialog to overflow the screen.
+- The queue Items column shall display both delivery-item line count and total
+  quantity using `item`/`items` and `unit`/`units` labels.
+- When a user opens a desktop row or mobile delivery card, the system shall
+  display a view-only delivery-details modal containing recipient, schedule,
+  assignment, status, notes, timestamps, totals, and every item snapshot.
+- Status/edit controls remain independent interactions and shall not open the
+  row detail modal.
+- New detail UI and the touched modal-height scroll region shall use Tailwind
+  utilities and the existing `--app-*` tokens for light/dark compatibility.

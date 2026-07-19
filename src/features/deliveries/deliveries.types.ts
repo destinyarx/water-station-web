@@ -144,6 +144,7 @@ export interface DeliveryScheduleInfo {
   customerName?: string | null
   customerIsBusiness?: boolean | null
   guestName: string | null
+  guestContact?: string | null
   guestAddress: string | null
   recurrenceType: DeliveryRecurrenceType
   weekdays: number[] | null

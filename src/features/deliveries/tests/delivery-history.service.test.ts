@@ -25,15 +25,20 @@ function historyRow(id: number, status: 'completed' | 'failed' | 'cancelled') {
 
 function createClient(rowCount: number) {
   const calls = {
+    select: vi.fn(),
     statusIn: vi.fn(),
     statusEq: vi.fn(),
+    ilike: vi.fn(),
     range: vi.fn(),
     order: vi.fn(),
   }
 
   function deliveriesBuilder() {
     const builder = {
-      select: () => builder,
+      select: (columns: string) => {
+        calls.select(columns)
+        return builder
+      },
       is: () => builder,
       in: (column: string, values: string[]) => {
         calls.statusIn(column, values)
@@ -41,6 +46,10 @@ function createClient(rowCount: number) {
       },
       eq: (column: string, value: string) => {
         calls.statusEq(column, value)
+        return builder
+      },
+      ilike: (column: string, value: string) => {
+        calls.ilike(column, value)
         return builder
       },
       order: (column: string) => {
@@ -93,7 +102,7 @@ describe('getDeliveryHistory', () => {
 
     const page = await getDeliveryHistory(
       client,
-      { page: 0, status: 'all' },
+      { page: 0, search: '', status: 'all' },
       3,
     )
 
@@ -119,11 +128,18 @@ describe('getDeliveryHistory', () => {
 
     const page = await getDeliveryHistory(
       client,
-      { page: 1, status: 'cancelled' },
+      { page: 1, search: 'Maria', status: 'cancelled' },
       3,
     )
 
     expect(calls.statusEq).toHaveBeenCalledWith('status', 'cancelled')
+    expect(calls.select.mock.calls[0]?.[0]).toContain(
+      'delivery_schedules!inner(customer:customers!inner(name))',
+    )
+    expect(calls.ilike).toHaveBeenCalledWith(
+      'schedule.customer.name',
+      '%Maria%',
+    )
     expect(calls.range).toHaveBeenCalledWith(3, 6)
     expect(page.hasNext).toBe(false)
   })

@@ -61,15 +61,24 @@ export async function getDeliveryHistory(
 ): Promise<DeliveryHistoryPage> {
   const page = Math.max(0, filters.page)
   const offset = page * pageSize
+  const search = filters.search.trim()
+  const deliverySelect =
+    search === ''
+      ? DELIVERY_COLUMNS
+      : `${DELIVERY_COLUMNS},schedule:delivery_schedules!inner(customer:customers!inner(name))`
   let query = client
     .from(DELIVERIES_TABLE)
-    .select(DELIVERY_COLUMNS)
+    .select(deliverySelect)
     .is('deleted_at', null)
 
   query =
     filters.status === 'all'
       ? query.in('status', ['completed', 'failed', 'cancelled'])
       : query.eq('status', filters.status)
+
+  if (search !== '') {
+    query = query.ilike('schedule.customer.name', `%${search}%`)
+  }
 
   const { data, error } = await query
     .order('updated_at', { ascending: false, nullsFirst: false })

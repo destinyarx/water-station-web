@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CancelDeliveryDialog } from '../components/cancel-delivery-dialog'
+import { DeliveryDetailsDialog } from '../components/delivery-details-dialog'
 import { DeliveryStatusConfirmationDialog } from '../components/delivery-status-confirmation-dialog'
 import type { Delivery } from '../deliveries.types'
 
@@ -67,5 +68,57 @@ describe('DeliveryStatusConfirmationDialog', () => {
     expect(html).toContain('Riverside Apartments')
     expect(html).toContain('Poblacion, Cebu')
     expect(html).toContain('Start delivery')
+  })
+})
+
+describe('DeliveryDetailsDialog', () => {
+  it('renders the full view-only item and recipient snapshot', () => {
+    const detailedDelivery = {
+      ...delivery,
+      notes: 'Leave the containers at the receiving desk.',
+      assignedTo: 'user_driver',
+      items: [
+        {
+          id: 501,
+          deliveryId: delivery.id,
+          productId: 12,
+          productName: '5 Gallon Refill',
+          unitPrice: 35,
+          quantity: 20,
+          isStockTracked: false,
+          lineTotal: 700,
+          orgId: delivery.orgId,
+          createdAt: delivery.createdAt,
+          updatedAt: null,
+        },
+      ],
+      total: 700,
+      scheduleInfo: {
+        customerId: null,
+        guestName: 'Harbor View Office',
+        guestContact: '09171234567',
+        guestAddress: 'Pier 4, Cebu City',
+        recurrenceType: 'custom_dates',
+        weekdays: null,
+        intervalWeeks: null,
+      },
+    } satisfies Delivery
+
+    const html = renderToStaticMarkup(
+      <DeliveryDetailsDialog
+        delivery={detailedDelivery}
+        assignee={{ clerkId: 'user_driver', name: 'Mia Santos' }}
+        onOpenChange={vi.fn()}
+      />,
+    )
+
+    expect(html).toContain('Delivery details')
+    expect(html).toContain('View only')
+    expect(html).toContain('Harbor View Office')
+    expect(html).toContain('09171234567')
+    expect(html).toContain('5 Gallon Refill')
+    expect(html).toContain('1 item (20 units)')
+    expect(html).toContain('Mia Santos')
+    expect(html).toContain('Leave the containers at the receiving desk.')
   })
 })

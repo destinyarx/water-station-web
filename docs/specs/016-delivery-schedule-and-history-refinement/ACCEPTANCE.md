@@ -13,14 +13,18 @@
 - [x] Stop/Resume writes target only `pending` occurrences dated today or later;
       `completed`, `cancelled`, and `failed` occurrences remain unchanged.
 - [x] Occurrence status work remains available to organization members.
-- [x] Customer search, Active/Inactive, and Business/Household filters are
-      server-side and reset pagination when changed.
+- [x] Recipient search matches linked customer names and guest schedule names;
+      it remains server-side and resets pagination when changed.
+- [x] Active/Inactive and Business/Household filters remain server-side and
+      reset pagination when changed.
 - [x] Schedule pagination fetches one probe row and performs no total count.
 - [x] Schedule cards show recipient, type, recurrence, status, items, and
       Current-or-Next pending delivery context.
 - [x] History is ordered newest-first by terminal update time, including
       cancelled rows.
 - [x] Completed/Failed/Cancelled filters are server-side.
+- [x] History customer search is debounced, server-side, aligned with the
+      outcome filters, and resets pagination when changed.
 - [x] History pagination fetches one probe row and performs no total count.
 - [x] History item details are collapsed by default and show product,
       quantity/unit, and line total when expanded.

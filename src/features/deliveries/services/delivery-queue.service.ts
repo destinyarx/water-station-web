@@ -25,6 +25,7 @@ const scheduleInfoRowSchema = z.object({
   id: z.number().int(),
   customer_id: z.number().int().nullable(),
   guest_name: z.string().nullable(),
+  guest_contact: z.string().nullable(),
   guest_address: z.string().nullable(),
   recurrence_type: deliveryRecurrenceTypeSchema,
   weekdays: z.array(z.number().int()).nullable(),
@@ -78,7 +79,7 @@ export async function getCurrentDeliveries(
   const scheduleIds = [...new Set(rows.map((row) => row.schedule_id))]
   const { data: schedData, error: schedError } = await client
     .from(DELIVERY_SCHEDULES_TABLE)
-    .select('id, customer_id, guest_name, guest_address, recurrence_type, weekdays, interval_weeks')
+    .select('id, customer_id, guest_name, guest_contact, guest_address, recurrence_type, weekdays, interval_weeks')
     .in('id', scheduleIds)
 
   if (schedError) {
@@ -92,6 +93,7 @@ export async function getCurrentDeliveries(
       {
         customerId: s.customer_id,
         guestName: s.guest_name,
+        guestContact: s.guest_contact,
         guestAddress: s.guest_address,
         recurrenceType: s.recurrence_type,
         weekdays: s.weekdays,

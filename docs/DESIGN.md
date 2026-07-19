@@ -356,19 +356,36 @@ action hierarchy remain readable without a cramped table. Their scroll regions
 reserve a stable gutter and additional right padding so content does not touch
 the scrollbar.
 
-- **Schedules** — responsive filter row (customer search, Active/Inactive,
+- **Schedules** — responsive filter row (recipient search across linked
+  customer names and guest schedule names, Active/Inactive,
   Business/Household) above stacked surface cards. Each card shows recipient
   and type first, then recurrence and a single timing callout: Current due work
   takes priority; otherwise show Next. Template items live in a collapsed
   disclosure and Stop/Resume remains the only action.
-- **History** — outcome filter pills above stacked surface cards ordered by the
-  recorded terminal time. Recipient and outcome lead; scheduled date and total
-  are secondary. Failure/cancellation reason uses the red chip treatment.
+- **History** — a debounced customer search field flexes beside outcome filter
+  pills above stacked surface cards ordered by the recorded terminal time.
+  Recipient and outcome lead; scheduled date and total are secondary.
+  Failure/cancellation reason uses the red chip treatment.
   Product names, quantities in neutral `unit`/`units`, and line totals live in a
   collapsed disclosure.
 - Both surfaces use Tailwind utilities with `--app-*` tokens, the shared
   `AppModal`, limit-plus-one Previous/Next pagination, and dedicated
   loading/error/empty/no-result states.
+
+### Current queue delivery details
+
+Current-queue rows are interactive in both desktop and mobile layouts. Opening
+a row shows a read-only `AppModal` (`max-width: 940px`) with recipient and
+contact information, schedule and assignment context, status/reason, notes,
+record timestamps, total, and the complete item snapshot. Item rows show the
+product classification, quantity in neutral `unit`/`units`, snapshot unit
+price, and line total. The surface uses Tailwind utilities and `--app-*` tokens
+so the same hierarchy works in light and dark modes.
+
+The queue `Items` summary combines distinct lines and total quantity (for
+example, `2 items (20 units)`). The unified create dialog keeps a `72vh`
+Tailwind scroll region with a stable gutter to expose more of the form without
+overflowing the viewport.
 
 ## Module Patterns (feature 011 — AquaFlow AI Assistant)
 

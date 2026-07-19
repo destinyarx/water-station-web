@@ -15,8 +15,9 @@ was available.
 1. Add filter types and query-key inputs for schedules and history.
 2. Parse a paginated schedule projection containing customer, schedule items,
    and bounded Current/Next occurrence aliases.
-3. Filter schedules by customer name/type and active/inactive status on the
-   server, retaining limit-plus-one pagination.
+3. Resolve linked-customer name matches to organization-scoped customer IDs,
+   then filter schedules by matching `customer_id` or `guest_name` alongside
+   customer type and active/inactive status, retaining limit-plus-one pagination.
 4. Filter history by terminal status and order by `updated_at` with stable
    tie-breakers before paging.
 5. Add a versioned migration that reasserts ADR 0015's shared-member schedule
@@ -36,8 +37,8 @@ was available.
    responsive search/filter controls, card hierarchy, compact item details,
    Current/Next context, and permission indicators.
 2. Rebuild the history dialog's touched markup with Tailwind utilities,
-   terminal filters, chronological date/time, recipient context, and collapsed
-   item details.
+   debounced customer search, terminal filters, chronological date/time,
+   recipient context, and collapsed item details.
 3. Increase modal width and reserve right-side scroll gutter without changing
    shared modal behavior.
 

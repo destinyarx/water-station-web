@@ -48,40 +48,64 @@ function row(id: number) {
   }
 }
 
-function createClient(rows: ReturnType<typeof row>[]) {
+function createClient(
+  rows: ReturnType<typeof row>[],
+  matchingCustomerIds: number[] = [],
+) {
   const calls = {
     select: vi.fn(),
     eq: vi.fn(),
     ilike: vi.fn(),
+    customerIlike: vi.fn(),
+    or: vi.fn(),
     range: vi.fn(),
   }
-  const builder = {
+  const scheduleBuilder = {
     select: (columns: string) => {
       calls.select(columns)
-      return builder
+      return scheduleBuilder
     },
-    in: () => builder,
-    is: () => builder,
+    in: () => scheduleBuilder,
+    is: () => scheduleBuilder,
     eq: (column: string, value: unknown) => {
       calls.eq(column, value)
-      return builder
+      return scheduleBuilder
     },
-    lte: () => builder,
-    gt: () => builder,
+    lte: () => scheduleBuilder,
+    gt: () => scheduleBuilder,
     ilike: (column: string, value: string) => {
       calls.ilike(column, value)
-      return builder
+      return scheduleBuilder
     },
-    order: () => builder,
-    limit: () => builder,
+    or: (filters: string) => {
+      calls.or(filters)
+      return scheduleBuilder
+    },
+    order: () => scheduleBuilder,
+    limit: () => scheduleBuilder,
     range: (from: number, to: number) => {
       calls.range(from, to)
       return Promise.resolve({ data: rows, error: null })
     },
   }
 
+  const customerBuilder = {
+    select: () => customerBuilder,
+    is: () => customerBuilder,
+    ilike: (column: string, value: string) => {
+      calls.customerIlike(column, value)
+      return Promise.resolve({
+        data: matchingCustomerIds.map((id) => ({ id })),
+        error: null,
+      })
+    },
+  }
+
   return {
-    client: { from: () => builder } as unknown as SupabaseClient,
+    client: {
+      from: (table: string) =>
+        table === 'customers' ? customerBuilder : scheduleBuilder,
+    } as unknown as SupabaseClient,
     calls,
   }
 }
@@ -127,8 +151,31 @@ describe('getSchedules', () => {
 
     expect(result.hasNext).toBe(false)
     expect(calls.select.mock.calls[0]?.[0]).toContain('customers!inner')
-    expect(calls.ilike).toHaveBeenCalledWith('customer.name', '%Maria%')
+    expect(calls.customerIlike).toHaveBeenCalledWith('name', '%Maria%')
+    expect(calls.or).toHaveBeenCalledWith('guest_name.ilike."%Maria%"')
     expect(calls.eq).toHaveBeenCalledWith('customer.is_business', false)
     expect(calls.range).toHaveBeenCalledWith(2, 4)
+  })
+
+  it('searches both customer names and guest recipient names', async () => {
+    const { client, calls } = createClient([row(1)], [7, 12])
+
+    await getSchedules(
+      client,
+      {
+        page: 0,
+        search: 'Harbor',
+        status: 'all',
+        customerType: 'all',
+      },
+      2,
+      '2026-07-18',
+    )
+
+    expect(calls.customerIlike).toHaveBeenCalledWith('name', '%Harbor%')
+    expect(calls.or).toHaveBeenCalledWith(
+      'guest_name.ilike."%Harbor%",customer_id.in.(7,12)',
+    )
+    expect(calls.select.mock.calls[0]?.[0]).not.toContain('customers!inner')
   })
 })

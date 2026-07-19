@@ -1,10 +1,11 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { Customer } from '@/features/customers/customers.types'
 import type { Product } from '@/features/products/products.types'
 import type { Delivery, DeliveryStatus, OrgUser } from '../deliveries.types'
+import { DeliveryDetailsDialog } from './delivery-details-dialog'
 import { DeliveryStatusMenu } from './delivery-status-menu'
 
 interface DeliveriesTableProps {
@@ -62,12 +63,12 @@ function formatDate(value: string): string {
 export function DeliveriesTable({
   deliveries,
   customers = [],
-  products = [],
   users = [],
   onStatusChanged,
   onStatusError,
   onEdit,
 }: DeliveriesTableProps) {
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null)
   const customerById = useMemo(
     () => new Map(customers.map((c) => [c.id, c])),
     [customers],
@@ -92,6 +93,7 @@ export function DeliveriesTable({
               onStatusChanged={onStatusChanged}
               onStatusError={onStatusError}
               onEdit={onEdit}
+              onView={setSelectedDelivery}
             />
           ))}
         </div>
@@ -122,6 +124,7 @@ export function DeliveriesTable({
                 onStatusChanged={onStatusChanged}
                 onStatusError={onStatusError}
                 onEdit={onEdit}
+                onView={setSelectedDelivery}
               />
             ))}
           </tbody>
@@ -132,6 +135,28 @@ export function DeliveriesTable({
           </span>
         </div>
       </div>
+
+      <DeliveryDetailsDialog
+        delivery={selectedDelivery}
+        customer={
+          selectedDelivery?.scheduleInfo?.customerId
+            ? customerById.get(selectedDelivery.scheduleInfo.customerId)
+            : undefined
+        }
+        assignee={
+          selectedDelivery?.assignedTo
+            ? userById.get(selectedDelivery.assignedTo)
+            : undefined
+        }
+        deliveredBy={
+          selectedDelivery?.deliveredBy
+            ? userById.get(selectedDelivery.deliveredBy)
+            : undefined
+        }
+        onOpenChange={(open) => {
+          if (!open) setSelectedDelivery(null)
+        }}
+      />
     </>
   )
 }
@@ -143,6 +168,7 @@ function DeliveryRow({
   onStatusChanged,
   onStatusError,
   onEdit,
+  onView,
 }: {
   delivery: Delivery
   customerById: Map<number, Customer>
@@ -150,6 +176,7 @@ function DeliveryRow({
   onStatusChanged?: (msg: string) => void
   onStatusError?: (msg: string) => void
   onEdit?: (d: Delivery) => void
+  onView: (delivery: Delivery) => void
 }) {
   const info = delivery.scheduleInfo
   const isGuest = !info?.customerId
@@ -168,11 +195,25 @@ function DeliveryRow({
   const assigneeInitials = assignee ? initials(assignee.name) : '—'
 
   const itemCount = delivery.items.length
+  const totalUnits = delivery.items.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  )
   const statusStyle = STATUS_STYLE[delivery.status]
 
   return (
     <tr
+      tabIndex={0}
+      aria-label={`View delivery details for ${recipientName}`}
+      className="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-(--app-brand)"
       style={{ borderTop: '1px solid var(--app-border)' }}
+      onClick={() => onView(delivery)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onView(delivery)
+        }
+      }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--app-row-hover)' }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
     >
@@ -215,7 +256,7 @@ function DeliveryRow({
       <td style={{ padding: '13px 16px' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: 'var(--app-text-muted)' }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" style={{ opacity: 0.75 }}><path d="M9 2.5h6v2l-1 1.3h-4L9 4.5v-2Z" /><path d="M8 5.8h8a1 1 0 0 1 1 1V20a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20V6.8a1 1 0 0 1 1-1Z" /></svg>
-          {itemCount} {itemCount === 1 ? 'item' : 'items'}
+          {formatItemSummary(itemCount, totalUnits)}
         </span>
       </td>
 
@@ -238,7 +279,11 @@ function DeliveryRow({
       </td>
 
       {/* Actions */}
-      <td style={{ padding: '13px 22px' }}>
+      <td
+        style={{ padding: '13px 22px' }}
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
+      >
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <DeliveryStatusMenu
             delivery={delivery}
@@ -262,6 +307,7 @@ function DeliveryMobileCard({
   onStatusChanged,
   onStatusError,
   onEdit,
+  onView,
 }: {
   delivery: Delivery
   customerById: Map<number, Customer>
@@ -269,6 +315,7 @@ function DeliveryMobileCard({
   onStatusChanged?: (msg: string) => void
   onStatusError?: (msg: string) => void
   onEdit?: (d: Delivery) => void
+  onView: (delivery: Delivery) => void
 }) {
   const info = delivery.scheduleInfo
   const isGuest = !info?.customerId
@@ -279,9 +326,26 @@ function DeliveryMobileCard({
   const assigneeName = assignee?.name || 'Unassigned'
 
   const statusStyle = STATUS_STYLE[delivery.status]
+  const totalUnits = delivery.items.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  )
 
   return (
-    <article style={{ borderRadius: '16px', border: '1px solid var(--app-border)', background: 'var(--app-surface)', padding: '14px 16px', boxShadow: 'var(--app-shadow-card)' }}>
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`View delivery details for ${recipientName}`}
+      className="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--app-brand)"
+      style={{ borderRadius: '16px', border: '1px solid var(--app-border)', background: 'var(--app-surface)', padding: '14px 16px', boxShadow: 'var(--app-shadow-card)' }}
+      onClick={() => onView(delivery)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onView(delivery)
+        }
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -290,28 +354,37 @@ function DeliveryMobileCard({
           </div>
           <div style={{ fontSize: '12.5px', color: 'var(--app-text-soft)', marginTop: '3px' }}>{formatDate(delivery.deliveryDate)}</div>
         </div>
-        <DeliveryStatusMenu
-          delivery={delivery}
-          recipientName={recipientName}
-          recipientSource={isGuest ? 'guest' : 'record'}
-          recipientAddress={
-            info?.customerId
-              ? customerById.get(info.customerId)?.fullAddress
-              : info?.guestAddress
-          }
-          onChanged={onStatusChanged}
-          onError={onStatusError}
-          onEdit={onEdit}
-        />
+        <div
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          <DeliveryStatusMenu
+            delivery={delivery}
+            recipientName={recipientName}
+            recipientSource={isGuest ? 'guest' : 'record'}
+            recipientAddress={
+              info?.customerId
+                ? customerById.get(info.customerId)?.fullAddress
+                : info?.guestAddress
+            }
+            onChanged={onStatusChanged}
+            onError={onStatusError}
+            onEdit={onEdit}
+          />
+        </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px', flexWrap: 'wrap' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '12.5px', fontWeight: 700, padding: '5px 10px', borderRadius: '999px', background: statusStyle.bg, color: statusStyle.text }}>
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
           {STATUS_LABEL[delivery.status]}
         </span>
-        <span style={{ fontSize: '12.5px', color: 'var(--app-text-muted)' }}>{delivery.items.length} {delivery.items.length === 1 ? 'item' : 'items'}</span>
+        <span style={{ fontSize: '12.5px', color: 'var(--app-text-muted)' }}>{formatItemSummary(delivery.items.length, totalUnits)}</span>
         <span style={{ fontSize: '12.5px', color: 'var(--app-text-muted)' }}>{assigneeName}</span>
       </div>
     </article>
   )
+}
+
+function formatItemSummary(itemCount: number, units: number): string {
+  return `${itemCount} ${itemCount === 1 ? 'item' : 'items'} (${units} ${units === 1 ? 'unit' : 'units'})`
 }

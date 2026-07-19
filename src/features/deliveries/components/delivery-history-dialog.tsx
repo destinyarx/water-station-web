@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Box,
   CalendarDays,
@@ -9,6 +9,7 @@ import {
   Clock3,
   History,
   PackageOpen,
+  Search,
   UserRound,
 } from 'lucide-react'
 
@@ -43,17 +44,35 @@ export function DeliveryHistoryDialog({
   onOpenChange,
 }: DeliveryHistoryDialogProps) {
   const [page, setPage] = useState(0)
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
   const [status, setStatus] = useState<DeliveryHistoryStatusFilter>('all')
   const [message, setMessage] = useState<string | null>(null)
-  const filters = useMemo(() => ({ page, status }), [page, status])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSearch(searchInput.trim())
+      setPage(0)
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [searchInput])
+
+  const filters = useMemo(
+    () => ({ page, search, status }),
+    [page, search, status],
+  )
   const query = useDeliveryHistory(filters, open)
 
   const deliveries = query.data?.deliveries ?? []
   const hasNext = query.data?.hasNext ?? false
+  const isFiltered = search !== '' || status !== 'all'
 
   function handleOpenChange(next: boolean): void {
     if (!next) {
       setPage(0)
+      setSearchInput('')
+      setSearch('')
       setStatus('all')
       setMessage(null)
     }
@@ -76,26 +95,40 @@ export function DeliveryHistoryDialog({
       bodyPadding="0"
     >
       <div className="max-h-[72vh] overflow-y-auto px-5 py-5 pr-8 [scrollbar-gutter:stable] sm:px-6 sm:pr-9">
-        <div
-          className="mb-5 flex flex-wrap gap-2"
-          aria-label="Filter delivery history by status"
-        >
-          {statusFilters.map((filter) => (
-            <button
-              key={filter.value}
-              type="button"
-              aria-pressed={status === filter.value}
-              onClick={() => selectStatus(filter.value)}
-              className={cn(
-                'rounded-xl border px-3.5 py-2 text-sm font-semibold transition',
-                status === filter.value
-                  ? 'border-(--app-brand) bg-(--app-brand) text-white shadow-sm'
-                  : 'border-(--app-border-strong) bg-(--app-surface) text-(--app-text-soft) hover:bg-(--app-surface-2)',
-              )}
-            >
-              {filter.label}
-            </button>
-          ))}
+        <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(260px,1fr)_auto] lg:items-center">
+          <label className="relative block">
+            <span className="sr-only">Search delivery history by customer name</span>
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-(--app-text-faint)" />
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Search customer name..."
+              className="h-11 w-full rounded-xl border border-(--app-border-strong) bg-(--app-surface) pr-4 pl-10 text-sm text-(--app-text) outline-none transition placeholder:text-(--app-text-faint) focus:border-(--app-brand) focus:shadow-[0_0_0_3px_var(--app-chip-bg)]"
+            />
+          </label>
+
+          <div
+            className="flex flex-wrap gap-2 lg:justify-end"
+            aria-label="Filter delivery history by status"
+          >
+            {statusFilters.map((filter) => (
+              <button
+                key={filter.value}
+                type="button"
+                aria-pressed={status === filter.value}
+                onClick={() => selectStatus(filter.value)}
+                className={cn(
+                  'h-11 rounded-xl border px-3.5 text-sm font-semibold transition',
+                  status === filter.value
+                    ? 'border-(--app-brand) bg-(--app-brand) text-white shadow-sm'
+                    : 'border-(--app-border-strong) bg-(--app-surface) text-(--app-text-soft) hover:bg-(--app-surface-2)',
+                )}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {message ? (
@@ -117,7 +150,7 @@ export function DeliveryHistoryDialog({
             {query.error.message}
           </p>
         ) : deliveries.length === 0 ? (
-          <EmptyHistory filtered={status !== 'all'} />
+          <EmptyHistory filtered={isFiltered} />
         ) : (
           <ul className="m-0 grid list-none gap-3 p-0">
             {deliveries.map((delivery) => (
@@ -310,11 +343,11 @@ function EmptyHistory({ filtered }: { filtered: boolean }) {
     <div className="flex flex-col items-center rounded-2xl border border-dashed border-(--app-border-strong) bg-(--app-surface-2) px-6 py-12 text-center">
       <History className="mb-3 size-8 text-(--app-text-faint)" />
       <p className="font-semibold text-(--app-text)">
-        {filtered ? 'No deliveries match this outcome' : 'No delivery history yet'}
+        {filtered ? 'No deliveries match these filters' : 'No delivery history yet'}
       </p>
       <p className="mt-1 max-w-md text-sm text-(--app-text-soft)">
         {filtered
-          ? 'Choose another outcome to review a different part of the history.'
+          ? 'Try another customer name or outcome to review a different part of the history.'
           : 'Completed, failed, and cancelled delivery runs will appear here.'}
       </p>
     </div>

@@ -31,6 +31,7 @@ unbounded records.
   occurrence.
 - Sort terminal delivery history by the actual terminal update timestamp.
 - Add server-side history status filtering and limit-plus-one pagination.
+- Add debounced server-side history search by customer name.
 - Present delivery items in a compact disclosure with product names,
   quantities, and unit labels.
 - Increase both dialog widths and use the current app design tokens with

@@ -41,6 +41,7 @@ const scheduleListItemRowSchema = deliveryScheduleRowSchema.extend({
 })
 
 const scheduleListItemRowsSchema = z.array(scheduleListItemRowSchema)
+const customerIdRowsSchema = z.array(z.object({ id: z.number().int() }))
 
 export interface SchedulePage {
   schedules: DeliveryScheduleListItem[]
@@ -49,8 +50,9 @@ export interface SchedulePage {
 
 /**
  * Reads a bounded schedule page plus only the one Current and one Next pending
- * occurrence needed by the UI. Customer filters run through an inner relation;
- * the unfiltered list keeps guest schedules through a left relation.
+ * occurrence needed by the UI. Recipient search resolves matching customer IDs
+ * first, then filters the bounded schedule query by customer ID or guest name.
+ * Customer type filters use an inner relation; other queries retain guests.
  */
 export async function getSchedules(
   client: SupabaseClient,
@@ -61,7 +63,9 @@ export async function getSchedules(
   const page = Math.max(0, filters.page)
   const offset = page * pageSize
   const search = filters.search.trim()
-  const filtersByCustomer = search !== '' || filters.customerType !== 'all'
+  const matchingCustomerIds =
+    search === '' ? [] : await getMatchingCustomerIds(client, search)
+  const filtersByCustomer = filters.customerType !== 'all'
   const customerRelation = filtersByCustomer
     ? 'customer:customers!inner(name,is_business)'
     : 'customer:customers(name,is_business)'
@@ -95,7 +99,7 @@ export async function getSchedules(
   }
 
   if (search !== '') {
-    query = query.ilike('customer.name', `%${search}%`)
+    query = query.or(recipientSearchFilter(search, matchingCustomerIds))
   }
 
   if (filters.customerType !== 'all') {
@@ -119,6 +123,37 @@ export async function getSchedules(
     schedules: rows.map(toScheduleListItem),
     hasNext,
   }
+}
+
+async function getMatchingCustomerIds(
+  client: SupabaseClient,
+  search: string,
+): Promise<number[]> {
+  const { data, error } = await client
+    .from('customers')
+    .select('id')
+    .is('deleted_at', null)
+    .ilike('name', `%${search}%`)
+
+  if (error) throw new Error(DELIVERIES_LOAD_ERROR)
+
+  return customerIdRowsSchema.parse(data ?? []).map((customer) => customer.id)
+}
+
+function recipientSearchFilter(
+  search: string,
+  customerIds: number[],
+): string {
+  const guestNameFilter = `guest_name.ilike.${quotePostgrestValue(`%${search}%`)}`
+
+  if (customerIds.length === 0) return guestNameFilter
+
+  return `${guestNameFilter},customer_id.in.(${customerIds.join(',')})`
+}
+
+function quotePostgrestValue(value: string): string {
+  const escapedValue = value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
+  return `"${escapedValue}"`
 }
 
 function toScheduleListItem(

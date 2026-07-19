@@ -15,8 +15,9 @@
 
 ## Recurring schedules
 
-- **R-05** When a user searches by customer name, the system shall filter
-  schedules at the database boundary.
+- **R-05** When a user searches by recipient name, the system shall match both
+  `customers.name` for linked customers and `delivery_schedules.guest_name` for
+  guest schedules at the database boundary.
 - **R-06** When a user selects Active or Inactive, the system shall filter
   schedule status at the database boundary, mapping paused/ended schedules to
   the Inactive presentation.
@@ -65,3 +66,6 @@
 - **R-23** When a member stops a recurring schedule, the parent status change
   and archival of eligible pending occurrences shall commit atomically; if
   either write fails, neither write shall remain committed.
+- **R-24** When a user searches Delivery History by customer name, the system
+  shall debounce the input, filter matching customer deliveries at the database
+  boundary, and reset pagination to the first page.

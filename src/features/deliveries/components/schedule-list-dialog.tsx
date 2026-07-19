@@ -124,13 +124,13 @@ export function ScheduleListDialog({
       <div className="max-h-[72vh] overflow-y-auto px-5 py-5 pr-8 [scrollbar-gutter:stable] sm:px-6 sm:pr-9">
         <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(260px,1fr)_190px_210px]">
           <label className="relative block">
-            <span className="sr-only">Search customer schedules</span>
+            <span className="sr-only">Search schedules by recipient name</span>
             <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-(--app-text-faint)" />
             <input
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Search customer name..."
+              placeholder="Search recipient name..."
               className="h-11 w-full rounded-xl border border-(--app-border-strong) bg-(--app-surface) pr-4 pl-10 text-sm text-(--app-text) outline-none transition placeholder:text-(--app-text-faint) focus:border-(--app-brand) focus:shadow-[0_0_0_3px_var(--app-chip-bg)]"
             />
           </label>
@@ -424,7 +424,7 @@ function EmptySchedules({ filtered }: { filtered: boolean }) {
       </p>
       <p className="mt-1 max-w-md text-sm text-(--app-text-soft)">
         {filtered
-          ? 'Try a different customer name or clear one of the filters.'
+          ? 'Try a different recipient name or clear one of the filters.'
           : 'Recurring and custom-date delivery plans will appear here.'}
       </p>
     </div>

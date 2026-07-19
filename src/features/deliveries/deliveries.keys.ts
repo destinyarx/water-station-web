@@ -10,6 +10,7 @@ export type DeliveryHistoryStatusFilter =
 
 export interface DeliveryHistoryFilters {
   page: number
+  search: string
   status: DeliveryHistoryStatusFilter
 }
 

@@ -78,7 +78,7 @@ export function CreateUnifiedDeliveryDialog({
         maxWidth="900px"
         bodyPadding="22px 26px 0"
       >
-        <div style={{ maxHeight: '62vh', overflowY: 'auto', paddingBottom: '22px' }}>
+        <div className="max-h-[72vh] overflow-y-auto pb-5 [scrollbar-gutter:stable]">
           <UnifiedDeliveryForm
             customers={customers}
             products={products}
