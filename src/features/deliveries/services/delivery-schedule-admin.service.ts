@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
-  DELIVERIES_TABLE,
   DELIVERY_NOT_PERMITTED_ERROR,
   DELIVERY_SAVE_ERROR,
   DELIVERY_SCHEDULES_TABLE,
@@ -26,28 +25,12 @@ export async function pauseSchedule(
   scheduleId: number,
   today: string,
 ): Promise<void> {
-  const now = new Date().toISOString()
+  const { error } = await client.rpc('pause_delivery_schedule_atomic', {
+    p_schedule_id: scheduleId,
+    p_today: today,
+  })
 
-  const { data: scheduleRows, error: scheduleError } = await client
-    .from(DELIVERY_SCHEDULES_TABLE)
-    .update({ status: 'paused' })
-    .eq('id', scheduleId)
-    .select('id')
-
-  if (scheduleError) throw new Error(DELIVERY_SAVE_ERROR)
-  // Must throw before archiving occurrences: a refused pause that still deleted
-  // them would strip the queue from a schedule that is still active.
-  if (!scheduleRows?.length) throw new Error(DELIVERY_NOT_PERMITTED_ERROR)
-
-  const { error: occurrenceError } = await client
-    .from(DELIVERIES_TABLE)
-    .update({ deleted_at: now })
-    .eq('schedule_id', scheduleId)
-    .eq('status', 'pending')
-    .gte('delivery_date', today)
-    .is('deleted_at', null)
-
-  if (occurrenceError) throw new Error(DELIVERY_SAVE_ERROR)
+  if (error) throw new Error(DELIVERY_SAVE_ERROR)
 }
 
 /**

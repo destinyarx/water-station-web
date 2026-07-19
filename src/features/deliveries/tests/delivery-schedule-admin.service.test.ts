@@ -53,68 +53,28 @@ function updateReturning(rows: Array<{ id: number }>) {
 }
 
 describe('pauseSchedule', () => {
-  it('pauses the schedule and targets only pending occurrences dated today or later', async () => {
-    const scheduleUpdate = updateReturning([{ id: 99 }])
+  it('stops the schedule and archives eligible occurrences in one atomic RPC', async () => {
+    const rpc = vi.fn(() => Promise.resolve({ error: null }))
 
-    const occurrenceFilters: Array<[string, unknown]> = []
-    let occurrenceUpdatePayload: Record<string, unknown> | null = null
-    function occurrenceUpdate(payload: Record<string, unknown>) {
-      occurrenceUpdatePayload = payload
-      const builder = {
-        eq: (column: string, value: unknown) => {
-          occurrenceFilters.push([column, value])
-          return builder
-        },
-        gte: (column: string, value: unknown) => {
-          occurrenceFilters.push([column, value])
-          return builder
-        },
-        is: (column: string, value: unknown) => {
-          occurrenceFilters.push([column, value])
-          return Promise.resolve({ error: null })
-        },
-      }
-      return builder
-    }
+    await pauseSchedule({ rpc } as unknown as SupabaseClient, 99, '2026-06-23')
 
-    const from = vi.fn((table: string) => {
-      if (table === 'delivery_schedules') return { update: scheduleUpdate }
-      return { update: occurrenceUpdate }
+    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(rpc).toHaveBeenCalledWith('pause_delivery_schedule_atomic', {
+      p_schedule_id: 99,
+      p_today: '2026-06-23',
     })
-
-    await pauseSchedule({ from } as unknown as SupabaseClient, 99, '2026-06-23')
-
-    expect(scheduleUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'paused' }),
-    )
-    expect(occurrenceUpdatePayload).not.toBeNull()
-    expect(occurrenceUpdatePayload).toHaveProperty('deleted_at')
-    expect(occurrenceFilters).toEqual([
-      ['schedule_id', 99],
-      ['status', 'pending'],
-      ['delivery_date', '2026-06-23'],
-      ['deleted_at', null],
-    ])
-    // The exact status predicate protects in-flight and terminal occurrences:
-    // for_delivery, completed, cancelled, and failed are not mutation targets.
-    expect(occurrenceFilters.filter(([column]) => column === 'status')).toEqual([
-      ['status', 'pending'],
-    ])
   })
 
-  it('throws and archives nothing when the pause matches no rows', async () => {
-    const occurrenceUpdate = vi.fn()
-    const from = vi.fn((table: string) => {
-      if (table === 'delivery_schedules') return { update: updateReturning([]) }
-      return { update: occurrenceUpdate }
-    })
+  it('throws when the atomic stop RPC is rejected', async () => {
+    const rpc = vi.fn(() =>
+      Promise.resolve({ error: { code: '42501', message: 'RLS rejected' } }),
+    )
 
     await expect(
-      pauseSchedule({ from } as unknown as SupabaseClient, 99, '2026-06-23'),
-    ).rejects.toThrow()
+      pauseSchedule({ rpc } as unknown as SupabaseClient, 99, '2026-06-23'),
+    ).rejects.toThrow('Unable to save delivery. Please try again.')
 
-    // The whole point: a refused pause must not strip a still-active queue.
-    expect(occurrenceUpdate).not.toHaveBeenCalled()
+    expect(rpc).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -153,5 +113,22 @@ describe('resumeSchedule', () => {
 
     // A refused resume must not fill the queue for a still-paused schedule.
     expect(materialize).not.toHaveBeenCalled()
+  })
+})
+
+describe('schedule lifecycle toggling', () => {
+  it('routes stop, resume, then stop through the expected write seams', async () => {
+    const rpc = vi.fn(() => Promise.resolve({ error: null }))
+    const scheduleUpdate = updateReturning([{ id: 99 }])
+    const from = vi.fn(() => ({ update: scheduleUpdate }))
+    const client = { from, rpc } as unknown as SupabaseClient
+
+    await pauseSchedule(client, schedule.id, '2026-06-23')
+    await resumeSchedule(client, schedule, owner, '2026-06-23')
+    await pauseSchedule(client, schedule.id, '2026-06-23')
+
+    expect(rpc).toHaveBeenCalledTimes(2)
+    expect(scheduleUpdate).toHaveBeenCalledTimes(1)
+    expect(materialize).toHaveBeenCalledTimes(1)
   })
 })

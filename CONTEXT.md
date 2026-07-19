@@ -114,6 +114,10 @@ _Resume_ sets it back to `active` and materialization continues forward from the
 current date on the schedule's **original `start_date` anchor** — the paused gap
 is not back-filled. Distinct from archiving (owner-only soft delete of the
 schedule itself), which is deferred.
+Stop is one atomic database operation: pausing the parent and archiving eligible
+pending occurrences either both commit or both roll back. The function runs as
+the authenticated caller, so ADR 0015 organization-member RLS remains the
+authorization boundary.
 _Avoid_: treating Stop as deleting history or as archiving the schedule.
 
 **Stock-out window** — a delivery's items are deducted from `products.stock`
