@@ -8,6 +8,14 @@
        from the main delivery table.
      - Resuming it shows eligible pending/in-progress occurrences again.
      - Stop/Resume never mutates completed, cancelled, or failed occurrences.
+   - **Atomic Stop follow-up (2026-07-18):**
+     - Stop now calls one security-invoker database function instead of two
+       independently committed SDK updates.
+     - If eligible occurrence archival fails, the schedule status change rolls
+       back instead of displaying an error for an already-paused schedule.
+     - Canonical migration:
+       `20260718183000_pause_delivery_schedule_atomic.sql` in the sibling
+       Supabase repository; application and signed-in QA remain manual.
 
    1. Stopping a delivery schedules in `Recurring schedules` returns an RLS error:
    ```

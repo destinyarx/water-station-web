@@ -154,3 +154,12 @@ change RLS or the shared-member decision. It makes
 schedule's occurrences from the main table and Resume restores eligible queue
 visibility. The lifecycle writes still target only pending occurrences dated
 today or later; completed, cancelled, and failed rows are never mutated.
+
+Atomic Stop follow-up migration
+`20260718183000_pause_delivery_schedule_atomic.sql` also preserves this ADR's
+authorization decision. It replaces the client's two separately committed Stop
+writes with a `SECURITY INVOKER` function. RLS still authorizes the caller
+against `delivery_schedules` and `deliveries`, but the parent pause and eligible
+pending-occurrence soft-deletes now commit or roll back together. The function
+does not return newly archived delivery rows, avoiding a SELECT-policy check on
+rows that correctly cease to satisfy `deleted_at is null` after soft deletion.

@@ -286,8 +286,18 @@ Custom-date schedules store one row per selected date with `schedule_id`, `deliv
 
 - `set_delivery_status_atomic(integer, text, text, text, text)` locks the occurrence, compare-and-sets the expected status, validates remarks/transitions, moves stock, and stamps server-owned lifecycle fields in one transaction.
 - `replace_delivery_items_atomic(integer, date, text, jsonb)` locks a pending occurrence and replaces its date, notes, and item snapshots in one transaction.
+- `pause_delivery_schedule_atomic(integer, date)` pauses an RLS-visible
+  schedule and soft-deletes only its non-deleted `pending` occurrences dated on
+  or after the supplied current date in the same transaction. It returns no
+  delivery rows, so newly archived rows are not rechecked against the
+  active-row SELECT policy after the update.
 
-Both functions are `SECURITY INVOKER`, executable only by `authenticated`, and rely on table RLS. Definitions are in handoff migration `005-atomic-delivery-writes.sql`.
+All three functions are `SECURITY INVOKER`, executable only by
+`authenticated`, and rely on table RLS. The schedule-pause function is defined
+by canonical migration
+`20260718183000_pause_delivery_schedule_atomic.sql`; the earlier delivery
+status/item functions originate in `005-atomic-delivery-writes.sql` and later
+canonical follow-ups.
 
 Cancellation uses the same atomic status function. It permits only
 `pending -> cancelled` or `for_delivery -> cancelled`, requires a trimmed

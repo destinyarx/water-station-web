@@ -299,6 +299,8 @@ product catalog populated (delivery items reference products).
    occurrence of the paused schedule from the main queue) or **Resume** (sets
    `active`, restores eligible main-queue visibility, continues from today on
    the original `start_date` anchor, and does not back-fill the paused gap).
+   Stop calls `pause_delivery_schedule_atomic`, so the parent pause and
+   eligible occurrence archival are one RLS-enforced transaction.
 
 **Main flow (history):**
 9. **History modal**: `completed` + `failed` + `cancelled` occurrences,

@@ -2,12 +2,11 @@
 
 ## Status
 
-Implemented on 2026-07-18. Typecheck, focused delivery tests, the full
-64-file/289-test suite, lint (zero errors; existing warnings remain), and the
-production build pass. The new queue-view migration is present locally but
-intentionally not applied by the agent. Linked history now contains the earlier
-ADR 0015 policy repair; the active-schedule queue-view migration remains
-local-only.
+Implemented on 2026-07-18. The earlier ADR 0015 policy repair and
+active-schedule queue-view migrations are present in linked history. A new
+atomic Stop migration is present locally and intentionally not applied by the
+agent. Current verification results are recorded in `ACCEPTANCE.md` and the
+task handoff.
 Signed-in browser and RLS QA remain manual because no in-app browser backend
 was available.
 
@@ -26,6 +25,10 @@ was available.
    current-queue date/status rules plus an active-parent-schedule predicate.
    This makes Stop/Resume control queue visibility without mutating terminal
    occurrence rows.
+7. Replace Stop's two independent Data API updates with
+   `pause_delivery_schedule_atomic(integer, date)`. The security-invoker RPC
+   changes the parent and archives only today/future pending occurrences in one
+   transaction without returning the newly soft-deleted rows.
 
 ## Interface
 

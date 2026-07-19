@@ -62,3 +62,6 @@
 - **R-22** When a schedule is stopped or resumed, the system shall not update,
   archive, restore, or otherwise mutate occurrences whose status is
   `completed`, `cancelled`, or `failed`.
+- **R-23** When a member stops a recurring schedule, the parent status change
+  and archival of eligible pending occurrences shall commit atomically; if
+  either write fails, neither write shall remain committed.

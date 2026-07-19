@@ -3,6 +3,8 @@
 - [ ] Owner and staff can Stop/Resume any schedule in their organization.
 - [ ] Stop can soft-delete that schedule's future pending occurrences without
       an RLS error.
+- [x] Stop uses one security-invoker database transaction, so an occurrence
+      archival failure cannot leave the parent schedule paused.
 - [ ] Direct cross-organization schedule and occurrence writes remain rejected.
 - [ ] Stopping a recurring schedule immediately removes all of its occurrences
       from the main delivery queue.

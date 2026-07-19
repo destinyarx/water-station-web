@@ -27,6 +27,23 @@ the visibility boundary. Stop hides every occurrence of that schedule from the
 main queue, and Resume makes eligible rows visible again. No terminal outcome
 needs to be updated, restored, or deleted.
 
+## Atomic Stop follow-up
+
+The reported refresh-only symptom exposed a second issue after the shared
+member policy was repaired. The client performed two independent writes:
+`delivery_schedules.status = paused` committed first, then the Data API
+soft-delete of `deliveries` failed with SQLSTATE `42501`. Because the mutation
+rejected, TanStack Query did not invalidate the schedule list; refreshing then
+loaded the already-paused parent and made the operation appear intermittent.
+
+PostgreSQL checks rows exposed by an UPDATE return path against SELECT RLS. A
+newly soft-deleted delivery no longer satisfies the active-row SELECT predicate
+`deleted_at is null`, even though its UPDATE `WITH CHECK` permits organization
+members. The safe seam is a `SECURITY INVOKER` PL/pgSQL function that performs
+both no-RETURNING UPDATE statements in one transaction. Source-table RLS still
+selects which old rows the caller may update, and any error rolls back the
+parent status change.
+
 ## Bounded schedule context
 
 PostgREST embedded resources can return one latest due pending occurrence and

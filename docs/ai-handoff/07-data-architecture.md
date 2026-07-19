@@ -342,6 +342,11 @@ that table has no `deleted_at`.
   `SECURITY DEFINER` trigger, following the same pattern, not a
   client-side insert (which is impossible anyway — no INSERT policy
   exists).
+- **`pause_delivery_schedule_atomic(integer, date)`** — a `SECURITY INVOKER`
+  RPC used by recurring-schedule Stop. It updates the parent schedule and
+  soft-deletes only pending occurrences dated today or later in one transaction;
+  source-table RLS remains authoritative and the function returns no archived
+  rows.
 - No other stored procedures/functions were found referenced in the repo.
 - **Column-level privilege grants** (not triggers, but a real access-control
   mechanism worth flagging as unusual): `public.notifications` has

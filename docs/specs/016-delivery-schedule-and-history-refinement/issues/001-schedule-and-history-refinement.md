@@ -14,6 +14,8 @@
       Stop hides and Resume restores eligible queue visibility.
 - [x] Preserve completed, cancelled, and failed occurrences across schedule
       Stop/Resume.
+- [x] Make Stop atomic through a security-invoker RPC so the parent cannot
+      remain paused after an occurrence archival failure.
 
 ## Done when
 

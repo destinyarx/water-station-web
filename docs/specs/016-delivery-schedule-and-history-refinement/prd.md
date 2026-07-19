@@ -18,6 +18,8 @@ unbounded records.
 
 - Preserve ADR 0015: any organization member may Stop/Resume an
   organization-owned delivery schedule.
+- Make Stop a single database transaction so a failed occurrence archival
+  cannot commit the parent schedule change by itself.
 - Keep delivery occurrence status work shared across organization members.
 - Hide every occurrence of a paused recurring schedule from the main delivery
   queue, and make eligible queue rows visible again when the schedule resumes.
