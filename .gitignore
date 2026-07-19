@@ -14,7 +14,7 @@
 /coverage
 
 # docs 
-/docs
+/docs/
 
 # next.js
 /.next/
