@@ -303,7 +303,7 @@ export function PanelEmpty({
 export function RefreshIndicator() {
   return (
     <span
-      className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-(--app-text-soft)"
+      className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-sky-100"
       role="status"
     >
       <RefreshCw className="size-3 animate-spin motion-reduce:animate-none" />

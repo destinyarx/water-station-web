@@ -245,18 +245,39 @@ export function SalesExpensesChart({
                 )
                 .join('. ')}
             </desc>
-            {[0, 0.5, 1].map((ratio) => {
-              const y = plotTop + plotHeight * ratio
+            <defs>
+              <linearGradient id="salesBarGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#4fb5e8" />
+                <stop offset="100%" stopColor="#0a6cc4" />
+              </linearGradient>
+              <linearGradient id="expenseBarGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" />
+                <stop offset="100%" stopColor="#f59e0b" />
+              </linearGradient>
+            </defs>
+            {[1, 0.5, 0].map((ratio) => {
+              const y = plotTop + plotHeight * (1 - ratio)
               return (
-                <line
-                  key={ratio}
-                  x1="0"
-                  x2={chartWidth}
-                  y1={y}
-                  y2={y}
-                  stroke="var(--app-border)"
-                  strokeDasharray="4 5"
-                />
+                <g key={ratio}>
+                  <line
+                    x1="0"
+                    x2={chartWidth}
+                    y1={y}
+                    y2={y}
+                    stroke="var(--app-border)"
+                    strokeDasharray={ratio === 0 ? undefined : '4 5'}
+                  />
+                  <text
+                    x={chartWidth - 2}
+                    y={y - 4}
+                    textAnchor="end"
+                    fill="var(--app-text-faint)"
+                    fontSize="9"
+                    fontWeight="600"
+                  >
+                    {formatDashboardCompactMoney(maximum * ratio)}
+                  </text>
+                </g>
               )
             })}
             {displayedBuckets.map((bucket, index) => {
@@ -271,7 +292,7 @@ export function SalesExpensesChart({
                     width={barWidth}
                     height={salesHeight}
                     rx="4"
-                    fill="#0a6cc4"
+                    fill="url(#salesBarGrad)"
                     tabIndex={0}
                     aria-label={`${bucket.label} sales ${formatDashboardMoney(bucket.sales)}`}
                   >
@@ -285,8 +306,8 @@ export function SalesExpensesChart({
                     y={plotBottom - expenseHeight}
                     width={barWidth}
                     height={expenseHeight}
-                    rx="2"
-                    fill="#f59e0b"
+                    rx="4"
+                    fill="url(#expenseBarGrad)"
                     tabIndex={0}
                     aria-label={`${bucket.label} expenses ${formatDashboardMoney(bucket.expenses)}`}
                   >
@@ -365,6 +386,16 @@ export function SalesMixChart({ items }: { items: DashboardSalesMixItem[] }) {
             role="img"
             aria-label={`Sales mix: ${Math.round(refill?.percentage ?? 0)} percent refill services and ${Math.round(stocked?.percentage ?? 0)} percent stock-tracked products`}
           >
+            <defs>
+              <linearGradient id="mixRefillGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#4fb5e8" />
+                <stop offset="100%" stopColor="#0a6cc4" />
+              </linearGradient>
+              <linearGradient id="mixStockedGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#4ade80" />
+                <stop offset="100%" stopColor="#1f9d68" />
+              </linearGradient>
+            </defs>
             <circle
               cx="60"
               cy="60"
@@ -378,7 +409,7 @@ export function SalesMixChart({ items }: { items: DashboardSalesMixItem[] }) {
               cy="60"
               r={radius}
               fill="none"
-              stroke="#0a6cc4"
+              stroke="url(#mixRefillGrad)"
               strokeWidth="14"
               strokeLinecap="round"
               strokeDasharray={`${refillLength} ${circumference}`}
@@ -393,7 +424,7 @@ export function SalesMixChart({ items }: { items: DashboardSalesMixItem[] }) {
               cy="60"
               r={radius}
               fill="none"
-              stroke="#22c55e"
+              stroke="url(#mixStockedGrad)"
               strokeWidth="14"
               strokeLinecap="round"
               strokeDasharray={`${stockedLength} ${circumference}`}

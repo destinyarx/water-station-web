@@ -32,8 +32,8 @@ function CompleteButton({ done, isPending, onClick }: { done: boolean; isPending
       disabled={isPending}
       onClick={onClick}
       className={done
-        ? 'inline-flex flex-none items-center gap-1.5 rounded-[10px] border border-[var(--app-green-deep)] bg-[var(--app-green-soft-bg)] px-3.5 py-2 text-[12.5px] font-semibold text-[var(--app-green-deep)] transition-colors hover:bg-[var(--app-chip-green-bg)] disabled:cursor-wait disabled:opacity-60'
-        : 'inline-flex flex-none items-center gap-1.5 rounded-[10px] border border-transparent bg-[var(--app-green-fill)] px-3.5 py-2 text-[12.5px] font-semibold text-white shadow-[var(--app-green-shadow)] transition-[filter,transform] hover:brightness-95 active:translate-y-px disabled:cursor-wait disabled:opacity-60'}
+        ? 'inline-flex flex-none items-center gap-1.5 rounded-[10px] border border-(--app-green-deep) bg-(--app-green-soft-bg) px-3.5 py-2 text-[12.5px] font-semibold text-(--app-green-deep) transition-colors hover:bg-(--app-chip-green-bg) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--app-green-strong)/60 disabled:cursor-wait disabled:opacity-60'
+        : 'inline-flex flex-none items-center gap-1.5 rounded-[10px] border border-(--app-green-deep) bg-(image:--app-green-fill) px-3.5 py-2 text-[12.5px] font-bold text-white shadow-(--app-green-shadow) transition-[filter,transform] hover:brightness-105 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--app-green-strong) disabled:cursor-wait disabled:opacity-60'}
     >
       <span className="flex">
         {checkIcon}
