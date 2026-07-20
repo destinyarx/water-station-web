@@ -272,11 +272,8 @@ Create `.env.local` in the project root:
 
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
-
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
-
 NEXT_PUBLIC_SUPABASE_EDGE_CREATE_ORG_URL=https://your-project.supabase.co/functions/v1/create-aquaflow-organization
 NEXT_PUBLIC_SUPABASE_EDGE_ADD_STAFF_URL=https://your-project.supabase.co/functions/v1/aquaflow-add-staff
 
