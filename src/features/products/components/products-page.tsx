@@ -3,14 +3,18 @@
 import { useEffect, useState } from 'react'
 
 import { AquaProgressBar, AquaSkeleton } from '@/components/app/loading'
-import { LOW_STOCK_THRESHOLD } from '../products.constants'
-import type { Product } from '../products.types'
+import { cn } from '@/lib/utils'
+
 import { useProductActor } from '../hooks/use-product-actor'
 import { useProducts, useProductStats } from '../hooks/use-products'
+import { LOW_STOCK_THRESHOLD } from '../products.constants'
+import type { Product } from '../products.types'
 import { CreateProductDialog } from './create-product-dialog'
 import { ProductsGrid } from './products-table'
 
 type ProductFilter = 'all' | 'refillable' | 'stocked' | 'discontinued'
+type StatTone = 'brand' | 'green' | 'amber' | 'red'
+
 const EMPTY_PRODUCTS: Product[] = []
 const PER_PAGE = 10
 
@@ -41,7 +45,10 @@ export function ProductsPage() {
   const pageEnd = Math.min(safePage * PER_PAGE, total)
 
   useEffect(() => {
-    const id = window.setTimeout(() => { setDebouncedSearch(search); setPage(1) }, 300)
+    const id = window.setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+    }, 300)
     return () => window.clearTimeout(id)
   }, [search])
 
@@ -55,13 +62,12 @@ export function ProductsPage() {
   }
 
   return (
-    <div style={{ maxWidth: '1800px', margin: '0 auto', padding: '26px 28px 56px' }}>
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '24px' }}>
+    <div className="mx-auto max-w-450 px-7 pt-6.5 pb-14">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
         <div>
-          <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-brand)', marginBottom: '9px' }}>Catalog &amp; inventory</div>
-          <h1 style={{ fontSize: '29px', fontWeight: 800, letterSpacing: '-0.025em', margin: '0 0 7px', color: 'var(--app-text)' }}>Products</h1>
-          <p style={{ fontSize: '14.5px', lineHeight: 1.55, color: 'var(--app-text-muted)', margin: 0, maxWidth: '560px' }}>
+          <div className="mb-2.25 text-xs font-bold tracking-[0.08em] text-(--app-brand) uppercase">Catalog &amp; inventory</div>
+          <h1 className="mb-1.75 text-[29px] font-extrabold tracking-[-0.025em] text-(--app-text)">Products</h1>
+          <p className="max-w-140 text-[14.5px] leading-[1.55] text-(--app-text-muted)">
             Manage your refill services and bottled-water stock in one place — prices, inventory levels, and what&rsquo;s available today.
           </p>
         </div>
@@ -69,38 +75,79 @@ export function ProductsPage() {
       </div>
 
       {statusMessage ? (
-        <div role="status" style={{ marginBottom: '18px', borderRadius: '12px', background: 'var(--app-chip-green-bg)', color: 'var(--app-chip-green-text)', padding: '10px 14px', fontSize: '13.5px', fontWeight: 600 }}>
+        <div role="status" className="mb-4.5 rounded-xl bg-(--app-chip-green-bg) px-3.5 py-2.5 text-[13.5px] font-semibold text-(--app-chip-green-text)">
           {statusMessage}
         </div>
       ) : null}
 
-      {/* stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '14px', marginBottom: '18px' }}>
-        <StatCard label="Total products" value={metrics.total} helper="In your catalog" accent="#38bdf8" barWidth="100%" iconBg="var(--app-chip-bg)" iconColor="var(--app-brand)" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3.5 4.5 5.5 7 5.5 9.8a5.5 5.5 0 1 1-11 0C6.5 10 8.5 7.5 12 3Z" /></svg>} />
-        <StatCard label="Active" value={metrics.active} helper="Available to staff today" accent="#22c55e" numColor="var(--app-text)" barWidth={pct(metrics.active, metrics.total)} iconBg="var(--app-chip-green-bg)" iconColor="var(--app-chip-green-text)" icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>} />
-        <StatCard label="Low stock" value={metrics.low} helper={`Under ${LOW_STOCK_THRESHOLD} units remaining`} accent={metrics.low > 0 ? '#f59e0b' : 'var(--app-border)'} numColor={metrics.low > 0 ? 'var(--app-chip-amber-text)' : 'var(--app-text)'} barWidth={metrics.low > 0 ? pct(metrics.low, metrics.stockTracked) : '0%'} iconBg={metrics.low > 0 ? 'var(--app-chip-amber-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.low > 0 ? 'var(--app-chip-amber-text)' : 'var(--app-text-faint)'} icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M10.3 4.3l-8 13.4A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
-        <StatCard label="Out of stock" value={metrics.out} helper="Stocked products at zero" accent={metrics.out > 0 ? '#ef4444' : 'var(--app-border)'} numColor={metrics.out > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text)'} barWidth={metrics.out > 0 ? pct(metrics.out, metrics.stockTracked) : '0%'} iconBg={metrics.out > 0 ? 'var(--app-chip-red-bg)' : 'var(--app-chip-gray-bg)'} iconColor={metrics.out > 0 ? 'var(--app-chip-red-text)' : 'var(--app-text-faint)'} icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /></svg>} />
+      <div className="mb-4.5 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
+        <StatCard
+          label="Total products"
+          value={metrics.total}
+          helper="In your catalog"
+          tone="brand"
+          barWidth="100%"
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c3.5 4.5 5.5 7 5.5 9.8a5.5 5.5 0 1 1-11 0C6.5 10 8.5 7.5 12 3Z" /></svg>}
+        />
+        <StatCard
+          label="Active"
+          value={metrics.active}
+          helper="Available to staff today"
+          tone="green"
+          barWidth={pct(metrics.active, metrics.total)}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.3 2.3 4.4-4.7" /></svg>}
+        />
+        <StatCard
+          label="Low stock"
+          value={metrics.low}
+          helper={`Under ${LOW_STOCK_THRESHOLD} units remaining`}
+          tone="amber"
+          inactive={metrics.low === 0}
+          valueAccent
+          barWidth={metrics.low > 0 ? pct(metrics.low, metrics.stockTracked) : '0%'}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"><path d="M10.3 4.3l-8 13.4A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>}
+        />
+        <StatCard
+          label="Out of stock"
+          value={metrics.out}
+          helper="Stocked products at zero"
+          tone="red"
+          inactive={metrics.out === 0}
+          valueAccent
+          barWidth={metrics.out > 0 ? pct(metrics.out, metrics.stockTracked) : '0%'}
+          icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /></svg>}
+        />
       </div>
 
-      {/* toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap', marginBottom: '18px' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: '230px', maxWidth: '400px' }}>
-          <span style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: 'var(--app-text-faint)', pointerEvents: 'none' }}>
+      <div className="mb-4.5 flex flex-wrap items-center justify-between gap-3.5">
+        <div className="relative min-w-57.5 max-w-100 flex-1">
+          <span className="pointer-events-none absolute top-1/2 left-3.25 -translate-y-1/2 text-(--app-text-faint)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-3.6-3.6" /></svg>
           </span>
           <input
             value={search}
-            onChange={(event) => { setSearch(event.target.value); setPage(1) }}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(1)
+            }}
             placeholder="Search products…"
             aria-label="Search products"
-            style={{ width: '100%', padding: '10px 14px 10px 39px', border: '1px solid var(--app-border-strong)', borderRadius: '11px', background: 'var(--app-surface)', color: 'var(--app-text)', fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+            className="w-full rounded-[11px] border border-(--app-border-strong) bg-(--app-surface) py-2.5 pr-3.5 pl-9.75 text-sm text-(--app-text) outline-none"
           />
         </div>
-        <div style={{ display: 'inline-flex', padding: '4px', gap: '3px', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '12px', flexWrap: 'wrap' }}>
+        <div className="inline-flex flex-wrap gap-0.75 rounded-xl border border-(--app-border) bg-(--app-surface) p-1">
           {FILTERS.map((item) => {
             const on = filter === item.key
             return (
-              <button key={item.key} type="button" onClick={() => chooseFilter(item.key)} style={{ padding: '8px 16px', border: 'none', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: on ? 700 : 600, background: on ? 'var(--app-surface-2)' : 'transparent', color: on ? 'var(--app-brand)' : 'var(--app-text-soft)', boxShadow: on ? '0 1px 4px rgba(14,108,196,0.16)' : 'none' }}>
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => chooseFilter(item.key)}
+                className={cn(
+                  'cursor-pointer rounded-[9px] px-4 py-2 text-[13.5px] font-semibold text-(--app-text-soft)',
+                  on && 'bg-(--app-surface-2) font-bold text-(--app-brand) shadow-[0_1px_4px_rgba(14,108,196,0.16)]',
+                )}
+              >
                 {item.label}
               </button>
             )
@@ -111,7 +158,9 @@ export function ProductsPage() {
       {productsQuery.isPending || statsQuery.isPending ? (
         <LoadingGrid />
       ) : productsQuery.isError || statsQuery.isError ? (
-        <div role="alert" style={{ borderRadius: '16px', border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.06)', padding: '16px 18px', fontSize: '14px', color: '#dc2626' }}>{productsQuery.error?.message ?? statsQuery.error?.message}</div>
+        <div role="alert" className="rounded-2xl border border-[rgba(220,38,38,0.3)] bg-[rgba(220,38,38,0.06)] px-4.5 py-4 text-sm text-[#dc2626]">
+          {productsQuery.error?.message ?? statsQuery.error?.message}
+        </div>
       ) : metrics.total === 0 ? (
         <EmptyState onAdd={() => setCreating(true)} />
       ) : total === 0 ? (
@@ -122,9 +171,9 @@ export function ProductsPage() {
             <AquaProgressBar className="mb-3 rounded-full" />
           ) : null}
           <ProductsGrid products={products} actor={actor} onActionSuccess={setStatusMessage} />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 4px 0', fontSize: '13px', color: 'var(--app-text-soft)', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex flex-wrap items-center justify-between gap-3 px-1 pt-4.5 text-[13px] text-(--app-text-soft)">
             <span>
-              Showing <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{pageStart}–{pageEnd}</strong> of {total} products{productsQuery.isFetching ? ' · Updating…' : ''}
+              Showing <strong className="font-semibold text-(--app-text)">{pageStart}–{pageEnd}</strong> of {total} products{productsQuery.isFetching ? ' · Updating…' : ''}
             </span>
             {pageCount > 1 ? <Pager page={safePage} pageCount={pageCount} onPage={setPage} /> : null}
           </div>
@@ -138,7 +187,11 @@ export function ProductsPage() {
 
 function AddButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} style={{ flex: 'none', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '9px', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: '14.5px', fontWeight: 600, padding: '12px 21px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 10px 22px rgba(14,108,196,0.28)' }}>
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex flex-none cursor-pointer items-center gap-2.25 rounded-xl bg-[linear-gradient(150deg,#3fb0f0,#0a6cc4)] px-5.25 py-3 text-[14.5px] font-semibold whitespace-nowrap text-white shadow-[0_10px_22px_rgba(14,108,196,0.28)]"
+    >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
       Add product
     </button>
@@ -149,46 +202,124 @@ interface StatCardProps {
   label: string
   value: number
   helper: string
-  accent: string
+  tone: StatTone
   barWidth: string
-  iconBg: string
-  iconColor: string
   icon: React.ReactNode
-  numColor?: string
+  inactive?: boolean
+  valueAccent?: boolean
 }
 
-function StatCard({ label, value, helper, accent, barWidth, iconBg, iconColor, icon, numColor }: StatCardProps) {
+const statToneClasses: Record<StatTone, { border: string; bar: string; icon: string; value: string }> = {
+  brand: {
+    border: 'border-l-[#38bdf8]',
+    bar: 'bg-[#38bdf8]',
+    icon: 'bg-(--app-chip-bg) text-(--app-brand)',
+    value: 'text-(--app-brand)',
+  },
+  green: {
+    border: 'border-l-[#22c55e]',
+    bar: 'bg-[#22c55e]',
+    icon: 'bg-(--app-chip-green-bg) text-(--app-chip-green-text)',
+    value: 'text-(--app-chip-green-text)',
+  },
+  amber: {
+    border: 'border-l-[#f59e0b]',
+    bar: 'bg-[#f59e0b]',
+    icon: 'bg-(--app-chip-amber-bg) text-(--app-chip-amber-text)',
+    value: 'text-(--app-chip-amber-text)',
+  },
+  red: {
+    border: 'border-l-[#ef4444]',
+    bar: 'bg-[#ef4444]',
+    icon: 'bg-(--app-chip-red-bg) text-(--app-chip-red-text)',
+    value: 'text-(--app-chip-red-text)',
+  },
+}
+
+function StatCard({ label, value, helper, tone, barWidth, icon, inactive = false, valueAccent = false }: StatCardProps) {
+  const toneClasses = statToneClasses[tone]
+
   return (
-    <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accent}`, borderRadius: '16px', padding: '15px 16px', boxShadow: 'var(--app-shadow-card)' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
-        <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)', paddingTop: '2px', lineHeight: 1.3 }}>{label}</div>
-        <div style={{ flex: 'none', width: '28px', height: '28px', borderRadius: '9px', background: iconBg, color: iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+    <div
+      className={cn(
+        'rounded-2xl border border-l-[3px] border-y-(--app-border) border-r-(--app-border) bg-(--app-surface) px-4 py-3.75 shadow-(--app-shadow-card)',
+        inactive ? 'border-l-(--app-border)' : toneClasses.border,
+      )}
+    >
+      <div className="mb-2.5 flex items-start justify-between gap-2.5">
+        <div className="pt-0.5 text-[10.5px] leading-[1.3] font-bold tracking-[0.08em] text-(--app-text-faint) uppercase">{label}</div>
+        <div
+          className={cn(
+            'flex size-7 flex-none items-center justify-center rounded-[9px]',
+            inactive ? 'bg-(--app-chip-gray-bg) text-(--app-text-faint)' : toneClasses.icon,
+          )}
+        >
+          {icon}
+        </div>
       </div>
-      <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: numColor ?? 'var(--app-text)', marginBottom: '9px' }}>{value}</div>
-      <div style={{ height: '3px', background: 'var(--app-border)', borderRadius: '99px', marginBottom: '8px', overflow: 'hidden' }}>
-        <div style={{ height: '100%', width: barWidth, background: accent, borderRadius: '99px' }} />
+      <div
+        className={cn(
+          'mb-2.25 text-[25px] leading-none font-extrabold tracking-[-0.03em] text-(--app-text)',
+          valueAccent && !inactive && toneClasses.value,
+        )}
+      >
+        {value}
       </div>
-      <div style={{ fontSize: '12px', color: 'var(--app-text-soft)' }}>{helper}</div>
+      <div className="mb-2 h-0.75 overflow-hidden rounded-full bg-(--app-border)">
+        <div
+          // ponytail: the progress width is calculated from live product metrics.
+          style={{ width: barWidth }}
+          className={cn('h-full rounded-full', inactive ? 'bg-(--app-border)' : toneClasses.bar)}
+        />
+      </div>
+      <div className="text-xs text-(--app-text-soft)">{helper}</div>
     </div>
   )
 }
 
-function Pager({ page, pageCount, onPage }: { page: number; pageCount: number; onPage: (page: number) => void }) {
-  const arrowBtn: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '9px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', cursor: 'pointer' }
+interface PagerProps {
+  page: number
+  pageCount: number
+  onPage: (page: number) => void
+}
+
+function Pager({ page, pageCount, onPage }: PagerProps) {
+  const arrowClassName = 'inline-flex size-8 cursor-pointer items-center justify-center rounded-[9px] border border-(--app-border-strong) bg-(--app-surface) disabled:cursor-not-allowed disabled:text-(--app-text-faint)'
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-      <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={() => onPage(page - 1)} style={{ ...arrowBtn, color: page <= 1 ? 'var(--app-text-faint)' : 'var(--app-text-muted)' }}>
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        aria-label="Previous page"
+        disabled={page <= 1}
+        onClick={() => onPage(page - 1)}
+        className={cn(arrowClassName, page > 1 && 'text-(--app-text-muted)')}
+      >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 6l-6 6 6 6" /></svg>
       </button>
-      {Array.from({ length: pageCount }, (_, index) => index + 1).map((n) => {
-        const on = n === page
+      {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => {
+        const selected = number === page
         return (
-          <button key={n} type="button" onClick={() => onPage(n)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '32px', height: '32px', padding: '0 7px', borderRadius: '9px', border: `1px solid ${on ? 'var(--app-brand-soft)' : 'var(--app-border-strong)'}`, background: on ? 'var(--app-chip-bg)' : 'var(--app-surface)', color: on ? 'var(--app-brand)' : 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: on ? 700 : 500, cursor: 'pointer' }}>
-            {n}
+          <button
+            key={number}
+            type="button"
+            onClick={() => onPage(number)}
+            className={cn(
+              'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-[9px] border border-(--app-border-strong) bg-(--app-surface) px-1.75 text-[13px] font-medium text-(--app-text-muted)',
+              selected && 'border-(--app-brand-soft) bg-(--app-chip-bg) font-bold text-(--app-brand)',
+            )}
+          >
+            {number}
           </button>
         )
       })}
-      <button type="button" aria-label="Next page" disabled={page >= pageCount} onClick={() => onPage(page + 1)} style={{ ...arrowBtn, color: page >= pageCount ? 'var(--app-text-faint)' : 'var(--app-text-muted)' }}>
+      <button
+        type="button"
+        aria-label="Next page"
+        disabled={page >= pageCount}
+        onClick={() => onPage(page + 1)}
+        className={cn(arrowClassName, page < pageCount && 'text-(--app-text-muted)')}
+      >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6" /></svg>
       </button>
     </div>
@@ -197,9 +328,9 @@ function Pager({ page, pageCount, onPage }: { page: number; pageCount: number; o
 
 function LoadingGrid() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(236px,1fr))', gap: '16px' }}>
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-4">
       {Array.from({ length: 8 }, (_, index) => (
-        <AquaSkeleton key={index} className="rounded-2xl border border-(--app-border)" style={{ height: '230px' }} />
+        <AquaSkeleton key={index} className="h-57.5 rounded-2xl border border-(--app-border)" />
       ))}
     </div>
   )
@@ -207,22 +338,26 @@ function LoadingGrid() {
 
 function NoResultsState() {
   return (
-    <div style={{ padding: '58px 24px', textAlign: 'center', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '18px' }}>
-      <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--app-text)', marginBottom: '6px' }}>No matching products</div>
-      <p style={{ fontSize: '14px', color: 'var(--app-text-muted)', margin: 0 }}>Try a different name or switch the filter above.</p>
+    <div className="rounded-[18px] border border-(--app-border) bg-(--app-surface) px-6 py-14.5 text-center">
+      <div className="mb-1.5 text-[17px] font-bold text-(--app-text)">No matching products</div>
+      <p className="text-sm text-(--app-text-muted)">Try a different name or switch the filter above.</p>
     </div>
   )
 }
 
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
-    <div style={{ padding: '58px 24px', textAlign: 'center', background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '18px' }}>
-      <div style={{ width: '68px', height: '68px', borderRadius: '20px', background: 'var(--app-chip-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', color: 'var(--app-brand)' }}>
+    <div className="rounded-[18px] border border-(--app-border) bg-(--app-surface) px-6 py-14.5 text-center">
+      <div className="mx-auto mb-4.5 flex size-17 items-center justify-center rounded-[20px] bg-(--app-chip-bg) text-(--app-brand)">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c4 5 6.5 8 6.5 11.5a6.5 6.5 0 1 1-13 0C5.5 10.5 8 7.5 12 2.5Z" /></svg>
       </div>
-      <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--app-text)', marginBottom: '6px' }}>No products yet</div>
-      <p style={{ fontSize: '14px', color: 'var(--app-text-muted)', margin: '0 auto 18px', maxWidth: '360px' }}>Start by adding your first refill service, bottled water, or container product.</p>
-      <button type="button" onClick={onAdd} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, padding: '12px 22px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 10px 24px rgba(14,108,196,0.3)' }}>
+      <div className="mb-1.5 text-lg font-bold text-(--app-text)">No products yet</div>
+      <p className="mx-auto mb-4.5 max-w-90 text-sm text-(--app-text-muted)">Start by adding your first refill service, bottled water, or container product.</p>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[linear-gradient(150deg,#3fb0f0,#0a6cc4)] px-5.5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(14,108,196,0.3)]"
+      >
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
         Add product
       </button>
