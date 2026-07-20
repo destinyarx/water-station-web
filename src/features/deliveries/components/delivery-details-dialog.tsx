@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Box,
   CalendarDays,
   CircleAlert,
   ClipboardList,
@@ -30,6 +29,14 @@ interface DeliveryDetailsDialogProps {
 }
 
 const DETAILS_ICON = <ClipboardList className="size-5 text-white" />
+
+// Product-type icons, matching the Products catalog: refill = jug, bottled = bottle.
+const ItemJugIcon = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M9 2.5h6v2l-1.2 1.5h-3.6L9 4.5v-2Z" /><path d="M8 6h8a1 1 0 0 1 1 1v12.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1Z" /><path d="M9.5 13.5a2.6 2.6 0 0 1 4.6-1.3M14.5 14.5a2.6 2.6 0 0 1-4.6 1.3" /></svg>
+)
+const ItemBottleIcon = (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M10 2.5h4v1.6l1 1v1.8l-1 1v1l1 1v8.1a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-8.1l1-1v-1l-1-1V6.7l1-1V2.5Z" /><path d="M9 14.5h6" /></svg>
+)
 
 const STATUS_LABEL: Record<DeliveryStatus, string> = {
   pending: 'Pending',
@@ -75,11 +82,21 @@ export function DeliveryDetailsDialog({
       bodyPadding="0"
     >
       <div className="max-h-[74vh] overflow-y-auto px-5 py-5 pr-7 [scrollbar-gutter:stable] sm:px-6 sm:pr-8">
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-(--app-border) bg-(--app-surface-2) p-4 sm:p-5">
-          <div className="min-w-0">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <StatusBadge status={delivery.status} />
-              <span className="rounded-lg bg-(--app-chip-bg) px-2.5 py-1 text-[11px] font-bold text-(--app-brand)">
+        {/* ocean hero — recipient, status, and total on a branded gradient */}
+        <div
+          className="relative mb-5 flex flex-wrap items-start justify-between gap-4 overflow-hidden rounded-2xl p-5 sm:p-6"
+          style={{ background: 'linear-gradient(150deg,#0b73c8,#075098)', boxShadow: '0 14px 30px rgba(14,108,196,0.26)' }}
+        >
+          <div className="pointer-events-none absolute right-0 bottom-0 leading-none opacity-25" aria-hidden="true">
+            <svg width="230" height="92" viewBox="0 0 230 92" preserveAspectRatio="none">
+              <path d="M0 52 C45 32 80 66 125 50 C170 34 200 60 230 46 L230 92 L0 92 Z" fill="#fff" />
+              <path d="M0 66 C50 50 85 76 135 62 C180 50 205 70 230 62 L230 92 L0 92 Z" fill="#fff" opacity="0.5" />
+            </svg>
+          </div>
+          <div className="relative min-w-0">
+            <div className="mb-2.5 flex flex-wrap items-center gap-2">
+              <HeroStatusBadge status={delivery.status} />
+              <span className="rounded-lg bg-white/15 px-2.5 py-1 text-[11px] font-bold text-white">
                 {isGuest
                   ? 'Guest'
                   : customer?.isBusiness
@@ -87,22 +104,22 @@ export function DeliveryDetailsDialog({
                     : 'Household'}
               </span>
             </div>
-            <h3 className="text-lg font-bold text-(--app-text)">
+            <h3 className="text-xl font-extrabold tracking-tight text-white">
               {recipientName}
             </h3>
-            <p className="mt-1 text-sm text-(--app-text-soft)">
+            <p className="mt-1 text-sm text-white/75">
               {formatScheduleLabel(delivery)}
             </p>
           </div>
 
-          <div className="shrink-0 text-left sm:text-right">
-            <p className="text-[10px] font-bold tracking-[0.08em] text-(--app-text-faint) uppercase">
+          <div className="relative shrink-0 text-left sm:text-right">
+            <p className="text-[10px] font-bold tracking-[0.08em] text-white/70 uppercase">
               Delivery total
             </p>
-            <p className="mt-1 text-2xl font-extrabold tracking-tight text-(--app-text)">
+            <p className="mt-1 text-2xl font-extrabold tracking-tight text-white">
               {pesoFormatter.format(delivery.total)}
             </p>
-            <p className="mt-1 text-xs text-(--app-text-soft)">
+            <p className="mt-1 text-xs text-white/75">
               {formatItemSummary(delivery.items.length, totalUnits)}
             </p>
           </div>
@@ -173,21 +190,22 @@ export function DeliveryDetailsDialog({
                   className="grid gap-3 rounded-xl bg-(--app-surface-2) px-3.5 py-3 sm:grid-cols-[minmax(0,1fr)_90px_120px_120px] sm:items-center"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-(--app-chip-bg) text-(--app-brand)">
-                      {item.isStockTracked ? (
-                        <Box className="size-4" />
-                      ) : (
-                        <PackageOpen className="size-4" />
-                      )}
+                    <span
+                      className="flex size-9 shrink-0 items-center justify-center rounded-xl"
+                      style={
+                        item.isStockTracked
+                          ? { background: 'var(--app-chip-green-bg)', color: 'var(--app-chip-green-text)' }
+                          : { background: 'var(--app-chip-bg)', color: 'var(--app-brand)' }
+                      }
+                    >
+                      {item.isStockTracked ? ItemBottleIcon : ItemJugIcon}
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-(--app-text)">
                         {item.productName}
                       </span>
                       <span className="mt-0.5 block text-xs text-(--app-text-soft)">
-                        {item.isStockTracked
-                          ? 'Stock-tracked product'
-                          : 'Non-stock-tracked product'}
+                        {item.isStockTracked ? 'Bottled / stocked' : 'Refill service'}
                       </span>
                     </span>
                   </div>
@@ -262,23 +280,19 @@ export function DeliveryDetailsDialog({
   )
 }
 
-function StatusBadge({ status }: { status: DeliveryStatus }) {
+const STATUS_DOT: Record<DeliveryStatus, string> = {
+  pending: '#fbbf24',
+  for_delivery: '#7dd3fc',
+  completed: '#34d399',
+  failed: '#f87171',
+  cancelled: '#cbd5e1',
+}
+
+/** Frosted status pill for the gradient hero — a status-colored dot on white. */
+function HeroStatusBadge({ status }: { status: DeliveryStatus }) {
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold',
-        status === 'pending'
-          ? 'bg-(--app-chip-amber-bg) text-(--app-chip-amber-text)'
-          : status === 'for_delivery'
-            ? 'bg-(--app-chip-bg) text-(--app-brand)'
-            : status === 'completed'
-              ? 'bg-(--app-chip-green-bg) text-(--app-chip-green-text)'
-              : status === 'failed'
-                ? 'bg-(--app-chip-red-bg) text-(--app-chip-red-text)'
-                : 'bg-(--app-chip-gray-bg) text-(--app-chip-gray-text)',
-      )}
-    >
-      <span className="size-1.5 rounded-full bg-current" />
+    <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-2.5 py-1 text-[11px] font-bold text-white">
+      <span className="size-1.5 rounded-full" style={{ background: STATUS_DOT[status] }} />
       {STATUS_LABEL[status]}
     </span>
   )

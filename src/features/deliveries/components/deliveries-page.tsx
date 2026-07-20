@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CalendarClock, History } from 'lucide-react'
 
+import { AquaProgressBar, AquaSkeleton } from '@/components/app/loading'
 import { useCustomerOptions } from '@/features/customers/hooks/use-customers'
 import { useProductOptions } from '@/features/products/hooks/use-products'
 import { useCurrentDeliveries } from '../hooks/use-current-deliveries'
@@ -95,7 +96,7 @@ export function DeliveriesPage() {
           <button
             type="button"
             onClick={() => setHistoryOpen(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 16px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 16px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-chip-bg)', color: 'var(--app-brand)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
           >
             <History style={{ width: 16, height: 16 }} />
             History
@@ -103,7 +104,7 @@ export function DeliveriesPage() {
           <button
             type="button"
             onClick={() => setSchedulesOpen(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 16px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 16px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-chip-bg)', color: 'var(--app-brand)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
           >
             <CalendarClock style={{ width: 16, height: 16 }} />
             Schedules
@@ -218,6 +219,8 @@ export function DeliveriesPage() {
           </div>
         </div>
 
+        {deliveriesQuery.isFetching && !deliveriesQuery.isPending ? <AquaProgressBar /> : null}
+
         {referenceError ? (
           <ErrorState message={referenceError.message} />
         ) : deliveriesQuery.isPending || isReferenceLoading ? (
@@ -321,7 +324,7 @@ function LoadingState() {
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1.2fr 52px', gap: '12px', padding: '14px 22px', borderTop: i > 0 ? '1px solid var(--app-border)' : 'none' }}>
           {Array.from({ length: 6 }, (__, j) => (
-            <div key={j} style={{ height: '18px', borderRadius: '8px', background: 'var(--app-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <AquaSkeleton key={j} style={{ height: '18px' }} />
           ))}
         </div>
       ))}

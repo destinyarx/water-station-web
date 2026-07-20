@@ -91,7 +91,9 @@ export function ProductRowActions({ product, actor, onActionSuccess }: ProductRo
         <div
           ref={menuRef}
           role="menu"
-          style={{ position: 'fixed', top: anchor.top, right: anchor.right, zIndex: 61, width: '210px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', borderRadius: '13px', boxShadow: '0 18px 44px rgba(7,40,70,0.22)', padding: '6px', animation: 'popIn .14s ease' }}
+          // z-index sits below the modal band (AppModal 80, ConfirmDialog 90) so
+          // an open card menu never overlaps the Add/Edit product form.
+          style={{ position: 'fixed', top: anchor.top, right: anchor.right, zIndex: 40, width: '210px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', borderRadius: '13px', boxShadow: '0 18px 44px rgba(7,40,70,0.22)', padding: '6px', animation: 'popIn .14s ease' }}
         >
           <MenuBtn
             icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" style={{ color: 'var(--app-brand)' }}><path d="M14.5 5.5l4 4M4 20l1-4.2L16 4.8a1.6 1.6 0 0 1 2.2 0l1 1a1.6 1.6 0 0 1 0 2.2L8.2 19 4 20Z" /></svg>}

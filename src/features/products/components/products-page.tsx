@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { AquaProgressBar, AquaSkeleton } from '@/components/app/loading'
 import { LOW_STOCK_THRESHOLD } from '../products.constants'
 import type { Product } from '../products.types'
 import { useProductActor } from '../hooks/use-product-actor'
@@ -117,6 +118,9 @@ export function ProductsPage() {
         <NoResultsState />
       ) : (
         <>
+          {productsQuery.isFetching && !productsQuery.isPending ? (
+            <AquaProgressBar className="mb-3 rounded-full" />
+          ) : null}
           <ProductsGrid products={products} actor={actor} onActionSuccess={setStatusMessage} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 4px 0', fontSize: '13px', color: 'var(--app-text-soft)', flexWrap: 'wrap', gap: '12px' }}>
             <span>
@@ -195,7 +199,7 @@ function LoadingGrid() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(236px,1fr))', gap: '16px' }}>
       {Array.from({ length: 8 }, (_, index) => (
-        <div key={index} style={{ height: '230px', borderRadius: '16px', border: '1px solid var(--app-border)', background: 'var(--app-surface-2)' }} />
+        <AquaSkeleton key={index} className="rounded-2xl border border-(--app-border)" style={{ height: '230px' }} />
       ))}
     </div>
   )

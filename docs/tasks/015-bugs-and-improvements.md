@@ -1,4 +1,5 @@
-## Status: Implemented — migration application and signed-in manual QA pending
+## Status: Done
+
 
 
 ## Bugs

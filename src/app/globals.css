@@ -441,3 +441,14 @@ html.dark {
   from { transform: scaleX(1); }
   to { transform: scaleX(0); }
 }
+/* Loading skeletons: an ocean-blue sheen sweeping left→right, like light on
+   moving water. Used by the Deliveries and Products loading states. */
+@keyframes aqua-shimmer {
+  from { background-position: -160% 0; }
+  to { background-position: 160% 0; }
+}
+/* Indeterminate progress rail for datatable refetch/processing. */
+@keyframes aqua-progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}

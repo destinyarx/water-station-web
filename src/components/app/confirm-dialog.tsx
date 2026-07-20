@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 
+import { Spinner } from './spinner'
+
 type ConfirmDialogVariant = 'primary' | 'destructive'
 type ConfirmDialogSize = 'sm' | 'md'
 
@@ -134,8 +136,8 @@ export function ConfirmDialog({
             <button type="button" disabled={isPending} onClick={() => onOpenChange(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid var(--app-border-strong)', background: 'var(--app-surface)', color: 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
               {cancelLabel}
             </button>
-            <button type="button" disabled={isPending} onClick={onConfirm} style={confirmStyle}>
-              {isPending ? pendingLabel : confirmLabel}
+            <button type="button" disabled={isPending} onClick={onConfirm} style={{ ...confirmStyle, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {isPending ? <><Spinner /> {pendingLabel}</> : confirmLabel}
             </button>
           </div>
         )}

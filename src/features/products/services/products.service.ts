@@ -37,9 +37,15 @@ export async function getActiveProducts(
     query = query.or(`product_name.ilike.%${search}%,descriptions.ilike.%${search}%`)
   }
 
-  if (filters.category === 'refillable') query = query.eq('is_stock_tracked', false)
-  if (filters.category === 'stocked') query = query.eq('is_stock_tracked', true)
-  if (filters.category === 'discontinued') query = query.eq('is_active', false)
+  // Discontinued products live only in their own section; every other filter
+  // (All / Refill services / Bottled) shows active products only.
+  if (filters.category === 'discontinued') {
+    query = query.eq('is_active', false)
+  } else {
+    query = query.eq('is_active', true)
+    if (filters.category === 'refillable') query = query.eq('is_stock_tracked', false)
+    if (filters.category === 'stocked') query = query.eq('is_stock_tracked', true)
+  }
 
   const from = (filters.page - 1) * filters.perPage
   const to = from + filters.perPage - 1

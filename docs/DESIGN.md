@@ -180,6 +180,20 @@ migrating a component to Tailwind when you're already touching its markup.
 
 ---
 
+## Loading states (feature 016)
+
+Water-themed, light/dark-aware loading primitives live in `src/components/app/`:
+
+- **`Spinner`** — a rotating ring that inherits `currentColor` (white on gradient buttons, brand on surfaces). Used in submit buttons (`UnifiedDeliveryForm`) and `ConfirmDialog`'s pending state.
+- **`AquaSkeleton`** — a placeholder block with an ocean-sheen shimmer (`aqua-shimmer` keyframe sweeping `--app-surface-2` → `--app-chip-bg`). Backs the Deliveries table and Products grid initial-load skeletons.
+- **`AquaProgressBar`** — a thin indeterminate rail (`aqua-progress` keyframe, brand segment) shown above a datatable while it refetches or a row action is processing (`isFetching && !isPending`).
+
+New modules should reuse these rather than reinventing skeletons/spinners.
+
+### Delivery schedule urgency
+
+Open deliveries (`pending` / `for_delivery`) in the Deliveries table and mobile cards are flagged by schedule date: a brand **Today** pill + brand left accent when due today, and a red **Overdue** pill + red tint/accent when past date. Terminal deliveries (completed/failed/cancelled) carry no flag. Logic in `deliveries-table.tsx:scheduleFlag`.
+
 ## Component Library
 
 Use **shadcn/ui** components where they fit. New/edited UI is styled with Tailwind (see [Styling Approach](#styling-approach)). The earlier redesigned surfaces (landing, sidebar, header, expenses) use raw HTML elements with inline styles per the design source — that predates the Tailwind-first guidance and isn't being rewritten wholesale.

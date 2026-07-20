@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { CalendarDays, ChevronDown, UserRound } from 'lucide-react'
+import { CalendarDays, ChevronDown, Search, UserRound } from 'lucide-react'
 import { Popover as PopoverPrimitive } from 'radix-ui'
 import { zodResolver } from '@hookform/resolvers/zod'
 
+import { Spinner } from '@/components/app/spinner'
 import type { Customer } from '@/features/customers/customers.types'
 import type { Product } from '@/features/products/products.types'
 import {
@@ -29,6 +30,26 @@ const WEEKDAYS: { value: number; label: string }[] = [
   { value: 7, label: 'Sun' },
 ]
 
+// Product-type icons mirror the Products catalog cards: refill service = jug
+// (ocean blue), bottled / stocked = bottle (green).
+const RefillJugIcon = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M9 2.5h6v2l-1.2 1.5h-3.6L9 4.5v-2Z" /><path d="M8 6h8a1 1 0 0 1 1 1v12.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1Z" /><path d="M9.5 13.5a2.6 2.6 0 0 1 4.6-1.3M14.5 14.5a2.6 2.6 0 0 1-4.6 1.3" /></svg>
+)
+const BottleIcon = (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M10 2.5h4v1.6l1 1v1.8l-1 1v1l1 1v8.1a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-8.1l1-1v-1l-1-1V6.7l1-1V2.5Z" /><path d="M9 14.5h6" /></svg>
+)
+
+/** Icon tile styling for a delivery-item row, keyed on whether it is stocked. */
+function itemTypeVisual(isStockTracked: boolean): {
+  icon: React.ReactNode
+  bg: string
+  color: string
+} {
+  return isStockTracked
+    ? { icon: BottleIcon, bg: 'var(--app-chip-green-bg)', color: 'var(--app-chip-green-text)' }
+    : { icon: RefillJugIcon, bg: 'var(--app-chip-bg)', color: 'var(--app-brand)' }
+}
+
 interface UnifiedDeliveryFormProps {
   customers: Customer[]
   products: Product[]
@@ -50,7 +71,6 @@ export function UnifiedDeliveryForm({
   errorMessage,
   onCancel,
 }: UnifiedDeliveryFormProps) {
-  const [productSearch, setProductSearch] = useState('')
   const {
     control,
     register,
@@ -70,13 +90,15 @@ export function UnifiedDeliveryForm({
   const customDates = useWatch({ control, name: 'customDates' }) ?? []
   const items = useWatch({ control, name: 'items' }) ?? []
 
-  const filteredProducts = useMemo(() => {
-    const q = productSearch.trim().toLowerCase()
+  // Products available to add: not already on the delivery, and — for stocked
+  // items — only when there is stock left. Refillable products are always
+  // available (no stock to track).
+  const addableProducts = useMemo(() => {
     const addedIds = new Set(items.map((it) => it.productId))
-    return products
-      .filter((p) => !addedIds.has(p.id))
-      .filter((p) => !q || p.productName.toLowerCase().includes(q))
-  }, [productSearch, products, items])
+    return products.filter(
+      (p) => !addedIds.has(p.id) && (!p.isStockTracked || p.stock > 0),
+    )
+  }, [products, items])
 
   const submit = handleSubmit((values) => onSubmit(values))
 
@@ -313,9 +335,14 @@ export function UnifiedDeliveryForm({
               key={field.id}
               style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '11px', padding: '8px 10px 8px 12px' }}
             >
-              <div style={{ flexShrink: 0, width: '32px', height: '32px', borderRadius: '9px', background: 'var(--app-chip-bg)', color: 'var(--app-brand)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M9 2.5h6v2l-1 1.3h-4L9 4.5v-2Z" /><path d="M8 5.8h8a1 1 0 0 1 1 1V20a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20V6.8a1 1 0 0 1 1-1Z" /></svg>
-              </div>
+              {(() => {
+                const visual = itemTypeVisual(Boolean(items[index]?.isStockTracked))
+                return (
+                  <div style={{ flexShrink: 0, width: '32px', height: '32px', borderRadius: '9px', background: visual.bg, color: visual.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {visual.icon}
+                  </div>
+                )
+              })()}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {items[index]?.productName}
@@ -370,44 +397,13 @@ export function UnifiedDeliveryForm({
           ))}
         </div>
 
-        {/* product search + dashed add select */}
-        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {products.length > 6 && (
-            <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: 'var(--app-text-faint)', pointerEvents: 'none' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-3.6-3.6" /></svg>
-              </span>
-              <input
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                disabled={isPending}
-                placeholder="Filter products…"
-                style={{ ...inputStyle, paddingLeft: '35px', fontSize: '13px' }}
-              />
-            </div>
-          )}
-          <div style={{ position: 'relative' }}>
-            <select
-              value=""
-              disabled={isPending}
-              onChange={(e) => {
-                if (!e.target.value) return
-                addProduct(Number(e.target.value))
-                setProductSearch('')
-              }}
-              style={{ appearance: 'none', width: '100%', padding: '11px 38px 11px 13px', border: '1.5px dashed var(--app-border-strong)', borderRadius: '11px', background: 'transparent', color: 'var(--app-brand)', fontSize: '13.5px', fontWeight: 600, fontFamily: 'inherit', outline: 'none', cursor: 'pointer' }}
-            >
-              <option value="">+ Add a product to this delivery…</option>
-              {filteredProducts.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.productName} — {pesoFormatter.format(p.price)}
-                </option>
-              ))}
-            </select>
-            <span style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--app-brand)' }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
-            </span>
-          </div>
+        {/* searchable add-product dropdown (search lives inside the dropdown) */}
+        <div className="mt-2.5 flex flex-col gap-1.5">
+          <AddProductDropdown
+            products={addableProducts}
+            disabled={isPending}
+            onAdd={addProduct}
+          />
           {errors.items && <FieldError>{typeof errors.items.message === 'string' ? errors.items.message : 'Add at least one product.'}</FieldError>}
         </div>
       </div>
@@ -466,10 +462,104 @@ export function UnifiedDeliveryForm({
           disabled={isPending}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 24px', borderRadius: '11px', border: 'none', background: isPending ? 'var(--app-text-faint)' : 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: isPending ? 'default' : 'pointer', boxShadow: isPending ? 'none' : '0 10px 22px rgba(14,108,196,0.3)' }}
         >
-          {isPending ? 'Scheduling…' : 'Schedule delivery'}
+          {isPending ? <><Spinner /> Scheduling…</> : 'Schedule delivery'}
         </button>
       </div>
     </form>
+  )
+}
+
+function AddProductDropdown({
+  products,
+  disabled,
+  onAdd,
+}: {
+  products: Product[]
+  disabled?: boolean
+  onAdd: (productId: number) => void
+}) {
+  const [search, setSearch] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return q ? products.filter((p) => p.productName.toLowerCase().includes(q)) : products
+  }, [products, search])
+
+  return (
+    <PopoverPrimitive.Root onOpenChange={(open) => { if (!open) setSearch('') }}>
+      <PopoverPrimitive.Trigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className="flex w-full items-center justify-between gap-2 rounded-xl border-[1.5px] border-dashed border-(--app-border-strong) bg-transparent px-3.5 py-2.75 text-left text-[13.5px] font-semibold text-(--app-brand) outline-none transition-colors hover:border-(--app-brand) focus-visible:border-(--app-brand) disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span className="inline-flex items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            Add a product to this delivery…
+          </span>
+          <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+        </button>
+      </PopoverPrimitive.Trigger>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          align="start"
+          sideOffset={8}
+          collisionPadding={16}
+          className="z-[100] w-[min(420px,calc(100vw-32px))] overflow-hidden rounded-[14px] border border-(--app-border) bg-(--app-surface) shadow-[0_22px_50px_rgba(7,40,70,0.24)] outline-none"
+        >
+          {/* search field lives inside the dropdown */}
+          <div className="border-b border-(--app-border) p-2.5">
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-(--app-text-faint)" aria-hidden="true" />
+              <input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Filter products…"
+                className="w-full rounded-[10px] border border-(--app-border-strong) bg-(--app-surface-2) py-2.5 pr-3 pl-8.5 text-[13px] text-(--app-text) outline-none placeholder:text-(--app-text-faint) focus:border-(--app-brand)"
+              />
+            </div>
+          </div>
+
+          <div className="max-h-64 overflow-y-auto p-1.5 [scrollbar-gutter:stable]">
+            {filtered.length === 0 ? (
+              <p className="px-3 py-6 text-center text-[13px] text-(--app-text-soft)">
+                {products.length === 0 ? 'No products available to add.' : 'No products match your search.'}
+              </p>
+            ) : (
+              filtered.map((product) => {
+                const visual = itemTypeVisual(product.isStockTracked)
+                return (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => onAdd(product.id)}
+                    className="flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2 text-left transition-colors hover:bg-(--app-surface-2)"
+                  >
+                    <span
+                      className="flex size-8 shrink-0 items-center justify-center rounded-[9px]"
+                      style={{ background: visual.bg, color: visual.color }}
+                    >
+                      {visual.icon}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13.5px] font-semibold text-(--app-text)">
+                        {product.productName}
+                      </span>
+                      <span className="mt-0.5 block text-[11.5px] text-(--app-text-soft)">
+                        {pesoFormatter.format(product.price)}
+                        {product.isStockTracked ? ` · ${product.stock} in stock` : ' · Refillable'}
+                      </span>
+                    </span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" className="shrink-0 text-(--app-brand)"><path d="M12 5v14M5 12h14" /></svg>
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
   )
 }
 

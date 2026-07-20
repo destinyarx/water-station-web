@@ -44,11 +44,14 @@ const owner = { orgId: '00000000-0000-4000-8000-000000000007', createdBy: 'user_
 function createListClient(result: QueryResult) {
   const range = vi.fn(() => Promise.resolve(result))
   const order = vi.fn(() => ({ range }))
-  const is = vi.fn(() => ({ order }))
+  // `eq` is chainable so category filters (is_active, is_stock_tracked) can stack.
+  const eq = vi.fn(() => ({ order, eq }))
+  const or = vi.fn(() => ({ order, eq }))
+  const is = vi.fn(() => ({ order, eq, or }))
   const select = vi.fn(() => ({ is }))
   const from = vi.fn(() => ({ select }))
   const client = { from } as unknown as SupabaseClient
-  return { client, from, select, is, order, range }
+  return { client, from, select, is, order, range, eq, or }
 }
 
 const filters = { deleted: false, search: '', category: 'all' as const, page: 1, perPage: 10 }
@@ -126,6 +129,21 @@ describe('getActiveProducts', () => {
     await expect(getActiveProducts(client, filters)).rejects.toThrow(
       'Unable to load products. Please try again.',
     )
+  })
+
+  it('excludes discontinued products from the All / Refill / Bottled filters', async () => {
+    for (const category of ['all', 'refillable', 'stocked'] as const) {
+      const { client, eq } = createListClient({ data: [], error: null })
+      await getActiveProducts(client, { ...filters, category })
+      expect(eq).toHaveBeenCalledWith('is_active', true)
+    }
+  })
+
+  it('shows only discontinued products in the Discontinued filter', async () => {
+    const { client, eq } = createListClient({ data: [], error: null })
+    await getActiveProducts(client, { ...filters, category: 'discontinued' })
+    expect(eq).toHaveBeenCalledWith('is_active', false)
+    expect(eq).not.toHaveBeenCalledWith('is_active', true)
   })
 })
 

@@ -60,6 +60,26 @@ function formatDate(value: string): string {
   }).format(new Date(`${value}T00:00:00`))
 }
 
+/** Local YYYY-MM-DD for "today", matching the date-only `deliveryDate`. */
+function localToday(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+const OPEN_STATUSES: ReadonlySet<DeliveryStatus> = new Set(['pending', 'for_delivery'])
+
+/**
+ * Schedule urgency for a still-open delivery: `today` (due now) or `overdue`
+ * (past its date, needs completing). Terminal deliveries carry no flag.
+ */
+function scheduleFlag(delivery: Delivery): 'today' | 'overdue' | null {
+  if (!OPEN_STATUSES.has(delivery.status)) return null
+  const today = localToday()
+  if (delivery.deliveryDate === today) return 'today'
+  if (delivery.deliveryDate < today) return 'overdue'
+  return null
+}
+
 export function DeliveriesTable({
   deliveries,
   customers = [],
@@ -201,12 +221,16 @@ function DeliveryRow({
   )
   const statusStyle = STATUS_STYLE[delivery.status]
 
+  const flag = scheduleFlag(delivery)
+  const rowTint = flag === 'overdue' ? 'var(--app-chip-red-bg)' : flag === 'today' ? 'var(--app-chip-bg)' : ''
+  const accentColor = flag === 'overdue' ? 'var(--app-chip-red-text)' : flag === 'today' ? 'var(--app-brand)' : null
+
   return (
     <tr
       tabIndex={0}
       aria-label={`View delivery details for ${recipientName}`}
       className="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-(--app-brand)"
-      style={{ borderTop: '1px solid var(--app-border)' }}
+      style={{ borderTop: '1px solid var(--app-border)', background: rowTint }}
       onClick={() => onView(delivery)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -215,10 +239,10 @@ function DeliveryRow({
         }
       }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--app-row-hover)' }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = rowTint }}
     >
       {/* Customer */}
-      <td style={{ padding: '13px 16px 13px 22px' }}>
+      <td style={{ padding: '13px 16px 13px 22px', borderLeft: accentColor ? `3px solid ${accentColor}` : undefined, paddingLeft: accentColor ? '19px' : '22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ flexShrink: 0, width: '38px', height: '38px', borderRadius: '11px', background: isGuest ? 'var(--app-chip-gray-bg)' : 'var(--app-chip-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isGuest ? 'var(--app-chip-gray-text)' : 'var(--app-brand)', fontSize: '13px', fontWeight: 700 }}>
             {nameInitials}
@@ -241,15 +265,25 @@ function DeliveryRow({
 
       {/* Schedule */}
       <td style={{ padding: '13px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-          <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)' }}>{formatDate(delivery.deliveryDate)}</span>
-          {isRecurring && recurrenceLabel && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', fontWeight: 700, color: '#8b5cf6', background: 'rgba(139,92,246,0.14)', padding: '2px 7px', borderRadius: '999px' }}>
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" /></svg>
-              {recurrenceLabel}
-            </span>
-          )}
-        </div>
+          <div className="flex flex-col justify-between">
+            <div className="flex flex-row flex-wrap justify-start gap-2">
+              <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--app-text)' }}>
+                {formatDate(delivery.deliveryDate)}
+              </div>
+              
+              <div className="-mt-1">
+                {flag === 'today' && <TodayPill />}
+                {flag === 'overdue' && <OverduePill />}
+              </div>
+            </div>
+
+            {isRecurring && recurrenceLabel && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', fontWeight: 700, color: '#8b5cf6', background: 'rgba(139,92,246,0.14)', padding: '2px 7px', borderRadius: '999px' }}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" /></svg>
+                {recurrenceLabel}
+              </div>
+            )}
+          </div>
       </td>
 
       {/* Items */}
@@ -330,6 +364,8 @@ function DeliveryMobileCard({
     (total, item) => total + item.quantity,
     0,
   )
+  const flag = scheduleFlag(delivery)
+  const accentColor = flag === 'overdue' ? 'var(--app-chip-red-text)' : flag === 'today' ? 'var(--app-brand)' : null
 
   return (
     <article
@@ -337,7 +373,7 @@ function DeliveryMobileCard({
       tabIndex={0}
       aria-label={`View delivery details for ${recipientName}`}
       className="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--app-brand)"
-      style={{ borderRadius: '16px', border: '1px solid var(--app-border)', background: 'var(--app-surface)', padding: '14px 16px', boxShadow: 'var(--app-shadow-card)' }}
+      style={{ borderRadius: '16px', border: '1px solid var(--app-border)', borderLeft: accentColor ? `3px solid ${accentColor}` : '1px solid var(--app-border)', background: 'var(--app-surface)', padding: '14px 16px', boxShadow: 'var(--app-shadow-card)' }}
       onClick={() => onView(delivery)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -352,7 +388,11 @@ function DeliveryMobileCard({
             <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--app-text)' }}>{recipientName}</span>
             {isGuest && <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--app-chip-gray-text)', background: 'var(--app-chip-gray-bg)', padding: '2px 6px', borderRadius: '999px' }}>GUEST</span>}
           </div>
-          <div style={{ fontSize: '12.5px', color: 'var(--app-text-soft)', marginTop: '3px' }}>{formatDate(delivery.deliveryDate)}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12.5px', color: 'var(--app-text-soft)' }}>{formatDate(delivery.deliveryDate)}</span>
+            {flag === 'today' && <TodayPill />}
+            {flag === 'overdue' && <OverduePill />}
+          </div>
         </div>
         <div
           onClick={(event) => event.stopPropagation()}
@@ -382,6 +422,24 @@ function DeliveryMobileCard({
         <span style={{ fontSize: '12.5px', color: 'var(--app-text-muted)' }}>{assigneeName}</span>
       </div>
     </article>
+  )
+}
+
+function TodayPill() {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', fontWeight: 700, color: 'var(--app-brand)', background: 'var(--app-chip-bg)', padding: '2px 8px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></svg>
+      Today
+    </span>
+  )
+}
+
+function OverduePill() {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', fontWeight: 700, color: 'var(--app-chip-red-text)', background: 'var(--app-chip-red-bg)', padding: '2px 8px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4M12 16h.01" /><circle cx="12" cy="12" r="9" /></svg>
+      Overdue
+    </span>
   )
 }
 
