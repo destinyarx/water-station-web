@@ -44,6 +44,7 @@ const scheduleRow = {
   interval_months: null,
   end_date: null,
   status: 'active' as const,
+  completed: false,
   notes: 'Standing order.',
   assigned_to: null,
   org_id: '00000000-0000-4000-8000-000000000321',

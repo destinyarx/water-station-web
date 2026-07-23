@@ -239,7 +239,48 @@ label (CHECK: exactly one). Holds the recurrence rule:
   `end_date`.
 - `status` enum (`active` | `paused` | `ended`) controls materialization and
   main-queue visibility; it is **not** an operational delivery status.
+- `completed boolean not null default false` — **derived**, trigger-maintained.
+  True when the schedule can generate nothing further and every occurrence it
+  produced is terminal (`completed` | `failed` | `cancelled`). Distinct from
+  `status`: `status` is the owner's Stop/Resume decision, `completed` is the
+  system's observation. See
+  `docs/adr/0017-delivery-schedule-completion-derived-not-status.md`.
 - Standard `org_id`, `created_by`, `created_at`, `updated_at`, `deleted_at`.
+
+#### Completion tracking (migration `20260723090000_delivery_schedule_completion_tracking.sql`)
+
+`private.recompute_delivery_schedule_completion(schedule_id)` recomputes the
+flag. It fires from two triggers: `deliveries_sync_schedule_completion`
+(AFTER INSERT/DELETE, or UPDATE OF `status`, `deleted_at`, `schedule_id` on
+`deliveries`) and `delivery_schedules_sync_completion` (AFTER UPDATE OF
+`status`, when the status actually changed).
+
+Rules, in evaluation order:
+
+1. Non-`active` schedules are forced to `completed = false`. Stop soft-deletes
+   future pending occurrences, so a paused plan would otherwise look finished
+   and vanish from the Recurring schedules modal — taking its own Resume
+   control with it.
+2. A schedule with zero occurrences has not finished.
+3. `weekly` / `monthly`: an open `end_date` can always yield another date, so
+   the schedule never self-completes. A dated route is exhausted once
+   `end_date <= current_date + 14` — the rolling materialization horizon. The
+   horizon, not `current_date`, is the boundary because there is no cron: a
+   route whose last run finishes days before its end date would never be
+   revisited by any trigger.
+4. `one_time` / `custom_dates`: the full date set is fixed at creation, so the
+   only remaining work is a `delivery_schedule_dates` row with no live
+   occurrence.
+
+The function is `SECURITY DEFINER`. Staff may complete a delivery on a schedule
+created by the owner, and the `delivery_schedules` UPDATE policy admits only
+admins or the creator — without definer rights the flag write matches zero rows
+and silently never advances. It accepts only a schedule ID reached through a row
+the caller was already permitted to write, and writes exactly one boolean.
+
+`getSchedules` filters `completed = false`, so finished plans leave the
+Recurring schedules modal. The flag is not terminal: fresh materialization
+(a Resume, or the rolling top-up) inserts occurrences and flips it back.
 
 ### `public.deliveries`
 

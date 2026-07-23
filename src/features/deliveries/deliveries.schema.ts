@@ -64,6 +64,8 @@ export const deliveryScheduleRowSchema = z.object({
   interval_months: z.number().int().nullable(),
   end_date: z.string().nullable(),
   status: deliveryScheduleStatusSchema,
+  // Derived by the database: every occurrence exists and is terminal.
+  completed: z.boolean().default(false),
   notes: z.string().max(500).nullable(),
   assigned_to: z.string().max(255).nullable().default(null),
   org_id: z.string().uuid(),

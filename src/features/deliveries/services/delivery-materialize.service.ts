@@ -1,19 +1,32 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { z } from 'zod'
 
 import {
   DELIVERIES_TABLE,
   DELIVERY_ITEMS_TABLE,
   DELIVERY_SAVE_ERROR,
+  DELIVERY_SCHEDULE_COLUMNS,
   DELIVERY_SCHEDULE_ITEMS_TABLE,
+  DELIVERY_SCHEDULES_TABLE,
+  MATERIALIZE_HORIZON_DAYS,
 } from '../deliveries.constants'
 import { PRODUCTS_TABLE } from '@/features/products/products.constants'
 import { dueDatesFor, toRecurrenceRule } from '../deliveries.recurrence'
+import { deliveryScheduleRowSchema } from '../deliveries.schema'
 import type {
   DeliveryInsert,
   DeliveryItemInsert,
   DeliveryOwner,
   DeliveryScheduleRow,
 } from '../deliveries.types'
+
+const scheduleRowsSchema = z.array(deliveryScheduleRowSchema)
+
+function addDays(iso: string, days: number): string {
+  const date = new Date(`${iso}T00:00:00.000Z`)
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
 
 interface TemplateItemRow {
   product_id: number
@@ -135,4 +148,44 @@ export async function materializeRecurringSchedule(
   }
 
   return missing.length
+}
+
+/**
+ * The rolling top-up ADR 0002 describes: refills every active recurring
+ * schedule's horizon when the deliveries view loads. Without it a route stops
+ * producing work once the occurrences created at schedule-creation time run
+ * out. Completed schedules are skipped — nothing is left to generate — and the
+ * unique `(schedule_id, delivery_date)` index makes a concurrent run harmless.
+ * Returns how many occurrences were created across all schedules.
+ */
+export async function topUpActiveSchedules(
+  client: SupabaseClient,
+  owner: DeliveryOwner,
+  today: string,
+): Promise<number> {
+  const { data, error } = await client
+    .from(DELIVERY_SCHEDULES_TABLE)
+    .select(DELIVERY_SCHEDULE_COLUMNS)
+    .in('recurrence_type', ['weekly', 'monthly'])
+    .eq('status', 'active')
+    .eq('completed', false)
+    .is('deleted_at', null)
+
+  if (error) throw new Error(DELIVERY_SAVE_ERROR)
+
+  const schedules = scheduleRowsSchema.parse(data ?? [])
+  const horizon = addDays(today, MATERIALIZE_HORIZON_DAYS)
+
+  let created = 0
+  for (const schedule of schedules) {
+    created += await materializeRecurringSchedule(
+      client,
+      schedule,
+      owner,
+      today,
+      horizon,
+    )
+  }
+
+  return created
 }

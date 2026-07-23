@@ -425,7 +425,7 @@ function EmptySchedules({ filtered }: { filtered: boolean }) {
       <p className="mt-1 max-w-md text-sm text-(--app-text-soft)">
         {filtered
           ? 'Try a different recipient name or clear one of the filters.'
-          : 'Recurring and custom-date delivery plans will appear here.'}
+          : 'Recurring and custom-date delivery plans appear here. Plans leave this list once every one of their deliveries is finished.'}
       </p>
     </div>
   )

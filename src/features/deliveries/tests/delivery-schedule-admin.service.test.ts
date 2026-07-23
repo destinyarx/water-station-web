@@ -32,6 +32,7 @@ const schedule: DeliveryScheduleRow = {
   interval_months: null,
   end_date: null,
   status: 'active',
+  completed: false,
   notes: null,
   assigned_to: null,
   org_id: '00000000-0000-4000-8000-000000000321',

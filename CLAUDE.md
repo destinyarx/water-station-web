@@ -57,12 +57,13 @@ Before coding, the agent must:
 6. Read `CONTEXT.md` when the task affects product behavior or domain language.
 7. Read `docs/DATABASE.md` when the task touches Supabase tables, RLS, `org_id`, `created_by`, or `deleted_at`.
 8. Read `docs/DESIGN.md` when the task touches frontend UI.
-9. Read `docs/TESTING.md` when adding or changing tests.
-10. Read the relevant feature folder under `docs/specs/` when the task is tied to a feature spec.
-11. Identify unclear requirements.
-12. Ask only necessary questions.
-13. Prefer editing existing patterns over creating new abstractions.
-14. Avoid changing architecture unless the spec requires it.
+9.  Read `docs/TESTING.md` when adding or changing tests.
+10. If you need the exact migration files, go check the folder `C:\Users\AlphaQuadrant\Documents\0 self project\Agent Projects\water-station-supabase\supabase\migrations`. This is the source of truth for the table schema, function, and rls policies.
+11. Read the relevant feature folder under `docs/specs/` when the task is tied to a feature spec.
+12. Identify unclear requirements.
+13. Ask only necessary questions.
+14. Prefer editing existing patterns over creating new abstractions.
+15. Avoid changing architecture unless the spec requires it.
 
 During coding, the agent must:
 
@@ -108,7 +109,7 @@ For each feature or module, create or use:
 
 ```txt
 docs/specs/[nnn-feature-name]/
-  prd.md
+  PRD.md
   REQUIREMENTS.md
   ACCEPTANCE.md
   research.md

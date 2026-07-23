@@ -4,11 +4,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { CalendarClock, History } from 'lucide-react'
 
 import { AquaProgressBar, AquaSkeleton } from '@/components/app/loading'
+import { cn } from '@/lib/utils'
 import { useCustomerOptions } from '@/features/customers/hooks/use-customers'
 import { useProductOptions } from '@/features/products/hooks/use-products'
 import { useCurrentDeliveries } from '../hooks/use-current-deliveries'
 import { useDeliveryCounts } from '../hooks/use-delivery-counts'
 import { useOrgUsers } from '../hooks/use-org-users'
+import { useScheduleTopUp } from '../hooks/use-schedule-top-up'
+import { matchesTimingFilter } from '../deliveries.schedule-view'
+import type { DeliveryTimingFilter } from '../deliveries.schedule-view'
 import type { Delivery, DeliveryStatus } from '../deliveries.types'
 import { CreateUnifiedDeliveryDialog } from './create-unified-delivery-dialog'
 import { DeliveriesTable } from './deliveries-table'
@@ -19,7 +23,7 @@ import { ScheduleListDialog } from './schedule-list-dialog'
 const EMPTY_DELIVERIES: Delivery[] = []
 
 const STATUS_FILTERS = [
-  { value: 'all', label: 'All' },
+  { value: 'all', label: 'All statuses' },
   { value: 'pending', label: 'Pending' },
   { value: 'for_delivery', label: 'In progress' },
   { value: 'completed', label: 'Completed' },
@@ -27,7 +31,18 @@ const STATUS_FILTERS = [
   { value: 'cancelled', label: 'Cancelled' },
 ] as const
 
+const TIMING_FILTERS = [
+  { value: 'all', label: 'All dates' },
+  { value: 'today', label: 'Due today' },
+  { value: 'overdue', label: 'Overdue' },
+  { value: 'upcoming', label: 'Upcoming' },
+] as const
+
 type DeliveryStatusFilter = DeliveryStatus | 'all'
+
+// ponytail: native select — the browser draws the arrow and the mobile picker for free.
+const FILTER_SELECT =
+  'rounded-[11px] border border-[var(--app-border-strong)] bg-[var(--app-surface-2)] px-3 py-2.5 text-[13.5px] font-semibold text-[var(--app-text)] font-[inherit] outline-none cursor-pointer'
 
 export function DeliveriesPage() {
   const [page, setPage] = useState(0)
@@ -36,8 +51,12 @@ export function DeliveriesPage() {
   const customersQuery = useCustomerOptions()
   const productsQuery = useProductOptions()
   const usersQuery = useOrgUsers()
+  // Rolling materialization (ADR 0002): keeps recurring routes generating work.
+  useScheduleTopUp()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<DeliveryStatusFilter>('all')
+  // Opens on today's runs; purely client-side over the already-fetched page, so no extra request.
+  const [timingFilter, setTimingFilter] = useState<DeliveryTimingFilter>('today')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [editing, setEditing] = useState<Delivery | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -48,8 +67,10 @@ export function DeliveriesPage() {
 
   const filteredDeliveries = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
+    const today = new Date().toLocaleDateString('en-CA')
     return deliveries
       .filter((d) => (statusFilter === 'all' ? true : d.status === statusFilter))
+      .filter((d) => matchesTimingFilter(d, timingFilter, today))
       .filter((d) => {
         if (!q) return true
         const info = d.scheduleInfo
@@ -62,7 +83,7 @@ export function DeliveriesPage() {
         )
       })
       .sort((a, b) => a.deliveryDate.localeCompare(b.deliveryDate))
-  }, [deliveries, searchQuery, statusFilter])
+  }, [deliveries, searchQuery, statusFilter, timingFilter])
 
   const isReferenceLoading =
     customersQuery.isPending || productsQuery.isPending || usersQuery.isPending
@@ -77,36 +98,36 @@ export function DeliveriesPage() {
   const counts = countsQuery.data
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '26px 28px 56px' }}>
+    <div className="mx-auto max-w-[1200px] px-4 pt-[26px] pb-14 sm:px-7">
 
       {/* ─── header ─── */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '24px' }}>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
         <div>
-          <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-brand)', marginBottom: '9px' }}>
+          <div className="mb-[9px] text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--app-brand)]">
             Routes &amp; scheduling
           </div>
-          <h1 style={{ fontSize: '29px', fontWeight: 800, letterSpacing: '-0.025em', margin: '0 0 7px', color: 'var(--app-text)' }}>
+          <h1 className="mb-[7px] text-[29px] font-extrabold tracking-[-0.025em] text-[var(--app-text)]">
             Deliveries
           </h1>
-          <p style={{ fontSize: '14.5px', lineHeight: 1.55, color: 'var(--app-text-muted)', margin: 0, maxWidth: '560px' }}>
+          <p className="max-w-[560px] text-[14.5px] leading-[1.55] text-[var(--app-text-muted)]">
             Plan refill drop-offs and bulk orders — set a weekly route or pick exact dates, attach the jugs, and track every delivery from pending to done.
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setHistoryOpen(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 16px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-chip-bg)', color: 'var(--app-brand)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+            className="inline-flex cursor-pointer items-center gap-[7px] rounded-[11px] border border-[var(--app-border-strong)] bg-[var(--app-chip-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--app-brand)]"
           >
-            <History style={{ width: 16, height: 16 }} />
+            <History className="h-4 w-4" />
             History
           </button>
           <button
             type="button"
             onClick={() => setSchedulesOpen(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 16px', borderRadius: '11px', border: '1px solid var(--app-border-strong)', background: 'var(--app-chip-bg)', color: 'var(--app-brand)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+            className="inline-flex cursor-pointer items-center gap-[7px] rounded-[11px] border border-[var(--app-border-strong)] bg-[var(--app-chip-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--app-brand)]"
           >
-            <CalendarClock style={{ width: 16, height: 16 }} />
+            <CalendarClock className="h-4 w-4" />
             Schedules
           </button>
           <CreateUnifiedDeliveryDialog
@@ -121,25 +142,25 @@ export function DeliveriesPage() {
       </div>
 
       {/* ─── stat cards ─── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: '14px', marginBottom: '18px' }}>
+      <div className="mb-[18px] grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-3.5">
         {/* featured gradient card */}
-        <article style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#0b73c8,#075098)', borderRadius: '16px', padding: '15px 16px', boxShadow: '0 14px 30px rgba(14,108,196,0.26)' }}>
-          <div style={{ position: 'absolute', right: -16, bottom: -22, lineHeight: 0, opacity: 0.22 }}>
+        <article className="relative overflow-hidden rounded-[16px] bg-[linear-gradient(150deg,#0b73c8,#075098)] px-4 py-[15px] shadow-[0_14px_30px_rgba(14,108,196,0.26)]">
+          <div className="absolute -right-4 -bottom-[22px] leading-none opacity-[0.22]">
             <svg width="150" height="80" viewBox="0 0 150 80" preserveAspectRatio="none">
               <path d="M0 44 C30 26 55 56 85 42 C115 28 135 50 150 40 L150 80 L0 80 Z" fill="#fff" />
             </svg>
           </div>
-          <div style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#bfe2ff' }}>Scheduled today</div>
-              <div style={{ width: '28px', height: '28px', borderRadius: '9px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+          <div className="relative">
+            <div className="mb-2.5 flex items-center justify-between">
+              <div className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#bfe2ff]">Scheduled today</div>
+              <div className="flex h-7 w-7 items-center justify-center rounded-[9px] bg-white/[0.18] text-white">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M3 6.5h10v9H3z" /><path d="M13 9.5h3.6l3.4 3.3v2.7H13z" /><circle cx="7" cy="17.5" r="1.7" /><circle cx="17" cy="17.5" r="1.7" /></svg>
               </div>
             </div>
-            <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1 }}>
+            <div className="text-[25px] font-extrabold leading-none tracking-[-0.03em] text-white">
               {countsQuery.isPending ? '—' : (counts?.activeToday ?? 0)}
             </div>
-            <div style={{ fontSize: '12px', color: '#bfe2ff', marginTop: '7px' }}>Pending runs for today</div>
+            <div className="mt-[7px] text-[12px] text-[#bfe2ff]">Pending runs for today</div>
           </div>
         </article>
 
@@ -148,9 +169,8 @@ export function DeliveriesPage() {
           label="In progress"
           value={counts?.forDelivery ?? 0}
           description="On the road right now"
-          accentColor="#38bdf8"
-          chipBg="var(--app-chip-bg)"
-          chipColor="var(--app-brand)"
+          accentClass="border-l-[#38bdf8]"
+          chipClass="bg-[var(--app-chip-bg)] text-[var(--app-brand)]"
           isLoading={countsQuery.isPending}
           icon={
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 2" /><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v3h3" /></svg>
@@ -162,9 +182,8 @@ export function DeliveriesPage() {
           label="This week"
           value={counts?.thisWeek ?? 0}
           description="Drop-offs in the next 7 days"
-          accentColor="#f59e0b"
-          chipBg="var(--app-chip-amber-bg)"
-          chipColor="var(--app-chip-amber-text)"
+          accentClass="border-l-[#f59e0b]"
+          chipClass="bg-[var(--app-chip-amber-bg)] text-[var(--app-chip-amber-text)]"
           isLoading={countsQuery.isPending}
           icon={
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></svg>
@@ -176,9 +195,8 @@ export function DeliveriesPage() {
           label="Recurring"
           value={counts?.activeWeeklySchedules ?? 0}
           description="From weekly route plans"
-          accentColor="#8b5cf6"
-          chipBg="rgba(139,92,246,0.14)"
-          chipColor="#8b5cf6"
+          accentClass="border-l-[#8b5cf6]"
+          chipClass="bg-[rgba(139,92,246,0.14)] text-[#8b5cf6]"
           isLoading={countsQuery.isPending}
           icon={
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" /></svg>
@@ -187,35 +205,47 @@ export function DeliveriesPage() {
       </div>
 
       {/* ─── table card ─── */}
-      <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '20px', overflow: 'hidden', boxShadow: 'var(--app-shadow-card)' }}>
+      <div className="overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[var(--app-surface)] shadow-[var(--app-shadow-card)]">
 
         {/* toolbar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', padding: '16px 18px', borderBottom: '1px solid var(--app-border)', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '210px', maxWidth: '340px' }}>
-            <span style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: 'var(--app-text-faint)', pointerEvents: 'none' }}>
+        <div className="flex flex-wrap items-center justify-between gap-3.5 border-b border-[var(--app-border)] p-4 sm:px-[18px]">
+          <div className="relative min-w-[210px] max-w-[340px] flex-1">
+            <span className="pointer-events-none absolute left-[13px] top-1/2 -translate-y-1/2 text-[var(--app-text-faint)]">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-3.6-3.6" /></svg>
             </span>
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search customer or address…"
-              style={{ width: '100%', padding: '10px 14px 10px 39px', border: '1px solid var(--app-border-strong)', borderRadius: '11px', background: 'var(--app-surface-2)', color: 'var(--app-text)', fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+              className="w-full rounded-[11px] border border-[var(--app-border-strong)] bg-[var(--app-surface-2)] py-2.5 pl-[39px] pr-3.5 text-sm font-[inherit] text-[var(--app-text)] outline-none"
             />
           </div>
-          <div style={{ display: 'inline-flex', padding: '4px', gap: '3px', background: 'var(--app-surface-2)', border: '1px solid var(--app-border)', borderRadius: '12px', flexWrap: 'wrap' }}>
-            {STATUS_FILTERS.map((f) => {
-              const active = statusFilter === f.value
-              return (
-                <button
-                  key={f.value}
-                  type="button"
-                  onClick={() => setStatusFilter(f.value as DeliveryStatusFilter)}
-                  style={{ padding: '8px 13px', border: 'none', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: active ? 700 : 400, background: active ? 'var(--app-surface)' : 'transparent', color: active ? 'var(--app-text)' : 'var(--app-text-soft)', boxShadow: active ? '0 2px 6px rgba(14,108,196,0.08)' : 'none' }}
-                >
-                  {f.label}
-                </button>
-              )
-            })}
+
+          {/* Dropdowns keep the toolbar to one line on a phone. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="sr-only" htmlFor="delivery-timing-filter">Schedule date</label>
+            <select
+              id="delivery-timing-filter"
+              value={timingFilter}
+              onChange={(e) => setTimingFilter(e.target.value as DeliveryTimingFilter)}
+              className={FILTER_SELECT}
+            >
+              {TIMING_FILTERS.map((f) => (
+                <option key={f.value} value={f.value}>{f.label}</option>
+              ))}
+            </select>
+
+            <label className="sr-only" htmlFor="delivery-status-filter">Status</label>
+            <select
+              id="delivery-status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as DeliveryStatusFilter)}
+              className={FILTER_SELECT}
+            >
+              {STATUS_FILTERS.map((f) => (
+                <option key={f.value} value={f.value}>{f.label}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -230,7 +260,7 @@ export function DeliveriesPage() {
         ) : deliveries.length === 0 ? (
           <EmptyState onSchedule={() => document.querySelector<HTMLButtonElement>('[data-create-delivery]')?.click()} />
         ) : filteredDeliveries.length === 0 ? (
-          <NoResultsState onClear={() => { setSearchQuery(''); setStatusFilter('all') }} />
+          <NoResultsState onClear={() => { setSearchQuery(''); setStatusFilter('all'); setTimingFilter('all') }} />
         ) : (
           <DeliveriesTable
             deliveries={filteredDeliveries}
@@ -245,9 +275,9 @@ export function DeliveriesPage() {
 
         {/* pagination footer */}
         {!deliveriesQuery.isError && (deliveries.length > 0 || page > 0) ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 22px', borderTop: '1px solid var(--app-border)', fontSize: '13px', color: 'var(--app-text-soft)' }}>
-            <span>Page <strong style={{ color: 'var(--app-text)', fontWeight: 600 }}>{page + 1}</strong>{deliveriesQuery.isFetching ? ' · updating…' : ''}</span>
-            <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--app-border)] px-[22px] py-3.5 text-[13px] text-[var(--app-text-soft)]">
+            <span>Page <strong className="font-semibold text-[var(--app-text)]">{page + 1}</strong>{deliveriesQuery.isFetching ? ' · updating…' : ''}</span>
+            <div className="flex gap-2">
               <PagBtn onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || deliveriesQuery.isFetching}>← Prev</PagBtn>
               <PagBtn onClick={() => setPage((p) => p + 1)} disabled={!hasNext || deliveriesQuery.isFetching}>Next →</PagBtn>
             </div>
@@ -270,26 +300,25 @@ export function DeliveriesPage() {
   )
 }
 
-function StatCard({ label, value, description, accentColor, chipBg, chipColor, isLoading, icon }: {
+function StatCard({ label, value, description, accentClass, chipClass, isLoading, icon }: {
   label: string
   value: number
   description: string
-  accentColor: string
-  chipBg: string
-  chipColor: string
+  accentClass: string
+  chipClass: string
   isLoading: boolean
   icon: React.ReactNode
 }) {
   return (
-    <article style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderLeft: `3px solid ${accentColor}`, borderRadius: '16px', padding: '15px 16px', boxShadow: 'var(--app-shadow-card)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--app-text-faint)' }}>{label}</div>
-        <div style={{ width: '28px', height: '28px', borderRadius: '9px', background: chipBg, color: chipColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+    <article className={cn('rounded-[16px] border border-l-[3px] border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-[15px] shadow-[var(--app-shadow-card)]', accentClass)}>
+      <div className="mb-2.5 flex items-center justify-between">
+        <div className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--app-text-faint)]">{label}</div>
+        <div className={cn('flex h-7 w-7 items-center justify-center rounded-[9px]', chipClass)}>{icon}</div>
       </div>
-      <div style={{ fontSize: '25px', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--app-text)', lineHeight: 1 }}>
-        {isLoading ? <span style={{ color: 'var(--app-text-faint)' }}>—</span> : value}
+      <div className="text-[25px] font-extrabold leading-none tracking-[-0.03em] text-[var(--app-text)]">
+        {isLoading ? <span className="text-[var(--app-text-faint)]">—</span> : value}
       </div>
-      <div style={{ fontSize: '12px', color: 'var(--app-text-soft)', marginTop: '7px' }}>{description}</div>
+      <div className="mt-[7px] text-[12px] text-[var(--app-text-soft)]">{description}</div>
     </article>
   )
 }
@@ -300,7 +329,12 @@ function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled
       type="button"
       onClick={onClick}
       disabled={disabled}
-      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--app-border-strong)', background: disabled ? 'var(--app-surface-2)' : 'var(--app-surface)', color: disabled ? 'var(--app-text-faint)' : 'var(--app-text-muted)', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: disabled ? 'default' : 'pointer' }}
+      className={cn(
+        'rounded-[10px] border border-[var(--app-border-strong)] px-3.5 py-2 text-[13px] font-semibold',
+        disabled
+          ? 'cursor-default bg-[var(--app-surface-2)] text-[var(--app-text-faint)]'
+          : 'cursor-pointer bg-[var(--app-surface)] text-[var(--app-text-muted)]',
+      )}
     >
       {children}
     </button>
@@ -309,8 +343,12 @@ function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled
 
 function DeliveryToast({ message }: { message: string }) {
   return (
-    <div role="status" aria-live="polite" style={{ position: 'fixed', right: '16px', top: '16px', zIndex: 90, display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--app-surface)', border: '1px solid rgba(0,245,212,0.3)', borderRadius: '16px', padding: '12px 16px', fontSize: '14px', fontWeight: 600, color: 'var(--app-chip-green-text)', boxShadow: '0 18px 44px rgba(0,48,73,0.16)', maxWidth: '360px' }}>
-      <span style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(0,245,212,0.15)', color: 'var(--app-chip-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed right-4 top-4 z-[90] flex max-w-[360px] items-center gap-3 rounded-[16px] border border-[rgba(0,245,212,0.3)] bg-[var(--app-surface)] px-4 py-3 text-sm font-semibold text-[var(--app-chip-green-text)] shadow-[0_18px_44px_rgba(0,48,73,0.16)]"
+    >
+      <span className="flex h-8 w-8 flex-none items-center justify-center rounded-[10px] bg-[rgba(0,245,212,0.15)] text-[var(--app-chip-green-text)]">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.2 4.2L19 7" /></svg>
       </span>
       {message}
@@ -320,11 +358,17 @@ function DeliveryToast({ message }: { message: string }) {
 
 function LoadingState() {
   return (
-    <div style={{ padding: '12px' }}>
+    <div className="p-3">
       {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1.2fr 52px', gap: '12px', padding: '14px 22px', borderTop: i > 0 ? '1px solid var(--app-border)' : 'none' }}>
+        <div
+          key={i}
+          className={cn(
+            'grid grid-cols-[2fr_1.5fr_1fr_1fr_1.2fr_52px] gap-3 px-[22px] py-3.5',
+            i > 0 && 'border-t border-[var(--app-border)]',
+          )}
+        >
           {Array.from({ length: 6 }, (__, j) => (
-            <AquaSkeleton key={j} style={{ height: '18px' }} />
+            <AquaSkeleton key={j} className="h-[18px]" />
           ))}
         </div>
       ))}
@@ -334,13 +378,17 @@ function LoadingState() {
 
 function EmptyState({ onSchedule }: { onSchedule: () => void }) {
   return (
-    <div style={{ padding: '62px 24px', textAlign: 'center' }}>
-      <div style={{ width: '72px', height: '72px', borderRadius: '22px', background: 'var(--app-chip-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--app-brand)' }}>
+    <div className="px-6 py-[62px] text-center">
+      <div className="mx-auto mb-5 flex h-[72px] w-[72px] items-center justify-center rounded-[22px] bg-[var(--app-chip-bg)] text-[var(--app-brand)]">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M3 6.5h10v9H3z" /><path d="M13 9.5h3.6l3.4 3.3v2.7H13z" /><circle cx="7" cy="17.5" r="1.7" /><circle cx="17" cy="17.5" r="1.7" /></svg>
       </div>
-      <div style={{ fontSize: '19px', fontWeight: 700, color: 'var(--app-text)', marginBottom: '8px' }}>No deliveries scheduled</div>
-      <p style={{ fontSize: '14px', color: 'var(--app-text-muted)', margin: '0 auto 20px', maxWidth: '380px', lineHeight: 1.6 }}>Schedule your first drop-off — set a recurring weekly route or pick exact dates on the calendar.</p>
-      <button type="button" onClick={onSchedule} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(150deg,#3fb0f0,#0a6cc4)', color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, padding: '12px 22px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 10px 24px rgba(14,108,196,0.3)' }}>
+      <div className="mb-2 text-[19px] font-bold text-[var(--app-text)]">No deliveries scheduled</div>
+      <p className="mx-auto mb-5 max-w-[380px] text-sm leading-[1.6] text-[var(--app-text-muted)]">Schedule your first drop-off — set a recurring weekly route or pick exact dates on the calendar.</p>
+      <button
+        type="button"
+        onClick={onSchedule}
+        className="inline-flex cursor-pointer items-center gap-2 rounded-[12px] bg-[linear-gradient(150deg,#3fb0f0,#0a6cc4)] px-[22px] py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(14,108,196,0.3)]"
+      >
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
         Schedule delivery
       </button>
@@ -350,13 +398,17 @@ function EmptyState({ onSchedule }: { onSchedule: () => void }) {
 
 function NoResultsState({ onClear }: { onClear: () => void }) {
   return (
-    <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-      <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: 'var(--app-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', color: 'var(--app-text-faint)' }}>
+    <div className="px-6 py-14 text-center">
+      <div className="mx-auto mb-[18px] flex h-16 w-16 items-center justify-center rounded-[18px] bg-[var(--app-surface-2)] text-[var(--app-text-faint)]">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-3.6-3.6" /></svg>
       </div>
-      <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--app-text)', marginBottom: '6px' }}>No matching deliveries</div>
-      <p style={{ fontSize: '14px', color: 'var(--app-text-muted)', margin: '0 0 18px' }}>Try a different search or status filter.</p>
-      <button type="button" onClick={onClear} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--app-surface)', border: '1px solid var(--app-border-strong)', color: 'var(--app-brand)', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, padding: '10px 18px', borderRadius: '11px', cursor: 'pointer' }}>
+      <div className="mb-1.5 text-[17px] font-bold text-[var(--app-text)]">No matching deliveries</div>
+      <p className="mb-[18px] text-sm text-[var(--app-text-muted)]">Try a different search, date, or status filter.</p>
+      <button
+        type="button"
+        onClick={onClear}
+        className="inline-flex cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--app-border-strong)] bg-[var(--app-surface)] px-[18px] py-2.5 text-[13.5px] font-semibold text-[var(--app-brand)]"
+      >
         Clear filters
       </button>
     </div>
@@ -365,7 +417,7 @@ function NoResultsState({ onClear }: { onClear: () => void }) {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div role="alert" style={{ margin: '16px', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(220,38,38,0.2)', background: 'rgba(220,38,38,0.05)', fontSize: '14px', color: '#b91c1c' }}>
+    <div role="alert" className="m-4 rounded-[12px] border border-[rgba(220,38,38,0.2)] bg-[rgba(220,38,38,0.05)] px-4 py-3 text-sm text-[#b91c1c]">
       {message}
     </div>
   )

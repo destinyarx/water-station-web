@@ -52,6 +52,15 @@ delivery records.
   still topped up the next time it is opened (the horizon is relative to "now",
   not to last run). A future cron/edge job can replace the client trigger without
   schema changes.
+
+> **Correction (2026-07-23).** The view-load top-up described above was never
+> actually wired. `materializeRecurringSchedule` was reachable only from schedule
+> creation and Resume, so a recurring route generated 14 days of occurrences and
+> then went silent — indefinitely, for an open-ended route. Issue
+> `018-modules-improvements` closed the gap: `topUpActiveSchedules` +
+> `useScheduleTopUp` now run the top-up once per mount of the deliveries page,
+> restoring the behaviour this ADR always claimed. Completed schedules are
+> skipped (ADR 0017).
 - Schedule edits affect **future** materialization only; already-generated
   occurrences are independent and individually editable. Dropping a weekday from
   a recurrence leaves existing pending rows in place.

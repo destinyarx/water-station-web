@@ -77,6 +77,9 @@ export async function getSchedules(
     )
     .in('recurrence_type', ['weekly', 'monthly', 'custom_dates'])
     .is('deleted_at', null)
+    // Finished plans leave the list. Only active schedules can be completed,
+    // so a stopped schedule stays here and stays resumable.
+    .eq('completed', false)
     .eq('current_delivery.status', 'pending')
     .lte('current_delivery.delivery_date', today)
     .eq('next_delivery.status', 'pending')

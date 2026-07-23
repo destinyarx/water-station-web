@@ -75,6 +75,28 @@ export function scheduleTiming(item: DeliveryScheduleListItem): ScheduleTiming {
   return { kind: 'empty', date: null }
 }
 
+/** Schedule-date buckets offered by the deliveries table filter. */
+export type DeliveryTimingFilter = 'all' | 'today' | 'overdue' | 'upcoming'
+
+/**
+ * Whether a delivery belongs to a schedule-date bucket, relative to `today`
+ * (`yyyy-mm-dd`). Overdue only counts runs that are still open — a completed,
+ * failed, or cancelled delivery is settled, not late.
+ */
+export function matchesTimingFilter(
+  delivery: Delivery,
+  filter: DeliveryTimingFilter,
+  today: string,
+): boolean {
+  if (filter === 'all') return true
+  if (filter === 'today') return delivery.deliveryDate === today
+  if (filter === 'upcoming') return delivery.deliveryDate > today
+  return (
+    delivery.deliveryDate < today &&
+    (delivery.status === 'pending' || delivery.status === 'for_delivery')
+  )
+}
+
 /** Cross-status terminal event timestamp used by the history presentation. */
 export function deliveryTerminalTimestamp(delivery: Delivery): string {
   return (

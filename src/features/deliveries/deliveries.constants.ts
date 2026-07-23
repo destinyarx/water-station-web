@@ -16,7 +16,7 @@ export const CURRENT_DELIVERY_COLUMNS =
 export const MATERIALIZE_HORIZON_DAYS = 14
 
 export const DELIVERY_SCHEDULE_COLUMNS =
-  'id, customer_id, guest_name, guest_contact, guest_address, recurrence_type, start_date, delivery_date, weekdays, interval_weeks, day_of_month, interval_months, end_date, status, notes, assigned_to, org_id, created_by, created_at, updated_at, deleted_at'
+  'id, customer_id, guest_name, guest_contact, guest_address, recurrence_type, start_date, delivery_date, weekdays, interval_weeks, day_of_month, interval_months, end_date, status, completed, notes, assigned_to, org_id, created_by, created_at, updated_at, deleted_at'
 
 export const DELIVERY_COLUMNS =
   'id, schedule_id, delivery_date, status, failure_remarks, cancellation_remarks, notes, assigned_to, delivered_by, completed_at, org_id, created_by, created_at, updated_at, deleted_at'

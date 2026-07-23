@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   deliveryTerminalTimestamp,
+  matchesTimingFilter,
   nextUpcomingDate,
   recurrenceSummary,
   scheduleRecipient,
@@ -31,6 +32,7 @@ function schedule(
     interval_months: null,
     end_date: null,
     status: 'active',
+    completed: false,
     notes: null,
     assigned_to: null,
     org_id: '00000000-0000-4000-8000-000000000321',
@@ -132,5 +134,56 @@ describe('deliveryTerminalTimestamp', () => {
     expect(deliveryTerminalTimestamp(delivery)).toBe(
       '2026-07-18T04:00:00.000Z',
     )
+  })
+})
+
+describe('matchesTimingFilter', () => {
+  const base = {
+    id: 1,
+    scheduleId: 1,
+    deliveryDate: '2026-07-23',
+    status: 'pending',
+    failureRemarks: null,
+    cancellationRemarks: null,
+    notes: null,
+    assignedTo: null,
+    deliveredBy: null,
+    completedAt: null,
+    orgId: '00000000-0000-4000-8000-000000000321',
+    createdBy: 'user_123',
+    createdAt: '2026-07-10T00:00:00.000Z',
+    updatedAt: null,
+    deletedAt: null,
+    items: [],
+    total: 0,
+  } satisfies Delivery
+
+  const today = '2026-07-23'
+
+  it('keeps everything under the all bucket', () => {
+    expect(matchesTimingFilter({ ...base, deliveryDate: '2020-01-01' }, 'all', today)).toBe(true)
+  })
+
+  it('matches only deliveries scheduled today', () => {
+    expect(matchesTimingFilter(base, 'today', today)).toBe(true)
+    expect(matchesTimingFilter({ ...base, deliveryDate: '2026-07-24' }, 'today', today)).toBe(false)
+  })
+
+  it('matches past dates that are still open', () => {
+    const past = { ...base, deliveryDate: '2026-07-20' }
+    expect(matchesTimingFilter(past, 'overdue', today)).toBe(true)
+    expect(matchesTimingFilter({ ...past, status: 'for_delivery' }, 'overdue', today)).toBe(true)
+  })
+
+  it('excludes settled past deliveries from overdue', () => {
+    const past = { ...base, deliveryDate: '2026-07-20' }
+    expect(matchesTimingFilter({ ...past, status: 'completed' }, 'overdue', today)).toBe(false)
+    expect(matchesTimingFilter({ ...past, status: 'cancelled' }, 'overdue', today)).toBe(false)
+    expect(matchesTimingFilter({ ...past, status: 'failed' }, 'overdue', today)).toBe(false)
+  })
+
+  it('matches dates after today for upcoming', () => {
+    expect(matchesTimingFilter({ ...base, deliveryDate: '2026-07-24' }, 'upcoming', today)).toBe(true)
+    expect(matchesTimingFilter(base, 'upcoming', today)).toBe(false)
   })
 })
