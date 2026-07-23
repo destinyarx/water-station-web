@@ -89,6 +89,17 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    key: 'water-quality',
+    label: 'Water Quality',
+    href: '/water-quality',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2.5c4 5 6.5 8 6.5 11.5a6.5 6.5 0 1 1-13 0C5.5 10.5 8 7.5 12 2.5Z" />
+        <path d="M9 15c1 1 2 1.4 3 1.4" />
+      </svg>
+    ),
+  },
+  {
     key: 'expenses',
     label: 'Expenses',
     href: '/expenses',
